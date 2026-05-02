@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baccarat Predictor Pro - Manual Entry from Telegram</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a472a 0%, #0a2a1a 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container { max-width: 1400px; margin: 0 auto; }
+        .header { text-align: center; color: gold; margin-bottom: 30px; }
+        .card {
+            background: rgba(255,255,255,0.95);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+        }
+        .card-title {
+            font-size: 1.5em;
+            margin-bottom: 15px;
+            color: #1a472a;
+            border-bottom: 2px solid #ffd700;
+            padding-bottom: 10px;
+        }
+        .telegram-badge {
+            background: #0088cc;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-bottom: 15px;
+        }
+        .input-group { margin-bottom: 15px; }
+        .input-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1em;
+        }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+            margin: 5px;
+        }
+        .btn-primary { background: #1a472a; color: white; }
+        .btn-success { background: #27ae60; color: white; }
+        .btn-danger { background: #e74c3c; color: white; }
+        .btn-info { background: #3498db; color: white; }
+        .btn-warning { background: #f39c12; color: white; }
+        .btn:hover { transform: translateY(-2px); opacity: 0.9; }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .stat-card {
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .stat-value { font-size: 1.8em; font-weight: bold; color: #1a472a; }
+        .prediction-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .prediction-result { font-size: 2.5em; font-weight: bold; margin: 10px 0; }
+        .confidence-bar {
+            background: rgba(255,255,255,0.3);
+            border-radius: 10px;
+            height: 30px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+        .confidence-fill {
+            background: #ffd700;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #333;
+            font-weight: bold;
+            transition: width 0.5s;
+        }
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .results-table th, .results-table td {
+            padding: 10px;
+            text-align: center;
+            border-bottom: 1px solid #ddd;
+        }
+        .results-table th { background: #1a472a; color: white; }
+        .winner-player { color: #3498db; font-weight: bold; }
+        .winner-banker { color: #e74c3c; font-weight: bold; }
+        .winner-tie { color: #f39c12; font-weight: bold; }
+        .alert {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 10px;
+            background: white;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            z-index: 1000;
+            animation: slideIn 0.3s;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        .help-text { font-size: 0.85em; color: #666; margin-top: 5px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎰 BACCARAT PREDICTOR PRO 🃏</h1>
+            <p>Powered by Manual Data Entry from Telegram Channel</p>
+            <div class="telegram-badge">📱 Source: @statistika_baccara (Manual Entry)</div>
+        </div>
+
+        <!-- Data Entry Section -->
+        <div class="card">
+            <div class="card-title">📝 ENTER RESULTS FROM TELEGRAM</div>
+            <div class="input-group">
+                <label>🔗 Telegram Message Text (Copy/Paste from @statistika_baccara):</label>
+                <input type="text" id="telegramMessage" placeholder="Paste the message here... e.g., 'Result: Player wins 8-4'">
+                <div class="help-text">💡 The system will automatically detect Player, Banker, or Tie from the message</div>
+            </div>
+            <div class="input-group">
+                <label>🎯 Or Select Manually:</label>
+                <select id="manualResult">
+                    <option value="Player">🎯 Player Wins</option>
+                    <option value="Banker">🏦 Banker Wins</option>
+                    <option value="Tie">⚖️ Tie</option>
+                </select>
+            </div>
+            <div>
+                <button class="btn btn-success" onclick="addResultFromTelegram()">➕ Add Result</button>
+                <button class="btn btn-primary" onclick="batchAddResults()">📦 Batch Add Multiple Results</button>
+                <button class="btn btn-danger" onclick="clearAllData()">🗑️ Clear All Data</button>
+            </div>
+        </div>
+
+        <!-- Statistics Panel -->
+        <div class="stats-grid">
+            <div class="stat-card"><div>📊 Total Hands</div><div class="stat-value" id="totalHands">0</div></div>
+            <div class="stat-card"><div>🎯 Player Wins</div><div class="stat-value" id="playerWins">0</div></div>
+            <div class="stat-card"><div>🏦 Banker Wins</div><div class="stat-value" id="bankerWins">0</div></div>
+            <div class="stat-card"><div>⚖️ Ties</div><div class="stat-value" id="ties">0</div></div>
+            <div class="stat-card"><div>📈 Player Rate</div><div class="stat-value" id="playerRate">0%</div></div>
+            <div class="stat-card"><div>📉 Banker Rate</div><div class="stat-value" id="bankerRate">0%</div></div>
+            <div class="stat-card"><div>⚡ Current Streak</div><div class="stat-value" id="currentStreak">0</div></div>
+            <div class="stat-card"><div>🔥 Longest Streak</div><div class="stat-value" id="longestStreak">0</div></div>
+        </div>
+
+        <!-- AI Prediction -->
+        <div class="card">
+            <div class="card-title">🤖 AI PREDICTION ENGINE</div>
+            <div class="prediction-box">
+                <div>🎲 Next Outcome Prediction (Based on Entered Data)</div>
+                <div class="prediction-result" id="predictedOutcome">-</div>
+                <div class="confidence-bar"><div class="confidence-fill" id="confidenceFill" style="width: 0%">0%</div></div>
+                <div id="predictionReasoning" style="margin-top: 15px; font-size: 0.9em;"></div>
+                <div id="recommendedBet" style="margin-top: 15px; font-size: 1.1em; font-weight: bold;"></div>
+            </div>
+        </div>
+
+        <!-- Pattern Analysis -->
+        <div class="card">
+            <div class="card-title">📈 PATTERN ANALYSIS & INSIGHTS</div>
+            <div id="patternAnalysis"></div>
+        </div>
+
+        <!-- Results History -->
+        <div class="card">
+            <div class="card-title">📜 RESULT HISTORY (from @statistika_baccara)</div>
+            <div style="overflow-x: auto;">
+                <table class="results-table" id="resultsTable">
+                    <thead><tr><th>#</th><th>Date/Time</th><th>Result</th><th>Source Message</th></tr></thead>
+                    <tbody id="resultsBody"><tr><td colspan="4">No results entered yet. Add results from Telegram above.</td></tr></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Storage key for localStorage
+        const STORAGE_KEY = 'baccarat_predictor_data';
+        
+        // Baccarat Prediction Engine
+        class BaccaratPredictor {
+            constructor() {
+                this.results = [];
+                this.loadFromStorage();
+            }
+            
+            loadFromStorage() {
+                const saved = localStorage.getItem(STORAGE_KEY);
+                if (saved) {
+                    this.results = JSON.parse(saved);
+                    this.updateStats();
+                }
+            }
+            
+            saveToStorage() {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(this.results));
+            }
+            
+            parseTelegramMessage(message) {
+                // Pattern matching for baccarat results in Russian/English
+                const patterns = [
+                    /(?:Player|Игрок)\s*(?:wins|победил)/i,
+                    /(?:Banker|Банкир)\s*(?:wins|победил)/i,
+                    /(?:Tie|Ничья)/i,
+                    /Результат:\s*(?:Player|Banker|Tie)/i,
+                    /Winner:\s*(?:Player|Banker|Tie)/i,
+                    /🏆\s*(?:Player|Banker|Tie)/i,
+                    /✅\s*(?:Player|Banker|Tie)/i,
+                    /\b(Player|Banker|Tie)\b/i
+                ];
+                
+                let result = null;
+                if (/Player|Игрок/i.test(message) && !/Banker|Банкир/i.test(message)) result = 'Player';
+                else if (/Banker|Банкир/i.test(message) && !/Player|Игрок/i.test(message)) result = 'Banker';
+                else if (/Tie|Ничья/i.test(message)) result = 'Tie';
+                
+                if (!result) {
+                    for (let pattern of patterns) {
+                        const match = message.match(pattern);
+                        if (match) {
+                            const text = match[0].toLowerCase();
+                            if (text.includes('player')) result = 'Player';
+                            else if (text.includes('banker')) result = 'Banker';
+                            else if (text.includes('tie')) result = 'Tie';
+                            if (result) break;
+                        }
+                    }
+                }
+                return result;
+            }
+            
+            addResult(winner, sourceMessage = '') {
+                const result = {
+                    id: Date.now(),
+                    winner: winner,
+                    timestamp: new Date().toISOString(),
+                    sourceMessage: sourceMessage.substring(0, 100)
+                };
+                this.results.unshift(result);
+                if (this.results.length > 200) this.results.pop();
+                this.saveToStorage();
+                this.updateStats();
+                return result;
+            }
+            
+            batchAddResults(resultsArray) {
+                for (let winner of resultsArray) {
+                    this.addResult(winner, 'Batch import');
+                }
+            }
+            
+            clearAll() {
+                if (confirm('⚠️ WARNING: This will delete ALL entered data. Are you sure?')) {
+                    this.results = [];
+                    this.saveToStorage();
+                    this.updateStats();
+                    showAlert('All data cleared!', 'warning');
+                }
+            }
+            
+            updateStats() {
+                const total = this.results.length;
+                const playerWins = this.results.filter(r => r.winner === 'Player').length;
+                const bankerWins = this.results.filter(r => r.winner === 'Banker').length;
+                const ties = this.results.filter(r => r.winner === 'Tie').length;
+                
+                // Calculate streaks
+                let currentStreak = 0;
+                let longestStreak = 0;
+                let streakWinner = null;
+                
+                if (total > 0) {
+                    currentStreak = 1;
+                    longestStreak = 1;
+                    streakWinner = this.results[0].winner;
+                    for (let i = 1; i < this.results.length; i++) {
+                        if (this.results[i].winner === this.results[i-1].winner) {
+                            currentStreak++;
+                            longestStreak = Math.max(longestStreak, currentStreak);
+                        } else break;
+                    }
+                }
+                
+                this.stats = {
+                    total, playerWins, bankerWins, ties,
+                    playerRate: total ? playerWins / total : 0,
+                    bankerRate: total ? bankerWins / total : 0,
+                    tieRate: total ? ties / total : 0,
+                    currentStreak, longestStreak, streakWinner
+                };
+                
+                this.updateUI();
+                this.generatePrediction();
+                this.updatePatternAnalysis();
+            }
+            
+            generatePrediction() {
+                if (this.results.length < 5) {
+                    this.prediction = { outcome: 'Need more data', confidence: 0, reason: 'Add at least 5 results from Telegram' };
+                    this.updatePredictionUI();
+                    return;
+                }
+                
+                const recent = this.results.slice(0, 30);
+                const outcomes = recent.map(r => r.winner);
+                
+                // 1. Markov Chain (sequence analysis)
+                const transitions = {};
+                for (let i = 1; i < outcomes.length; i++) {
+                    const key = `${outcomes[i-1]}|${outcomes[i]}`;
+                    transitions[key] = (transitions[key] || 0) + 1;
+                }
+                
+                const lastOutcome = outcomes[0];
+                const nextProbabilities = { Player: 0, Banker: 0, Tie: 0 };
+                let totalTrans = 0;
+                for (let [key, count] of Object.entries(transitions)) {
+                    const [prev, next] = key.split('|');
+                    if (prev === lastOutcome) {
+                        nextProbabilities[next] += count;
+                        totalTrans += count;
+                    }
+                }
+                
+                // 2. Statistical bias
+                const statBias = {
+                    Player: this.stats.playerRate,
+                    Banker: this.stats.bankerRate,
+                    Tie: this.stats.tieRate
+                };
+                
+                // 3. Pattern detection
+                let patternScore = { Player: 0, Banker: 0, Tie: 0 };
+                
+                // Zigzag detection
+                let isZigzag = true;
+                for (let i = 1; i < Math.min(6, outcomes.length); i++) {
+                    if (outcomes[i] === outcomes[i-1]) { isZigzag = false; break; }
+                }
+                if (isZigzag && outcomes.length >= 4) {
+                    const opposite = lastOutcome === 'Player' ? 'Banker' : lastOutcome === 'Banker' ? 'Player' : 'Tie';
+                    patternScore[opposite] += 2;
+                }
+                
+                // Streak continuation
+                if (this.stats.currentStreak >= 3) patternScore[lastOutcome] += 1.5;
+                if (this.stats.currentStreak >= 4) {
+                    patternScore[lastOutcome === 'Player' ? 'Banker' : 'Player'] += 1;
+                }
+                
+                // Combine scores
+                const finalScores = {
+                    Player: (nextProbabilities.Player / (totalTrans || 1)) * 0.4 + statBias.Player * 0.3 + patternScore.Player * 0.3,
+                    Banker: (nextProbabilities.Banker / (totalTrans || 1)) * 0.4 + statBias.Banker * 0.3 + patternScore.Banker * 0.3,
+                    Tie: (nextProbabilities.Tie / (totalTrans || 1)) * 0.3 + statBias.Tie * 0.4 + patternScore.Tie * 0.3
+                };
+                
+                let predictedOutcome = 'Player';
+                let maxScore = 0;
+                for (let [outcome, score] of Object.entries(finalScores)) {
+                    if (score > maxScore) { maxScore = score; predictedOutcome = outcome; }
+                }
+                
+                let confidence = maxScore / (finalScores.Player + finalScores.Banker + finalScores.Tie);
+                confidence = Math.min(0.95, Math.max(0.5, confidence));
+                
+                // Generate reasoning
+                let reasons = [];
+                if (nextProbabilities[predictedOutcome] / (totalTrans || 1) > 0.4)
+                    reasons.push(`📊 Markov chain favors ${predictedOutcome}`);
+                if (statBias[predictedOutcome] > 0.45)
+                    reasons.push(`📈 Statistical bias: ${(statBias[predictedOutcome]*100).toFixed(1)}% ${predictedOutcome}`);
+                if (patternScore[predictedOutcome] > 1)
+                    reasons.push(`🎨 Pattern detection supports ${predictedOutcome}`);
+                if (this.stats.currentStreak >= 3)
+                    reasons.push(`⚡ ${this.stats.currentStreak}-game streak on ${this.stats.streakWinner}`);
+                
+                this.prediction = { outcome: predictedOutcome, confidence, reasons: reasons.slice(0, 3) };
+                this.updatePredictionUI();
+            }
+            
+            updateUI() {
+                document.getElementById('totalHands').innerText = this.stats.total;
+                document.getElementById('playerWins').innerText = this.stats.playerWins;
+                document.getElementById('bankerWins').innerText = this.stats.bankerWins;
+                document.getElementById('ties').innerText = this.stats.ties;
+                document.getElementById('playerRate').innerText = `${(this.stats.playerRate * 100).toFixed(1)}%`;
+                document.getElementById('bankerRate').innerText = `${(this.stats.bankerRate * 100).toFixed(1)}%`;
+                document.getElementById('currentStreak').innerText = this.stats.currentStreak;
+                document.getElementById('longestStreak').innerText = this.stats.longestStreak;
+                
+                // Update results table
+                const tbody = document.getElementById('resultsBody');
+                tbody.innerHTML = '';
+                if (this.results.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4">No results entered yet. Add results from Telegram above.</td></tr>';
+                } else {
+                    this.results.slice(0, 50).forEach((result, idx) => {
+                        const row = tbody.insertRow();
+                        row.insertCell(0).innerText = idx + 1;
+                        row.insertCell(1).innerText = new Date(result.timestamp).toLocaleString();
+                        const winnerClass = result.winner === 'Player' ? 'winner-player' : result.winner === 'Banker' ? 'winner-banker' : 'winner-tie';
+                        row.insertCell(2).innerHTML = `<span class="${winnerClass}">${result.winner}</span>`;
+                        row.insertCell(3).innerText = result.sourceMessage || '-';
+                    });
+                }
+            }
+            
+            updatePatternAnalysis() {
+                const analysisDiv = document.getElementById('patternAnalysis');
+                if (this.results.length < 5) {
+                    analysisDiv.innerHTML = '<p>⚠️ Need at least 5 results for pattern analysis. Keep adding data from Telegram!</p>';
+                    return;
+                }
+                
+                const recent10 = this.results.slice(0, 10).map(r => r.winner === 'Player' ? 'P' : r.winner === 'Banker' ? 'B' : 'T');
+                const ev = {
+                    Player: (this.stats.playerRate * 1) - (1 - this.stats.playerRate - this.stats.tieRate),
+                    Banker: (this.stats.bankerRate * 0.95) - (1 - this.stats.bankerRate - this.stats.tieRate),
+                    Tie: (this.stats.tieRate * 8) - (1 - this.stats.tieRate)
+                };
+                const bestEV = Object.keys(ev).reduce((a,b) => ev[a] > ev[b] ? a : b);
+                
+                analysisDiv.innerHTML = `
+                    <div style="display: grid; gap: 15px;">
+                        <div><strong>🎨 Recent Pattern (Last 10):</strong><br>
+                        <code style="font-size: 1.2em; background: #f0f0f0; padding: 10px; display: block; text-align: center;">${recent10.join(' → ')}</code></div>
+                        <div><strong>💰 Expected Value (EV):</strong><br>
+                        • Player EV: ${(ev.Player * 100).toFixed(2)}%<br>
+                        • Banker EV: ${(ev.Banker * 100).toFixed(2)}%<br>
+                        • Tie EV: ${(ev.Tie * 100).toFixed(2)}%<br>
+                        <strong>🎯 Best mathematical bet: ${bestEV}</strong></div>
+                        <div><strong>📊 Data Quality:</strong> ${this.results.length} hands recorded from @statistika_baccara</div>
+                    </div>
+                `;
+            }
+            
+            updatePredictionUI() {
+                if (!this.prediction || this.prediction.outcome === 'Need more data') {
+                    document.getElementById('predictedOutcome').innerHTML = '📊 Add more data...';
+                    document.getElementById('confidenceFill').style.width = '0%';
+                    document.getElementById('predictionReasoning').innerHTML = 'Enter at least 5 results from the Telegram channel';
+                    document.getElementById('recommendedBet').innerHTML = '';
+                    return;
+                }
+                
+                const symbol = this.prediction.outcome === 'Player' ? '🎯' : this.prediction.outcome === 'Banker' ? '🏦' : '⚖️';
+                document.getElementById('predictedOutcome').innerHTML = `${symbol} ${this.prediction.outcome}`;
+                const confPct = (this.prediction.confidence * 100).toFixed(1);
+                document.getElementById('confidenceFill').style.width = `${confPct}%`;
+                document.getElementById('confidenceFill').innerHTML = `${confPct}%`;
+                
+                let reasonsHtml = '<ul style="text-align: left;">';
+                this.prediction.reasons.forEach(r => reasonsHtml += `<li>${r}</li>`);
+                reasonsHtml += '</ul>';
+                document.getElementById('predictionReasoning').innerHTML = reasonsHtml;
+                
+                let recommendation = '';
+                if (this.prediction.confidence > 0.75)
+                    recommendation = `🔥 STRONG: Bet on ${this.prediction.outcome} with ${confPct}% confidence`;
+                else if (this.prediction.confidence > 0.6)
+                    recommendation = `📊 CONSIDER: ${this.prediction.outcome} (${confPct}% confidence)`;
+                else
+                    recommendation = `⚠️ Low confidence. Wait for more data from Telegram.`;
+                document.getElementById('recommendedBet').innerHTML = recommendation;
+            }
+        }
+        
+        // Initialize predictor
+        const predictor = new BaccaratPredictor();
+        
+        // UI Functions
+        function addResultFromTelegram() {
+            const message = document.getElementById('telegramMessage').value.trim();
+            if (message) {
+                const detectedWinner = predictor.parseTelegramMessage(message);
+                if (detectedWinner) {
+                    predictor.addResult(detectedWinner, message);
+                    showAlert(`✅ Added: ${detectedWinner} | Message: "${message.substring(0, 50)}..."`, 'success');
+                    document.getElementById('telegramMessage').value = '';
+                } else {
+                    showAlert('❌ Could not detect result in message. Please use manual selection.', 'error');
+                }
+            } else {
+                const manualWinner = document.getElementById('manualResult').value;
+                predictor.addResult(manualWinner, `Manual entry: ${manualWinner}`);
+                showAlert(`✅ Added manual result: ${manualWinner}`, 'success');
+            }
+        }
+        
+        function batchAddResults() {
+            const batchText = prompt("Enter multiple results separated by commas (e.g., Player, Banker, Player, Tie):");
+            if (batchText) {
+                const results = batchText.split(',').map(r => r.trim().toLowerCase());
+                const validResults = [];
+                for (let r of results) {
+                    if (r === 'player') validResults.push('Player');
+                    else if (r === 'banker') validResults.push('Banker');
+                    else if (r === 'tie') validResults.push('Tie');
+                }
+                if (validResults.length > 0) {
+                    predictor.batchAddResults(validResults);
+                    showAlert(`✅ Added ${validResults.length} results in batch!`, 'success');
+                } else {
+                    showAlert('No valid results found. Use: Player, Banker, or Tie', 'error');
+                }
+            }
+        }
+        
+        function clearAllData() {
+            predictor.clearAll();
+        }
+        
+        function showAlert(message, type) {
+            const alert = document.createElement('div');
+            alert.className = 'alert';
+            alert.style.borderLeft = `4px solid ${type === 'success' ? '#27ae60' : type === 'error' ? '#e74c3c' : '#f39c12'}`;
+            alert.innerHTML = message;
+            document.body.appendChild(alert);
+            setTimeout(() => alert.remove(), 3000);
+        }
+        
+        // Export functionality
+        function exportData() {
+            const dataStr = JSON.stringify(predictor.results, null, 2);
+            const blob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `baccarat_data_${new Date().toISOString().slice(0,19)}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showAlert('Data exported successfully!', 'success');
+        }
+        
+        // Add export button to page
+        const exportBtn = document.createElement('button');
+        exportBtn.className = 'btn btn-info';
+        exportBtn.innerHTML = '💾 Export All Data';
+        exportBtn.onclick = exportData;
+        exportBtn.style.marginLeft = '10px';
+        document.querySelector('.card:first-child .btn-danger').parentNode.appendChild(exportBtn);
+    </script>
+</body>
+</html>
