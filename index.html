@@ -1,1000 +1,843 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BACCARATIQ · Quantitative Analysis Engine v4.0 · Full Exploitation Suite</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
-<style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --bg:#080C10;--bg2:#0D1117;--bg3:#131920;--bg4:#1A2330;
-  --banker:#D97706;--banker-l:#FCD34D;--banker-dim:#3D2A0A;
-  --player:#0891B2;--player-l:#67E8F9;--player-dim:#0A2C38;
-  --tie:#7C3AED;--tie-l:#C4B5FD;--tie-dim:#2D1B5C;
-  --profit:#059669;--profit-l:#6EE7B7;
-  --loss:#DC2626;--loss-l:#FCA5A5;
-  --skip:#6B7280;--skip-l:#D1D5DB;
-  --border:#1F2D3A;--border2:#263545;
-  --text:#E2E8F0;--text2:#94A3B8;--text3:#475569;
-  --accent:#F59E0B;
-  --mono:'JetBrains Mono',monospace;
-  --head:'Syne',sans-serif;
-}
-body{background:var(--bg);color:var(--text);font-family:var(--mono);font-size:13px;min-height:100vh;overflow-x:hidden}
-::-webkit-scrollbar{width:4px;height:4px}
-::-webkit-scrollbar-track{background:var(--bg)}
-::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
-#topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 20px;display:flex;align-items:center;gap:20px;height:52px;position:sticky;top:0;z-index:100}
-#topbar .logo{font-family:var(--head);font-size:18px;font-weight:800;letter-spacing:-.5px;color:var(--accent);white-space:nowrap}
-#topbar .logo span{color:var(--text2);font-weight:400;font-size:12px;margin-left:8px;font-family:var(--mono)}
-.top-stat{display:flex;flex-direction:column;align-items:flex-end;border-left:1px solid var(--border);padding-left:16px}
-.top-stat label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.1em}
-.top-stat .val{font-size:15px;font-weight:600;line-height:1.2}
-.top-stat .val.pos{color:var(--profit-l)}
-.top-stat .val.neg{color:var(--loss-l)}
-.top-stat .val.warn{color:var(--banker-l)}
-#topbar .spacer{flex:1}
-.badge{display:inline-block;padding:2px 8px;border-radius:3px;font-size:10px;font-weight:500;letter-spacing:.05em;text-transform:uppercase}
-.badge.live{background:#0F3A1F;color:#6EE7B7;border:1px solid #065F46}
-.badge.sim{background:#1E1B3A;color:#A78BFA;border:1px solid #4C1D95}
-#main{display:grid;grid-template-columns:300px 1fr 320px;grid-template-rows:1fr;height:calc(100vh - 52px);overflow:hidden}
-.panel{background:var(--bg2);border-right:1px solid var(--border);overflow-y:auto;display:flex;flex-direction:column}
-.panel:last-child{border-right:none;border-left:1px solid var(--border)}
-.panel-section{border-bottom:1px solid var(--border);padding:14px 16px}
-.panel-section:last-child{border-bottom:none}
-.sec-title{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.12em;margin-bottom:10px;font-weight:500}
-#center{display:flex;flex-direction:column;overflow:hidden;background:var(--bg)}
-#decision-box{padding:20px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0}
-.decision-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
-.decision-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.15em}
-.round-num{font-size:11px;color:var(--text3);font-family:var(--mono)}
-#decision-main{display:flex;align-items:stretch;gap:16px}
-#bet-side{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;border-radius:6px;border:1px solid var(--border);transition:all .3s;min-height:110px}
-#bet-side.BANKER{background:var(--banker-dim);border-color:var(--banker)}
-#bet-side.PLAYER{background:var(--player-dim);border-color:var(--player)}
-#bet-side.SKIP{background:var(--bg3);border-color:var(--border2)}
-#bet-action{font-family:var(--head);font-size:28px;font-weight:800;letter-spacing:-.5px}
-#bet-action.BANKER{color:var(--banker-l)}
-#bet-action.PLAYER{color:var(--player-l)}
-#bet-action.SKIP{color:var(--skip-l)}
-#bet-side small{font-size:10px;color:var(--text3);margin-top:4px;text-transform:uppercase;letter-spacing:.1em}
-.decision-meta{display:flex;flex-direction:column;gap:10px;width:160px}
-.meta-block{background:var(--bg3);border:1px solid var(--border);border-radius:5px;padding:10px 12px}
-.meta-block label{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;display:block;margin-bottom:4px}
-.meta-block .mval{font-size:16px;font-weight:600;color:var(--accent)}
-#conf-section{padding:14px 20px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0}
-.conf-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
-.conf-label{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.1em}
-#conf-pct{font-size:14px;font-weight:600;color:var(--accent)}
-#conf-bar-outer{height:6px;background:var(--bg4);border-radius:3px;overflow:hidden}
-#conf-bar-inner{height:100%;width:50%;border-radius:3px;transition:width .4s,background .4s}
-#reasoning{padding:12px 20px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;max-height:120px;overflow-y:auto}
-.reason-item{display:flex;align-items:flex-start;gap:8px;font-size:11px;color:var(--text2);margin-bottom:5px;line-height:1.4}
-.reason-icon{width:14px;height:14px;flex-shrink:0;margin-top:1px;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700}
-.ri-pattern{background:#1B3A5C;color:#67E8F9}
-.ri-prob{background:#1B3A2A;color:#6EE7B7}
-.ri-anomaly{background:#3D1A1A;color:#FCA5A5}
-.ri-markov{background:#2A1B3D;color:#C4B5FD}
-.ri-third{background:#3D2A0A;color:#FCD34D}
-.ri-rng{background:#1A1B3D;color:#A78BFA}
-.ri-regime{background:#0A4A4A;color:#67E8F9}
-#charts-area{flex:1;display:grid;grid-template-rows:1fr 1fr;overflow:hidden;padding:12px;gap:10px}
-.chart-card{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:12px;display:flex;flex-direction:column}
-.chart-card h4{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:10px}
-.chart-card .chart-wrap{flex:1;position:relative;min-height:0}
-.chart-card .chart-wrap canvas{max-height:100%}
-#input-area{padding:14px 16px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0}
-.outcome-btns{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:10px}
-.out-btn{padding:10px 4px;border:1px solid var(--border2);border-radius:5px;background:var(--bg3);color:var(--text2);font-family:var(--mono);font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;text-align:center}
-.out-btn:hover{opacity:.8}
-.out-btn.b{border-color:var(--banker);background:var(--banker-dim);color:var(--banker-l)}
-.out-btn.p{border-color:var(--player);background:var(--player-dim);color:var(--player-l)}
-.out-btn.t{border-color:var(--tie);background:var(--tie-dim);color:var(--tie-l)}
-.out-btn:active{transform:scale(.97)}
-.input-row{display:flex;gap:6px}
-.input-row input{flex:1;background:var(--bg3);border:1px solid var(--border2);border-radius:4px;color:var(--text);font-family:var(--mono);font-size:12px;padding:6px 10px;outline:none}
-.input-row input:focus{border-color:var(--accent)}
-.input-row button{background:var(--bg4);border:1px solid var(--border2);border-radius:4px;color:var(--text2);font-family:var(--mono);font-size:11px;padding:6px 10px;cursor:pointer;white-space:nowrap}
-.input-row button:hover{border-color:var(--text3)}
-#history-list{padding:10px 16px;flex:1;overflow-y:auto}
-.hist-item{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border);font-size:11px}
-.hist-item:last-child{border-bottom:none}
-.hist-badge{width:24px;height:24px;border-radius:3px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;flex-shrink:0}
-.hb-B{background:var(--banker-dim);color:var(--banker-l)}
-.hb-P{background:var(--player-dim);color:var(--player-l)}
-.hb-T{background:var(--tie-dim);color:var(--tie-l)}
-.hist-item .hnum{color:var(--text3);width:28px;text-align:right;font-size:10px}
-.hist-item .hresult{flex:1;color:var(--text2)}
-.hist-item .hedge{font-size:10px;color:var(--text3)}
-.hist-item .hpnl{font-size:11px;font-weight:500;text-align:right;min-width:40px}
-.pnl-pos{color:var(--profit-l)}
-.pnl-neg{color:var(--loss-l)}
-.pnl-sk{color:var(--text3)}
-.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
-.stat-cell{background:var(--bg3);border-radius:4px;padding:8px 10px;border:1px solid var(--border)}
-.stat-cell label{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;display:block}
-.stat-cell .sv{font-size:15px;font-weight:600;color:var(--text);line-height:1.3}
-.stat-cell .sv.pos{color:var(--profit-l)}
-.stat-cell .sv.neg{color:var(--loss-l)}
-.markov-table{width:100%;border-collapse:collapse;font-size:11px}
-.markov-table th{color:var(--text3);font-weight:400;font-size:10px;padding:4px 6px;text-align:center;border-bottom:1px solid var(--border)}
-.markov-table td{padding:5px 6px;text-align:center;color:var(--text2);border-bottom:1px solid var(--border)}
-.markov-table tr:last-child td{border-bottom:none}
-.mc-high{color:var(--profit-l);font-weight:600}
-.mc-med{color:var(--banker-l)}
-.pattern-row{display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:11px}
-.pattern-row:last-child{border-bottom:none}
-.pattern-seq{display:flex;gap:3px}
-.ps-b{color:var(--banker-l);font-weight:600}
-.ps-p{color:var(--player-l);font-weight:600}
-.ps-t{color:var(--tie-l)}
-.pattern-stat{color:var(--text3);font-size:10px}
-.pattern-conf{color:var(--accent);font-size:11px;font-weight:600}
-.slider-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
-.slider-row label{font-size:10px;color:var(--text3);width:100px;text-transform:uppercase;letter-spacing:.06em}
-.slider-row input[type=range]{flex:1;accent-color:var(--accent);height:4px}
-.slider-row .sv2{font-size:11px;color:var(--accent);width:44px;text-align:right}
-.btn-row{display:flex;gap:6px;margin-top:10px}
-.btn-sm{flex:1;padding:7px;border-radius:4px;border:1px solid var(--border2);background:var(--bg3);color:var(--text2);font-family:var(--mono);font-size:11px;cursor:pointer;transition:all .15s;text-align:center}
-.btn-sm:hover{border-color:var(--text3);color:var(--text)}
-.btn-sm.primary{border-color:var(--accent);color:var(--accent);background:rgba(245,158,11,.08)}
-.btn-sm.primary:hover{background:rgba(245,158,11,.15)}
-.btn-sm.danger{border-color:var(--loss);color:var(--loss-l);background:rgba(220,38,38,.05)}
-#sim-results{background:var(--bg3);border:1px solid var(--border);border-radius:5px;padding:10px;font-size:11px;display:none}
-.sim-row{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--border);color:var(--text2)}
-.sim-row:last-child{border-bottom:none}
-.sim-row strong{color:var(--text)}
-.entropy-bar{height:4px;background:var(--bg4);border-radius:2px;overflow:hidden;margin-top:4px}
-.entropy-fill{height:100%;border-radius:2px;transition:width .4s}
-#alert-zone{position:fixed;top:60px;right:16px;z-index:200;display:flex;flex-direction:column;gap:6px;pointer-events:none}
-.alert{padding:8px 14px;border-radius:5px;font-size:11px;font-family:var(--mono);border-left:3px solid;animation:slideIn .2s ease;pointer-events:all}
-.alert.warn{background:#1A1400;border-color:var(--banker);color:var(--banker-l)}
-.alert.danger{background:#1A0808;border-color:var(--loss);color:var(--loss-l)}
-.alert.info{background:#041520;border-color:var(--player);color:var(--player-l)}
-@keyframes slideIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
-.mode-toggle{display:flex;background:var(--bg3);border:1px solid var(--border);border-radius:4px;overflow:hidden}
-.mode-btn{flex:1;padding:6px 10px;font-family:var(--mono);font-size:11px;cursor:pointer;border:none;background:transparent;color:var(--text3);transition:all .15s;text-align:center}
-.mode-btn.active{background:var(--bg4);color:var(--text)}
-.road-map{display:flex;flex-wrap:wrap;gap:3px;padding:4px 0}
-.rm-cell{width:22px;height:22px;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700}
-.rm-B{background:var(--banker-dim);color:var(--banker-l)}
-.rm-P{background:var(--player-dim);color:var(--player-l)}
-.rm-T{background:var(--tie-dim);color:var(--tie-l)}
-.tooltip{position:relative}
-.tooltip:hover::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 4px);left:50%;transform:translateX(-50%);background:#1A2330;border:1px solid var(--border2);padding:4px 8px;border-radius:3px;font-size:10px;color:var(--text2);white-space:nowrap;z-index:50}
-.regime-badge{display:inline-block;padding:2px 6px;border-radius:3px;font-size:9px;margin-left:6px}
-.regime-STREAK{background:#3D2A0A;color:#FCD34D}
-.regime-ALTERNATING{background:#0A2C38;color:#67E8F9}
-.regime-MIXED{background:#2D1B5C;color:#C4B5FD}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>BaccaratIQ · Precision Dominance Engine | Commission-Aware Kelly System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-deep: #020408;
+            --bg-surface: #0a1017;
+            --bg-elevated: #111a24;
+            --border-dim: #1e2a36;
+            --border-glow: #2c3e4e;
+            --text-primary: #eef2ff;
+            --text-secondary: #94a3b8;
+            --text-muted: #475569;
+            --banker: #e67e22;
+            --banker-glow: #f39c12;
+            --banker-bg: rgba(230, 126, 34, 0.1);
+            --player: #0ea5e9;
+            --player-glow: #38bdf8;
+            --player-bg: rgba(14, 165, 233, 0.1);
+            --tie: #a855f7;
+            --tie-bg: rgba(168, 85, 247, 0.1);
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --shift-accent: #c084fc;
+            --radius-card: 12px;
+        }
+
+        body {
+            background: var(--bg-deep);
+            font-family: 'Inter', sans-serif;
+            color: var(--text-primary);
+            height: 100vh;
+            overflow: hidden;
+            font-size: 13px;
+        }
+
+        .app {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .top-bar {
+            background: rgba(2, 6, 12, 0.95);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-dim);
+            padding: 0 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 60px;
+            flex-shrink: 0;
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: baseline;
+            gap: 10px;
+        }
+
+        .logo {
+            font-weight: 800;
+            font-size: 1.5rem;
+            letter-spacing: -1px;
+            background: linear-gradient(135deg, #f5b042, #ffd966);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .logo-sub {
+            font-size: 0.7rem;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-muted);
+        }
+
+        .metrics-strip {
+            display: flex;
+            gap: 28px;
+        }
+
+        .metric {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+
+        .metric-label {
+            font-size: 9px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            letter-spacing: 0.8px;
+        }
+
+        .metric-value {
+            font-weight: 700;
+            font-size: 1rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .live-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--bg-elevated);
+            padding: 4px 14px;
+            border-radius: 40px;
+            border-left: 2px solid var(--success);
+        }
+
+        .pulse {
+            width: 8px;
+            height: 8px;
+            background: var(--success);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--success);
+            animation: pulse 1.2s infinite;
+        }
+
+        @keyframes pulse { 0% { opacity: 0.4; } 100% { opacity: 1; } }
+
+        .dashboard {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            gap: 1px;
+            background: var(--border-dim);
+        }
+
+        .left-panel {
+            flex: 2.6;
+            background: var(--bg-surface);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .right-panel {
+            flex: 1.2;
+            background: var(--bg-surface);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            gap: 14px;
+            padding: 16px 14px;
+        }
+
+        .dominance-banner {
+            background: linear-gradient(105deg, rgba(2, 10, 18, 0.95), rgba(7, 19, 30, 0.98));
+            border-bottom: 1px solid var(--border-glow);
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            flex-wrap: wrap;
+        }
+
+        .dominance-icon {
+            font-size: 1.8rem;
+            font-weight: 800;
+            background: rgba(230,126,34,0.15);
+            padding: 8px 20px;
+            border-radius: 48px;
+            border-left: 3px solid var(--banker);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .dominance-stats {
+            display: flex;
+            gap: 32px;
+            flex: 1;
+        }
+
+        .dom-stat {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .dom-label {
+            font-size: 9px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+
+        .dom-number {
+            font-size: 1.8rem;
+            font-weight: 800;
+            line-height: 1.2;
+        }
+
+        .risk-chip {
+            background: var(--bg-elevated);
+            border-radius: 32px;
+            padding: 6px 14px;
+            font-size: 12px;
+            font-weight: 600;
+            border: 1px solid var(--border-dim);
+        }
+
+        .phases-container {
+            padding: 12px 20px;
+            border-bottom: 1px solid var(--border-dim);
+        }
+
+        .phase-strip {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+            overflow-x: auto;
+        }
+
+        .phase-card {
+            background: var(--bg-elevated);
+            border-radius: 10px;
+            padding: 6px 10px;
+            min-width: 70px;
+            text-align: center;
+            border: 1px solid var(--border-dim);
+            transition: 0.1s;
+        }
+
+        .phase-card.active-phase {
+            border-color: var(--warning);
+            box-shadow: 0 0 0 1px var(--warning);
+        }
+
+        .prediction-bar {
+            background: var(--bg-elevated);
+            margin: 12px 20px;
+            padding: 14px 20px;
+            border-radius: var(--radius-card);
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            border-left: 4px solid var(--warning);
+        }
+
+        .prediction-badge {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 800;
+            font-size: 1.4rem;
+            padding: 6px 18px;
+            border-radius: 48px;
+            background: rgba(245,158,11,0.12);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            padding: 0 20px 12px 20px;
+        }
+
+        .btn {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-dim);
+            padding: 8px 16px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: 0.08s linear;
+            color: var(--text-primary);
+        }
+
+        .btn:active { transform: scale(0.96); }
+        .btn-banker { background: var(--banker-bg); border-color: var(--banker); color: var(--banker-glow); }
+        .btn-player { background: var(--player-bg); border-color: var(--player); color: var(--player-glow); }
+        .btn-tie { background: var(--tie-bg); border-color: var(--tie); color: var(--tie); }
+
+        .grid-2x2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            padding: 0 20px 16px 20px;
+            flex: 1;
+            min-height: 0;
+        }
+
+        .chart-card {
+            background: var(--bg-elevated);
+            border-radius: var(--radius-card);
+            border: 1px solid var(--border-dim);
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chart-title {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+            color: var(--text-secondary);
+        }
+
+        canvas { max-height: 170px; width: 100%; }
+
+        .info-card {
+            background: #0b1119;
+            border-radius: 14px;
+            padding: 14px;
+            border: 1px solid var(--border-dim);
+        }
+
+        .momentum-gauge {
+            background: #060c14;
+            border-radius: 40px;
+            height: 10px;
+            margin: 10px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .gauge-fill {
+            height: 100%;
+            width: 50%;
+            border-radius: 40px;
+            background: linear-gradient(90deg, var(--player), var(--banker));
+        }
+
+        .heatmap-block {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 4px;
+            margin-top: 8px;
+        }
+
+        .hm-cell {
+            aspect-ratio: 1;
+            background: var(--bg-deep);
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 9px;
+            font-weight: 700;
+        }
+
+        .shift-log {
+            max-height: 200px;
+            overflow-y: auto;
+            font-size: 11px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .shift-entry {
+            padding: 7px 0;
+            border-bottom: 1px solid var(--border-dim);
+        }
+
+        .flash-message {
+            position: fixed;
+            top: 75px;
+            right: 20px;
+            background: #1e293b;
+            border-left: 3px solid var(--warning);
+            padding: 10px 18px;
+            border-radius: 10px;
+            font-size: 12px;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+            animation: fadeSlide 0.2s ease;
+        }
+
+        @keyframes fadeSlide {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+    </style>
 </head>
 <body>
+<div class="app">
+    <div class="top-bar">
+        <div class="logo-area"><div class="logo">BACCARAT·IQ</div><div class="logo-sub">COMMISSION-AWARE KELLY ENGINE</div></div>
+        <div class="metrics-strip">
+            <div class="metric"><span class="metric-label">DOMINANT</span><span class="metric-value" id="topDom">—</span></div>
+            <div class="metric"><span class="metric-label">DOM %</span><span class="metric-value" id="topDomPct">—</span></div>
+            <div class="metric"><span class="metric-label">MOMENTUM</span><span class="metric-value" id="topMomentum">0</span></div>
+            <div class="metric"><span class="metric-label">ROUNDS</span><span class="metric-value" id="topRounds">0</span></div>
+        </div>
+        <div class="live-badge"><div class="pulse"></div><span>REAL-TIME EDGE</span></div>
+    </div>
 
-<div id="topbar">
-  <div class="logo">BACCARATIQ <span>v4.0 · Full Exploitation Suite</span></div>
-  <div class="spacer"></div>
-  <div class="top-stat"><label>Bet Rate</label><div class="val warn" id="top-betrate">—</div></div>
-  <div class="top-stat"><label>Bankroll</label><div class="val warn" id="top-bankroll">$1,000.00</div></div>
-  <div class="top-stat"><label>P&amp;L</label><div class="val" id="top-pnl">$0.00</div></div>
-  <div class="top-stat"><label>Win Rate</label><div class="val" id="top-winrate">—</div></div>
-  <div class="top-stat"><label>Edge Score</label><div class="val" id="top-edge">—</div></div>
-  <div class="top-stat"><label>Rounds</label><div class="val" id="top-rounds">0</div></div>
-  <div class="top-stat"><label>Regime</label><div class="val" id="top-regime">—</div></div>
-  <span class="badge live" id="mode-badge">LIVE</span>
-</div>
-<div id="alert-zone"></div>
-<div id="main">
-  <div class="panel" id="left-panel">
-    <div class="panel-section">
-      <div class="sec-title">Record Outcome</div>
-      <div class="outcome-btns">
-        <button class="out-btn b" onclick="recordOutcome('B')">🏦 BANKER</button>
-        <button class="out-btn p" onclick="recordOutcome('P')">👤 PLAYER</button>
-        <button class="out-btn t" onclick="recordOutcome('T')">🔗 TIE</button>
-      </div>
-      <div class="input-row">
-        <input id="batch-input" placeholder="e.g. BPBBPTB..." maxlength="200">
-        <button onclick="batchInput()">Import</button>
-      </div>
+    <div class="dashboard">
+        <div class="left-panel">
+            <div class="dominance-banner">
+                <div class="dominance-icon" id="domIconSide">⚡ BANKER</div>
+                <div class="dominance-stats">
+                    <div class="dom-stat"><span class="dom-label">DOMINANCE %</span><span class="dom-number" id="domPctValue">0%</span></div>
+                    <div class="dom-stat"><span class="dom-label">STREAK</span><span class="dom-number" id="domStreak">0</span></div>
+                    <div class="dom-stat"><span class="dom-label">SHIFT RISK</span><span class="dom-number" id="riskLevel">LOW</span></div>
+                </div>
+                <div class="risk-chip" id="shiftDesc">📐 Kelly fraction active</div>
+            </div>
+
+            <div class="phases-container">
+                <div style="font-size: 9px; color: var(--text-muted);">PHASES (20 ROUNDS) · STREAK/CHOP INDEX</div>
+                <div class="phase-strip" id="phaseStrip"></div>
+            </div>
+
+            <div class="prediction-bar">
+                <div class="prediction-badge" id="predSideText">SKIP</div>
+                <div style="flex:1"><span style="font-size:13px; font-weight:700;" id="predConf">—</span><br><span id="predReason" style="font-size:10px; color:var(--text-secondary);">analysis running</span></div>
+                <div style="text-align:right"><span style="font-size:9px;">KELLY STAKE</span><br><span style="font-size:22px; font-weight:800; color:#f59e0b;" id="predStake">$0</span></div>
+            </div>
+
+            <div class="action-buttons">
+                <button class="btn btn-banker" onclick="recordOutcome('B')">🏦 BANKER (0.95x)</button>
+                <button class="btn btn-player" onclick="recordOutcome('P')">👤 PLAYER (1x)</button>
+                <button class="btn btn-tie" onclick="recordOutcome('T')">🔗 TIE (8x)</button>
+                <div style="flex:1"></div>
+                <input type="text" id="batchInput" placeholder="P B B P T ..." style="background:#0a1119; border:1px solid #1e2a36; border-radius:40px; padding:6px 12px; width:140px;">
+                <button class="btn" onclick="batchImport()">IMPORT</button>
+                <button class="btn" onclick="resetSession()">RESET</button>
+            </div>
+
+            <div class="grid-2x2">
+                <div class="chart-card"><div class="chart-title">DOMINANCE · 20R ADJUSTED</div><canvas id="domChartCanvas"></canvas></div>
+                <div class="chart-card"><div class="chart-title">MOMENTUM (EXPONENTIAL)</div><canvas id="momChartCanvas"></canvas></div>
+                <div class="chart-card"><div class="chart-title">10‑ROAD HEATMAP</div><div id="heatmapContainer" style="min-height:100px;"></div></div>
+                <div class="chart-card"><div class="chart-title">RECENT BLOCKS (STREAK MODE)</div><div id="blockList" style="overflow-y:auto; font-size:10px;"></div></div>
+            </div>
+        </div>
+
+        <div class="right-panel">
+            <div class="info-card"><div class="chart-title">⚡ KELLY MOMENTUM GAUGE</div>
+                <div class="momentum-gauge"><div class="gauge-fill" id="gaugeFill" style="width:50%"></div></div>
+                <div style="display:flex; justify-content:space-between;"><span>PLAYER EDGE</span><span>NEUTRAL</span><span>BANKER EDGE</span></div>
+            </div>
+            <div class="info-card"><div class="chart-title">📐 COMMISSION-ADJUSTED STATS</div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                    <div><span class="metric-label">BANKER WIN%</span><div id="statB" class="dom-number" style="font-size:1.4rem;">0%</div></div>
+                    <div><span class="metric-label">PLAYER WIN%</span><div id="statP" style="font-size:1.4rem; font-weight:800;">0%</div></div>
+                    <div><span class="metric-label">TIE% (RAW)</span><div id="statT" style="font-size:1rem;">0%</div></div>
+                    <div><span class="metric-label">PHASE LEAD</span><div id="phaseLead" style="font-weight:700;">—</div></div>
+                    <div><span class="metric-label">STREAK/CHOP</span><div id="streakIndex">0.0</div></div>
+                    <div><span class="metric-label">EDGE (BANKER)</span><div id="edgeValue">0.00%</div></div>
+                </div>
+            </div>
+            <div class="info-card"><div class="chart-title">🔁 REGIME SHIFT LOG</div><div id="shiftLogPanel" class="shift-log"><div style="color:#475569;">awaiting data</div></div></div>
+            <div class="info-card"><div class="chart-title">💰 BANKROLL (KELLY)</div>
+                <div style="font-size:1.8rem; font-weight:800;" id="bankrollDisplay">$1,000</div>
+                <div style="display:flex; gap:12px; margin-top:8px;"><span>Won: <span id="statWon">0</span></span><span>Lost: <span id="statLost">0</span></span><span>WR: <span id="statWR">0%</span></span></div>
+            </div>
+        </div>
     </div>
-    <div class="panel-section">
-      <div class="sec-title">Configuration</div>
-      <div class="slider-row tooltip" data-tip="Minimum confidence to place a bet"><label>Conf. Threshold</label><input type="range" min="45" max="80" value="55" step="1" id="sl-conf" oninput="updateConfig()"><span class="sv2" id="sl-conf-v">55%</span></div>
-      <div class="slider-row tooltip" data-tip="Starting bankroll in USD"><label>Bankroll ($)</label><input type="range" min="100" max="10000" value="1000" step="100" id="sl-bank" oninput="updateConfig()"><span class="sv2" id="sl-bank-v">$1K</span></div>
-      <div class="slider-row tooltip" data-tip="Fixed stake as % of bankroll"><label>Fixed Stake %</label><input type="range" min="0.5" max="5" value="2" step="0.5" id="sl-stake" oninput="updateConfig()"><span class="sv2" id="sl-stake-v">2.0%</span></div>
-      <div class="slider-row tooltip" data-tip="Fraction of Kelly Criterion"><label>Kelly Frac.</label><input type="range" min="0.1" max="1" value="0.25" step="0.05" id="sl-kelly" oninput="updateConfig()"><span class="sv2" id="sl-kelly-v">0.25</span></div>
-      <div class="slider-row tooltip" data-tip="Stop trading at this % drawdown"><label>Stop-Loss %</label><input type="range" min="5" max="30" value="10" step="1" id="sl-stop" oninput="updateConfig()"><span class="sv2" id="sl-stop-v">10%</span></div>
-      <div class="slider-row tooltip" data-tip="Take profit target %"><label>Take-Profit %</label><input type="range" min="10" max="100" value="20" step="5" id="sl-tp" oninput="updateConfig()"><span class="sv2" id="sl-tp-v">20%</span></div>
-      <div class="slider-row"><label>Staking Mode</label><div class="mode-toggle" style="flex:1"><button class="mode-btn active" id="mode-fixed" onclick="setStakingMode('fixed')">FIXED %</button><button class="mode-btn" id="mode-kelly" onclick="setStakingMode('kelly')">KELLY</button></div></div>
-      <div class="slider-row"><label>Adaptive Threshold</label><div class="mode-toggle" style="flex:1"><button class="mode-btn active" id="adapt-on" onclick="setAdaptiveThreshold(true)">ON</button><button class="mode-btn" id="adapt-off" onclick="setAdaptiveThreshold(false)">OFF</button></div></div>
-      <div class="btn-row"><button class="btn-sm danger" onclick="resetSession()">RESET</button><button class="btn-sm primary" onclick="runSimulation()">RUN SIM ↗</button></div>
-    </div>
-    <div class="panel-section" style="flex:1;overflow:hidden;display:flex;flex-direction:column;min-height:0">
-      <div class="sec-title" style="flex-shrink:0">History Log <span style="float:right;color:var(--text3);font-size:9px;cursor:pointer" onclick="clearHistory()">CLEAR</span></div>
-      <div id="history-list" style="flex:1;overflow-y:auto"></div>
-    </div>
-  </div>
-  <div id="center">
-    <div id="decision-box">
-      <div class="decision-header"><div class="decision-label">Decision Engine · Output</div><div class="round-num" id="round-label">Awaiting data...</div></div>
-      <div id="decision-main">
-        <div id="bet-side" class="SKIP"><div id="bet-action" class="SKIP">—</div><small id="bet-sub">enter outcomes to begin</small></div>
-        <div class="decision-meta"><div class="meta-block"><label>Suggested Stake</label><div class="mval" id="stake-val">—</div></div><div class="meta-block"><label>Expected Value</label><div class="mval" id="ev-val">—</div></div><div class="meta-block"><label>Kelly Stake</label><div class="mval" id="kelly-val">—</div></div></div>
-      </div>
-    </div>
-    <div id="conf-section"><div class="conf-row"><span class="conf-label">Confidence Score</span><span id="conf-pct">0%</span></div><div id="conf-bar-outer"><div id="conf-bar-inner" style="width:0%;background:var(--text3)"></div></div><div style="display:flex;justify-content:space-between;margin-top:4px"><span style="font-size:9px;color:var(--text3)">WEAK</span><span style="font-size:9px;color:var(--text3)">THRESHOLD</span><span style="font-size:9px;color:var(--text3)">STRONG</span></div></div>
-    <div id="reasoning"><div style="font-size:10px;color:var(--text3);margin-bottom:6px;text-transform:uppercase;letter-spacing:.1em">Analysis Reasoning</div><div id="reason-list"><div class="reason-item" style="color:var(--text3)">No analysis yet — record at least 10 outcomes.</div></div></div>
-    <div id="charts-area"><div class="chart-card"><h4>Equity Curve · Bankroll Over Time</h4><div class="chart-wrap"><canvas id="equity-chart"></canvas></div></div><div class="chart-card"><h4>Outcome Distribution vs Theoretical</h4><div class="chart-wrap"><canvas id="dist-chart"></canvas></div></div></div>
-  </div>
-  <div class="panel" id="right-panel">
-    <div class="panel-section"><div class="sec-title">Probability Estimates</div><div class="stat-grid"><div class="stat-cell"><label>Banker P̂</label><div class="sv" id="st-bp" style="color:var(--banker-l)">45.8%</div></div><div class="stat-cell"><label>Player P̂</label><div class="sv" id="st-pp" style="color:var(--player-l)">44.6%</div></div><div class="stat-cell"><label>Tie P̂</label><div class="sv" id="st-tp" style="color:var(--tie-l)">9.6%</div></div><div class="stat-cell"><label>χ² p-value</label><div class="sv" id="st-chi">—</div></div><div class="stat-cell"><label>Entropy</label><div class="sv" id="st-ent">—</div></div><div class="stat-cell"><label>Bias Score</label><div class="sv" id="st-bias">—</div></div><div class="stat-cell"><label>RNG Cycle</label><div class="sv" id="st-cycle">—</div></div><div class="stat-cell"><label>MC CI Width</label><div class="sv" id="st-mc">—</div></div></div></div>
-    <div class="panel-section"><div class="sec-title">Markov Transition Matrix</div><table class="markov-table"><thead><tr><th>From\To</th><th style="color:var(--banker-l)">B</th><th style="color:var(--player-l)">P</th><th style="color:var(--tie-l)">T</th></tr></thead><tbody id="markov-body"><tr><td style="color:var(--text3)">B→</td><td>—</td><td>—</td><td>—</td></tr><tr><td style="color:var(--text3)">P→</td><td>—</td><td>—</td><td>—</td></tr><tr><td style="color:var(--text3)">T→</td><td>—</td><td>—</td><td>—</td></tr></tbody></table></div>
-    <div class="panel-section"><div class="sec-title">Streak Analysis</div><div class="stat-grid" style="margin-bottom:8px"><div class="stat-cell"><label>Current Streak</label><div class="sv" id="st-streak">—</div></div><div class="stat-cell"><label>Max Streak</label><div class="sv" id="st-maxstreak">—</div></div><div class="stat-cell"><label>Streak Cont.</label><div class="sv" id="st-scont">—</div></div><div class="stat-cell"><label>Break Prob.</label><div class="sv" id="st-sbreak">—</div></div></div><div style="font-size:10px;color:var(--text3);margin-bottom:4px">ZIGZAG INDEX</div><div class="entropy-bar" style="height:6px"><div id="zigzag-bar" class="entropy-fill" style="background:var(--player-l);width:0%"></div></div><div style="display:flex;justify-content:space-between;margin-top:3px"><span style="font-size:9px;color:var(--text3)">STREAK (0)</span><span style="font-size:9px;color:var(--accent)" id="zigzag-val">—</span><span style="font-size:9px;color:var(--text3)">ZIGZAG (1)</span></div></div>
-    <div class="panel-section"><div class="sec-title">Pattern Recognition</div><div id="pattern-list"><div style="font-size:11px;color:var(--text3)">Collecting data...</div></div></div>
-    <div class="panel-section"><div class="sec-title">Third Card Analysis</div><div id="third-card-info" style="font-size:11px;color:var(--text3)">Need ≥30 rounds</div></div>
-    <div class="panel-section"><div class="sec-title">Road Map (Last 40)</div><div class="road-map" id="road-map"></div></div>
-    <div class="panel-section"><div class="sec-title">Simulation Results</div><div id="sim-results"><div class="sim-row"><span>ROI</span><strong id="sim-roi">—</strong></div><div class="sim-row"><span>Win Rate</span><strong id="sim-wr">—</strong></div><div class="sim-row"><span>Max Drawdown</span><strong id="sim-dd">—</strong></div><div class="sim-row"><span>Avg Confidence</span><strong id="sim-ac">—</strong></div><div class="sim-row"><span>Bets Placed</span><strong id="sim-bets">—</strong></div><div class="sim-row"><span>Skipped</span><strong id="sim-skip">—</strong></div><div class="sim-row"><span>Final Bankroll</span><strong id="sim-final">—</strong></div></div><div id="sim-status" style="font-size:11px;color:var(--text3);margin-top:6px">Run simulation in Settings panel →</div></div>
-  </div>
 </div>
 
 <script>
-// ============================================================
-//  STATE MANAGEMENT
-// ============================================================
-const state = {
-  outcomes: [], bets: [], bankroll: 1000, startBankroll: 1000,
-  equityHistory: [1000], halted: false, lastDecision: null, pendingBet: null,
-  adaptiveThresholdEnabled: true,
-  config: { confThreshold: 55, fixedStakePct: 2, kellyFrac: 0.25, stopLoss: 10, takeProfit: 20, stakingMode: 'fixed' },
-  thirdCardHistory: [],  // Store third card draw info (simulated)
-  predictionErrors: []   // For adaptive learning rate
-};
-
-const PRIOR = {B: 0.4585, P: 0.4460, T: 0.0955};
-const HOUSE_EDGE_B = 0.95, HOUSE_EDGE_P = 1.0;
-
-// ============================================================
-//  MODULE 1: THIRD CARD RULE ANALYZER
-// ============================================================
-class ThirdCardAnalyzer {
-  constructor() {
-    this.drawProb = {
-      B: {0:1.0,1:1.0,2:1.0,3:1.0,4:0.68,5:0.60,6:0.0,7:0.0,8:0.0,9:0.0},
-      P: {0:1.0,1:1.0,2:1.0,3:1.0,4:1.0,5:1.0,6:0.0,7:0.0,8:0.0,9:0.0}
-    };
-  }
-  
-  detectThirdCardPattern(outcomes, handDetails) {
-    if (outcomes.length < 30) return null;
-    const thirdCardCount = (handDetails || []).filter(h => h && h.thirdCardDrawn).length;
-    const ratio = thirdCardCount / Math.max(1, (handDetails || []).length);
-    const expected = 0.42;
-    if (Math.abs(ratio - expected) > 0.08) {
-      return { edge: (ratio - expected) * 0.5, side: ratio > expected ? 'BANKER' : 'PLAYER', ratio: ratio };
-    }
-    return null;
-  }
-}
-
-// ============================================================
-//  MODULE 2: RNG CYCLE DETECTOR
-// ============================================================
-class RNGCycleDetector {
-  constructor() { this.sequences = new Map(); this.cycleLength = null; }
-  
-  detectCycle(outcomes) {
-    if (outcomes.length < 30) return { cycleDetected: false };
-    const numeric = outcomes.map(o => ({B:0,P:1,T:2}[o]));
-    let bestCycle = null;
-    for (let len = 6; len <= 24; len++) {
-      for (let start = 0; start < Math.min(50, outcomes.length - len * 2); start++) {
-        const pattern = numeric.slice(start, start + len);
-        const patternKey = pattern.join('');
-        let occurrences = 0;
-        for (let i = start + len; i <= outcomes.length - len; i++) {
-          if (numeric.slice(i, i + len).join('') === patternKey) occurrences++;
-        }
-        if (occurrences >= 2 && len > (bestCycle?.len || 0)) bestCycle = { len, pattern: patternKey, occurrences };
-      }
-    }
-    if (bestCycle && bestCycle.occurrences >= 2) {
-      const patternVals = bestCycle.pattern.split('').map(Number);
-      const lastPattern = numeric.slice(-bestCycle.len);
-      if (lastPattern.join('') === bestCycle.pattern) {
-        const nextIdx = bestCycle.pattern[0];
-        const next = {0:'B',1:'P',2:'T'}[nextIdx];
-        return { cycleDetected: true, next, confidence: Math.min(0.8, 0.5 + bestCycle.occurrences * 0.05), length: bestCycle.len };
-      }
-    }
-    return { cycleDetected: false };
-  }
-}
-
-// ============================================================
-//  MODULE 3: REGIME SWITCHING DETECTION
-// ============================================================
-function detectRegime(outcomes) {
-  if (outcomes.length < 30) return 'UNKNOWN';
-  const recent = outcomes.slice(-30);
-  let streakCount = 0, altCount = 0;
-  for (let i = 2; i < recent.length; i++) {
-    if (recent[i-2] === recent[i-1] && recent[i-1] === recent[i]) streakCount++;
-    if (recent[i-2] !== recent[i-1] && recent[i-1] !== recent[i] && recent[i-2] !== 'T' && recent[i-1] !== 'T') altCount++;
-  }
-  const streakDensity = streakCount / recent.length;
-  const altDensity = altCount / recent.length;
-  if (streakDensity > 0.35) return 'STREAK';
-  if (altDensity > 0.35) return 'ALTERNATING';
-  if (streakDensity > altDensity * 1.5) return 'STREAK_BIASED';
-  if (altDensity > streakDensity * 1.5) return 'ALT_BIASED';
-  return 'MIXED';
-}
-
-function regimeAdjustedConfidence(baseConf, regime) {
-  const adjustments = { 'STREAK': 1.25, 'ALTERNATING': 1.3, 'STREAK_BIASED': 1.15, 'ALT_BIASED': 1.2, 'MIXED': 0.95, 'UNKNOWN': 1.0 };
-  return Math.min(100, baseConf * (adjustments[regime] || 1.0));
-}
-
-// ============================================================
-//  MODULE 4: MULTI-SCALE PATTERN DETECTION
-// ============================================================
-function multiScalePatternDetection(outcomes) {
-  if (outcomes.length < 20) return null;
-  const scales = [5, 8, 12, 16];
-  const predictions = {};
-  for (const scale of scales.filter(s => outcomes.length >= s * 2)) {
-    const recent = outcomes.slice(-scale);
-    let bestMatch = -1, bestPos = -1;
-    for (let i = 0; i <= outcomes.length - scale * 2; i++) {
-      const window = outcomes.slice(i, i + scale);
-      let similarity = 0;
-      for (let j = 0; j < scale; j++) if (window[j] === recent[j]) similarity++;
-      if (similarity > bestMatch) { bestMatch = similarity; bestPos = i + scale; }
-    }
-    if (bestMatch >= scale * 0.65 && bestPos < outcomes.length) predictions[scale] = outcomes[bestPos];
-  }
-  const votes = { B: 0, P: 0, T: 0 };
-  for (const pred of Object.values(predictions)) votes[pred]++;
-  const winner = Object.keys(votes).reduce((a,b) => votes[a] > votes[b] ? a : b);
-  const confidence = votes[winner] / Math.max(1, Object.keys(predictions).length);
-  return { prediction: winner, confidence, scaleCount: Object.keys(predictions).length };
-}
-
-// ============================================================
-//  MODULE 5: MONTE CARLO CONFIDENCE INTERVALS
-// ============================================================
-function monteCarloConfidence(outcomes, nSimulations = 500) {
-  if (outcomes.length < 20) return { lower: 0, upper: 1, mean: 0.5, width: 1, isSignificant: false };
-  const probs = [];
-  for (let sim = 0; sim < nSimulations; sim++) {
-    const sampled = [];
-    for (let i = 0; i < outcomes.length; i++) sampled.push(outcomes[Math.floor(Math.random() * outcomes.length)]);
-    const counts = sampled.reduce((a,b) => { a[b]++; return a; }, {B:0,P:0,T:0});
-    probs.push(counts.B / sampled.length);
-  }
-  probs.sort((a,b) => a - b);
-  const lower = probs[Math.floor(nSimulations * 0.025)];
-  const upper = probs[Math.floor(nSimulations * 0.975)];
-  const mean = probs.reduce((a,b) => a + b, 0) / nSimulations;
-  return { lower, upper, mean, width: upper - lower, isSignificant: lower > 0.5 || upper < 0.5 };
-}
-
-// ============================================================
-//  MODULE 6: ADAPTIVE THRESHOLD (Volatility-based)
-// ============================================================
-function adaptiveThreshold(outcomes, baseThreshold = 55) {
-  if (!state.adaptiveThresholdEnabled || outcomes.length < 40) return baseThreshold;
-  const recent = outcomes.slice(-40);
-  let alternations = 0;
-  for (let i = 1; i < recent.length; i++) {
-    if (recent[i] !== recent[i-1] && recent[i] !== 'T' && recent[i-1] !== 'T') alternations++;
-  }
-  const volatility = alternations / (recent.length - 1);
-  let adjusted = baseThreshold;
-  if (volatility > 0.6) adjusted = baseThreshold + 10;
-  else if (volatility < 0.3) adjusted = baseThreshold - 6;
-  return Math.min(80, Math.max(45, adjusted));
-}
-
-// ============================================================
-//  MODULE 7: ADAPTIVE LEARNING RATE
-// ============================================================
-function adaptiveLearningRate(errors) {
-  if (errors.length < 20) return 0.1;
-  const recentErrors = errors.slice(-20);
-  const errorRate = recentErrors.reduce((a,b) => a + b, 0) / recentErrors.length;
-  if (errorRate > 0.4) return 0.2;
-  if (errorRate > 0.3) return 0.12;
-  if (errorRate < 0.2) return 0.05;
-  return 0.1;
-}
-
-// ============================================================
-//  CORE PROBABILITY FUNCTIONS
-// ============================================================
-function countOutcomes(arr) { const c = {B:0,P:0,T:0}; arr.forEach(o => c[o]++); return c; }
-
-function bayesianEstimate(outcomes) {
-  const strength = 12;
-  const alpha = {B: PRIOR.B * strength, P: PRIOR.P * strength, T: PRIOR.T * strength};
-  const counts = countOutcomes(outcomes);
-  const total = outcomes.length + strength;
-  return { B: (alpha.B + counts.B) / total, P: (alpha.P + counts.P) / total, T: (alpha.T + counts.T) / total };
-}
-
-function recentWindowEstimate(outcomes, window = 30) {
-  const recent = outcomes.slice(-window);
-  if (recent.length < 8) return null;
-  const counts = countOutcomes(recent);
-  const n = recent.length;
-  return { B: counts.B / n, P: counts.P / n, T: counts.T / n, n };
-}
-
-function hotZone(outcomes) {
-  const recent = outcomes.filter(o => o !== 'T').slice(-20);
-  if (recent.length < 8) return null;
-  const bCount = recent.filter(o => o === 'B').length;
-  const ratio = bCount / recent.length;
-  if (ratio > 0.60) return { side: 'B', strength: ratio };
-  if (ratio < 0.40) return { side: 'P', strength: 1 - ratio };
-  return null;
-}
-
-function buildMarkovMatrix(outcomes) {
-  const trans = { B: {B:0,P:0,T:0}, P: {B:0,P:0,T:0}, T: {B:0,P:0,T:0} };
-  for (let i = 1; i < outcomes.length; i++) trans[outcomes[i-1]][outcomes[i]]++;
-  const mat = {};
-  for (const from of ['B','P','T']) {
-    const row_total = trans[from].B + trans[from].P + trans[from].T;
-    mat[from] = row_total === 0 ? {...PRIOR} : { B: trans[from].B/row_total, P: trans[from].P/row_total, T: trans[from].T/row_total };
-  }
-  return mat;
-}
-
-function secondOrderMarkov(outcomes) {
-  if (outcomes.length < 3) return null;
-  const trans2 = {};
-  for (let i = 2; i < outcomes.length; i++) {
-    const key = outcomes[i-2] + outcomes[i-1];
-    if (!trans2[key]) trans2[key] = {B:0,P:0,T:0};
-    trans2[key][outcomes[i]]++;
-  }
-  const last2 = outcomes.slice(-2).join('');
-  if (!trans2[last2]) return null;
-  const row = trans2[last2];
-  const total = row.B + row.P + row.T;
-  if (total < 2) return null;
-  return { B: row.B/total, P: row.P/total, T: row.T/total };
-}
-
-function detectStreak(outcomes) {
-  if (outcomes.length === 0) return { side: null, length: 0 };
-  let len = 1;
-  const last = outcomes[outcomes.length - 1];
-  for (let i = outcomes.length - 2; i >= 0 && outcomes[i] === last; i--) len++;
-  return { side: last, length: len };
-}
-
-function maxStreak(outcomes) {
-  if (outcomes.length === 0) return 0;
-  let mx = 1, cur = 1;
-  for (let i = 1; i < outcomes.length; i++) {
-    if (outcomes[i] === outcomes[i-1]) { cur++; mx = Math.max(mx, cur); }
-    else cur = 1;
-  }
-  return mx;
-}
-
-function streakContinuationProb(outcomes, streak) {
-  if (!streak.side || outcomes.length < 10) return null;
-  let continues = 0, total = 0;
-  for (let i = 2; i < outcomes.length - 1; i++) {
-    let allMatch = true;
-    for (let j = 0; j < streak.length && i - j >= 0; j++) {
-      if (outcomes[i - j] !== streak.side) { allMatch = false; break; }
-    }
-    if (allMatch) { total++; if (outcomes[i+1] === streak.side) continues++; }
-  }
-  if (total < 2) return null;
-  return (continues + 1) / (total + 2);
-}
-
-function zigzagIndex(outcomes) {
-  if (outcomes.length < 2) return 0;
-  let alternations = 0;
-  const ignT = outcomes.filter(o => o !== 'T');
-  for (let i = 1; i < ignT.length; i++) if (ignT[i] !== ignT[i-1]) alternations++;
-  return ignT.length > 1 ? alternations / (ignT.length - 1) : 0;
-}
-
-function findRepeatingPatterns(outcomes) {
-  const patterns = {};
-  const n = outcomes.length;
-  for (let len = 3; len <= 5; len++) {
-    for (let i = 0; i <= n - len; i++) {
-      const seq = outcomes.slice(i, i + len).join('');
-      patterns[seq] = (patterns[seq] || 0) + 1;
-    }
-  }
-  return Object.entries(patterns).filter(([,v]) => v >= 3).sort((a,b) => b[1] - a[1]).slice(0, 5).map(([seq, count]) => ({ seq, count, isRecent: outcomes.slice(-seq.length).join('') === seq }));
-}
-
-function chiSquareTest(outcomes) {
-  if (outcomes.length < 20) return { statistic: 0, pValue: 1 };
-  const counts = countOutcomes(outcomes);
-  const n = outcomes.length;
-  const expected = { B: PRIOR.B * n, P: PRIOR.P * n, T: PRIOR.T * n };
-  let chi2 = 0;
-  for (const k of ['B','P','T']) chi2 += Math.pow(counts[k] - expected[k], 2) / expected[k];
-  return { statistic: chi2, pValue: Math.min(Math.exp(-chi2 / 2), 1) };
-}
-
-function shannonEntropy(outcomes) {
-  if (outcomes.length === 0) return 0;
-  const n = outcomes.length;
-  const counts = countOutcomes(outcomes);
-  let H = 0;
-  for (const k of ['B','P','T']) { const p = counts[k] / n; if (p > 0) H -= p * Math.log2(p); }
-  return H / Math.log2(3);
-}
-
-function biasScore(probs) {
-  const dB = Math.abs(probs.B - PRIOR.B), dP = Math.abs(probs.P - PRIOR.P), dT = Math.abs(probs.T - PRIOR.T);
-  return Math.min(100, ((dB + dP + dT) / 2) * 300);
-}
-
-// ============================================================
-//  DECISION ENGINE (FULL INTEGRATION)
-// ============================================================
-let thirdCardAnalyzer = new ThirdCardAnalyzer();
-let rngDetector = new RNGCycleDetector();
-
-function computeDecision(outcomes, config) {
-  if (outcomes.length < 8) {
-    return { side: 'SKIP', confidence: 0, reasoning: [{type:'prob', text:'Need ≥8 rounds to begin analysis'}], kelly: 0, ev: 0 };
-  }
-
-  const n = outcomes.length;
-  const bayesProbs = bayesianEstimate(outcomes);
-  const recentProbs = recentWindowEstimate(outcomes, 30);
-  const recentShort = recentWindowEstimate(outcomes, 15);
-  const markov1 = buildMarkovMatrix(outcomes);
-  const markov2 = secondOrderMarkov(outcomes);
-  const streak = detectStreak(outcomes);
-  const scont = streakContinuationProb(outcomes, streak);
-  const chi2 = chiSquareTest(outcomes);
-  const zig = zigzagIndex(outcomes);
-  const hz = hotZone(outcomes);
-  const regime = detectRegime(outcomes);
-  const multiScale = multiScalePatternDetection(outcomes);
-  const rngCycle = rngDetector.detectCycle(outcomes);
-  const thirdCard = thirdCardAnalyzer.detectThirdCardPattern(outcomes, state.thirdCardHistory);
-  const mcCI = monteCarloConfidence(outcomes);
-  
-  let voteB = 0, voteP = 0;
-  const reasoning = [];
-
-  // Signal 1: Global Bayesian
-  voteB += bayesProbs.B * 0.8; voteP += bayesProbs.P * 0.8;
-  
-  // Signal 2: Recent-30 window
-  if (recentProbs) { voteB += recentProbs.B * 1.5; voteP += recentProbs.P * 1.5; }
-  
-  // Signal 3: Recent-15 short window
-  if (recentShort) { voteB += recentShort.B * 1.2; voteP += recentShort.P * 1.2; }
-  
-  // Signal 4: Markov 1st-order
-  if (streak.side) {
-    const m1 = markov1[streak.side];
-    const total = m1.B + m1.P + 0.001;
-    voteB += (m1.B / total) * 2.0; voteP += (m1.P / total) * 2.0;
-  }
-  
-  // Signal 5: Markov 2nd-order
-  if (markov2 && n >= 20) { voteB += markov2.B * 2.5; voteP += markov2.P * 2.5; }
-  
-  // Signal 6: Streak continuation
-  if (streak.side !== 'T' && scont !== null) {
-    if (scont > 0.52) {
-      voteB += (streak.side === 'B' ? scont : 0) * 1.5;
-      voteP += (streak.side === 'P' ? scont : 0) * 1.5;
-      reasoning.push({type:'pattern', text:`Streak ${streak.side}×${streak.length}: continue ${(scont*100).toFixed(0)}%`});
-    } else if (scont < 0.48) {
-      const rev = streak.side === 'B' ? 'P' : 'B';
-      voteB += (rev === 'B' ? (1-scont) : 0) * 1.5;
-      voteP += (rev === 'P' ? (1-scont) : 0) * 1.5;
-      reasoning.push({type:'pattern', text:`Streak break expected: ${streak.side}→${rev} ${((1-scont)*100).toFixed(0)}%`});
-    }
-  }
-  
-  // Signal 7: Zigzag regime
-  if (zig > 0.6) {
-    const alt = streak.side === 'B' ? 'P' : (streak.side === 'P' ? 'B' : null);
-    if (alt) { voteB += (alt === 'B' ? zig : 0) * 1.2; voteP += (alt === 'P' ? zig : 0) * 1.2; }
-    reasoning.push({type:'pattern', text:`Alternation regime: ZZ=${(zig*100).toFixed(0)}%`});
-  }
-  
-  // Signal 8: Multi-scale pattern
-  if (multiScale && multiScale.confidence > 0.6) {
-    const mult = multiScale.prediction === 'B' ? 1.4 : 1.4;
-    if (multiScale.prediction === 'B') voteB += mult; else voteP += mult;
-    reasoning.push({type:'pattern', text:`Multi-scale pattern: ${multiScale.prediction} (${(multiScale.confidence*100).toFixed(0)}%)`});
-  }
-  
-  // Signal 9: RNG cycle detection
-  if (rngCycle.cycleDetected && rngCycle.next) {
-    const cycleBonus = 0.6;
-    if (rngCycle.next === 'B') voteB += cycleBonus; else if (rngCycle.next === 'P') voteP += cycleBonus;
-    reasoning.push({type:'rng', text:`RNG cycle detected (len=${rngCycle.length}) → ${rngCycle.next}`});
-  }
-  
-  // Signal 10: Third card bias
-  if (thirdCard && thirdCard.edge > 0.05) {
-    const thirdBonus = thirdCard.edge * 1.5;
-    if (thirdCard.side === 'BANKER') voteB += thirdBonus; else voteP += thirdBonus;
-    reasoning.push({type:'third', text:`Third card bias: ${thirdCard.side} (ratio=${thirdCard.ratio.toFixed(2)})`});
-  }
-  
-  // Signal 11: Monte Carlo significance
-  if (mcCI.isSignificant && mcCI.width < 0.15) {
-    const mcBonus = 0.5;
-    if (mcCI.mean > 0.5) voteB += mcBonus; else voteP += mcBonus;
-    reasoning.push({type:'prob', text:`MC significant: B ${(mcCI.mean*100).toFixed(0)}% (CI width=${(mcCI.width*100).toFixed(0)}%)`});
-  }
-  
-  // Regime-based adjustment
-  reasoning.push({type:'regime', text:`Regime: ${regime}`});
-  
-  const totalVotes = voteB + voteP;
-  const probB = totalVotes > 0 ? voteB / totalVotes : 0.5;
-  const side = probB >= 0.5 ? 'BANKER' : 'PLAYER';
-  const winProb = side === 'BANKER' ? probB : 1 - probB;
-  
-  let rawConf = Math.min(100, Math.max(0, ((winProb - 0.5) / 0.22) * 100));
-  let confidence = regimeAdjustedConfidence(rawConf, regime);
-  
-  // Agreement bonus
-  const reasonTypes = [...new Set(reasoning.map(r => r.type))];
-  const agreementBonus = Math.min(15, (reasonTypes.length - 1) * 5);
-  confidence = Math.min(100, confidence + agreementBonus);
-  
-  // Adaptive threshold
-  let effectiveThreshold = config.confThreshold;
-  if (state.adaptiveThresholdEnabled) effectiveThreshold = adaptiveThreshold(outcomes, config.confThreshold);
-  
-  const odds = side === 'BANKER' ? HOUSE_EDGE_B : HOUSE_EDGE_P;
-  const ev = (winProb * odds) - (1 - winProb);
-  const kelly = Math.max(0, (winProb * odds - (1 - winProb)) / odds);
-  const fraKelly = kelly * config.kellyFrac;
-  
-  if (confidence < effectiveThreshold) {
-    reasoning.push({type:'prob', text:`Conf ${confidence.toFixed(0)}% < threshold ${effectiveThreshold}% → SKIP`});
-    return { side: 'SKIP', confidence, reasoning, kelly: fraKelly, ev, bayesProbs, markov1, regime };
-  }
-  
-  return { side, confidence, reasoning, kelly: fraKelly, ev, bayesProbs, markov1, regime, winProb };
-}
-
-function computeStake(decision, bankroll, config) {
-  if (decision.side === 'SKIP') return 0;
-  let stake;
-  if (config.stakingMode === 'kelly') {
-    stake = bankroll * Math.min(decision.kelly, 0.15);
-  } else {
-    stake = bankroll * (config.fixedStakePct / 100);
-  }
-  return Math.max(0.01, parseFloat(stake.toFixed(2)));
-}
-
-function checkRiskLimits(bankroll, startBankroll, config) {
-  const drawdown = (startBankroll - bankroll) / startBankroll * 100;
-  const gain = (bankroll - startBankroll) / startBankroll * 100;
-  if (drawdown >= config.stopLoss) return { halt: true, reason: `STOP-LOSS: ${drawdown.toFixed(1)}% drawdown` };
-  if (gain >= config.takeProfit) return { halt: true, reason: `TAKE-PROFIT: +${gain.toFixed(1)}%` };
-  return { halt: false };
-}
-
-// ============================================================
-//  UI RENDERING
-// ============================================================
-function renderDecision() {
-  const outcomes = state.outcomes;
-  const decision = computeDecision(outcomes, state.config);
-  state.lastDecision = decision;
-  
-  const betSideDiv = document.getElementById('bet-side');
-  const betAction = document.getElementById('bet-action');
-  betSideDiv.className = decision.side;
-  betAction.className = decision.side;
-  betAction.textContent = decision.side === 'SKIP' ? 'SKIP' : `BET ${decision.side}`;
-  
-  const stake = computeStake(decision, state.bankroll, state.config);
-  document.getElementById('bet-sub').textContent = decision.side === 'SKIP' ? `conf below threshold` : `stake $${stake.toFixed(2)} · ev ${(decision.ev*100).toFixed(2)}%`;
-  state.pendingBet = decision.side === 'SKIP' ? null : { side: decision.side, stake };
-  
-  document.getElementById('stake-val').textContent = decision.side === 'SKIP' ? '—' : `$${stake.toFixed(2)}`;
-  document.getElementById('ev-val').textContent = `${(decision.ev*100).toFixed(2)}%`;
-  document.getElementById('ev-val').style.color = decision.ev >= 0 ? 'var(--profit-l)' : 'var(--loss-l)';
-  document.getElementById('kelly-val').textContent = decision.side !== 'SKIP' ? `$${(state.bankroll * decision.kelly).toFixed(2)}` : '—';
-  document.getElementById('round-label').textContent = `Round #${outcomes.length + 1} Preview`;
-  
-  const conf = decision.confidence;
-  document.getElementById('conf-pct').textContent = `${conf.toFixed(0)}%`;
-  const bar = document.getElementById('conf-bar-inner');
-  bar.style.width = `${conf}%`;
-  bar.style.background = conf >= 65 ? '#059669' : conf >= state.config.confThreshold ? '#D97706' : '#6B7280';
-  
-  const rl = document.getElementById('reason-list');
-  rl.innerHTML = decision.reasoning.length ? decision.reasoning.map(r => `<div class="reason-item"><div class="reason-icon ri-${r.type}">${r.type[0].toUpperCase()}</div><span>${r.text}</span></div>`).join('') : '<div class="reason-item" style="color:var(--text3)">No significant signals detected.</div>';
-  
-  if (decision.bayesProbs) {
-    document.getElementById('st-bp').textContent = (decision.bayesProbs.B*100).toFixed(1)+'%';
-    document.getElementById('st-pp').textContent = (decision.bayesProbs.P*100).toFixed(1)+'%';
-    document.getElementById('st-tp').textContent = (decision.bayesProbs.T*100).toFixed(1)+'%';
-  }
-  
-  if (outcomes.length >= 20) {
-    const chi2 = chiSquareTest(outcomes);
-    const ent = shannonEntropy(outcomes);
-    const bias = biasScore(decision.bayesProbs || PRIOR);
-    document.getElementById('st-chi').textContent = chi2.pValue.toFixed(3);
-    document.getElementById('st-ent').textContent = (ent*100).toFixed(0)+'%';
-    document.getElementById('st-bias').textContent = bias.toFixed(1);
+    // --------------------------------------------------------------
+    //  BACCARATIQ ACCURACY UPGRADE: COMMISSION, KELLY, STREAK/CHOP, MIN EDGE THRESHOLD
+    // --------------------------------------------------------------
+    const COMMISSION = 0.95;      // Banker pays 0.95:1
+    const PAYOUT = { B: COMMISSION, P: 1.0, T: 8.0 };
+    const MIN_EDGE_REQUIRED = 0.022;      // 2.2% minimum edge before betting
+    const CONFIDENCE_THRESH = 0.535;      // 53.5% win prob minimum (above random + commission edge)
+    const KELLY_FRACTION = 0.28;          // quarter-kelly for safety (aggressive but sustainable)
     
-    const rngCycle = rngDetector.detectCycle(outcomes);
-    document.getElementById('st-cycle').textContent = rngCycle.cycleDetected ? `Detected (len=${rngCycle.length})` : 'None';
-    const mcCI = monteCarloConfidence(outcomes);
-    document.getElementById('st-mc').textContent = (mcCI.width*100).toFixed(0)+'%';
-    if (mcCI.isSignificant) document.getElementById('st-mc').style.color = 'var(--profit-l)';
-  }
-  
-  if (decision.markov1 && outcomes.length >= 15) {
-    const m = decision.markov1;
-    let tbody = '';
-    for (const from of ['B','P','T']) {
-      let row = `<tr><td style="color:var(--text3)">${from}→</td>`;
-      for (const to of ['B','P','T']) {
-        const v = (m[from][to]*100).toFixed(0)+'%';
-        const cls = m[from][to] > 0.5 ? 'mc-high' : m[from][to] > 0.38 ? 'mc-med' : '';
-        row += `<td class="${cls}">${v}</td>`;
-      }
-      row += '</tr>';
-      tbody += row;
+    // Global state
+    let outcomes = [];            // 'B','P','T'
+    let bankroll = 1000;
+    let startBank = 1000;
+    let totalWon = 0, totalLost = 0, totalSkipped = 0;
+    let shiftLog = [];
+    let lastDominantSide = null;
+    let dominantStreakCounter = 0;
+    let sessionPhases = [];       // computed each render
+    
+    // charts
+    let domChart, momChart;
+    
+    // Helper: dominance from array (exclude ties for B/P %)
+    function computeDominance(arr) {
+        if (!arr.length) return { side: null, pct: 0, B: 0, P: 0, T: 0, rawB:0, rawP:0 };
+        const nonTie = arr.filter(o => o !== 'T');
+        if (nonTie.length === 0) return { side: null, pct: 0, B: 0, P: 0, T: 1 };
+        const B = nonTie.filter(o => o === 'B').length;
+        const P = nonTie.length - B;
+        const T = arr.length - nonTie.length;
+        const side = B >= P ? 'B' : 'P';
+        const pct = Math.max(B / nonTie.length, P / nonTie.length);
+        return { side, pct, B: B/nonTie.length, P: P/nonTie.length, T: T/arr.length, rawB: B, rawP: P, total: arr.length };
     }
-    document.getElementById('markov-body').innerHTML = tbody;
-  }
-  
-  const streak = detectStreak(outcomes);
-  const mxStr = maxStreak(outcomes);
-  document.getElementById('st-streak').textContent = streak.side ? `${streak.side}×${streak.length}` : '—';
-  document.getElementById('st-maxstreak').textContent = mxStr || '—';
-  const scont = streakContinuationProb(outcomes, streak);
-  document.getElementById('st-scont').textContent = scont !== null ? (scont*100).toFixed(0)+'%' : '—';
-  document.getElementById('st-sbreak').textContent = scont !== null ? ((1-scont)*100).toFixed(0)+'%' : '—';
-  const zig = zigzagIndex(outcomes);
-  document.getElementById('zigzag-bar').style.width = (zig*100)+'%';
-  document.getElementById('zigzag-val').textContent = zig.toFixed(2);
-  
-  const patterns = findRepeatingPatterns(outcomes);
-  const pl = document.getElementById('pattern-list');
-  pl.innerHTML = patterns.length ? patterns.map(p => `<div class="pattern-row"><div class="pattern-seq">${p.seq.split('').map(c => `<span class="ps-${c.toLowerCase()}">${c}</span>`).join('')}</div><span class="pattern-stat">×${p.count}${p.isRecent ? ' ←' : ''}</span></div>`).join('') : '<div style="font-size:11px;color:var(--text3)">Collecting data...</div>';
-  
-  const regime = decision.regime || detectRegime(outcomes);
-  document.getElementById('top-regime').innerHTML = regime;
-  
-  const rm = document.getElementById('road-map');
-  rm.innerHTML = outcomes.slice(-40).map(o => `<div class="rm-cell rm-${o}">${o}</div>`).join('');
-  
-  // Third card info
-  const tcDiv = document.getElementById('third-card-info');
-  const thirdCard = thirdCardAnalyzer.detectThirdCardPattern(outcomes, state.thirdCardHistory);
-  tcDiv.innerHTML = thirdCard ? `<span style="color:var(--profit-l)">Bias detected: ${thirdCard.side} (ratio=${thirdCard.ratio.toFixed(2)})</span>` : 'No significant third card bias';
-}
-
-function renderTopBar() {
-  const bank = state.bankroll;
-  const pnl = bank - state.startBankroll;
-  const bets = state.bets.filter(b => b.side !== 'SKIP');
-  const wins = bets.filter(b => b.result === 'win').length;
-  const wr = bets.length > 0 ? (wins/bets.length*100).toFixed(1)+'%' : '—';
-  const confs = bets.filter(b => b.conf > 0).map(b => b.conf);
-  const avgEdge = confs.length > 0 ? (confs.reduce((a,b)=>a+b,0)/confs.length).toFixed(0)+'%' : '—';
-  document.getElementById('top-bankroll').textContent = `$${bank.toFixed(2)}`;
-  const totalRounds = state.bets.length;
-  const betRate = totalRounds > 0 ? (bets.length / totalRounds * 100).toFixed(0)+'%' : '—';
-  document.getElementById('top-betrate').textContent = betRate;
-  const pnlEl = document.getElementById('top-pnl');
-  pnlEl.textContent = (pnl >= 0 ? '+' : '') + `$${pnl.toFixed(2)}`;
-  pnlEl.className = 'val ' + (pnl > 0 ? 'pos' : pnl < 0 ? 'neg' : 'warn');
-  document.getElementById('top-winrate').textContent = wr;
-  document.getElementById('top-edge').textContent = avgEdge;
-  document.getElementById('top-rounds').textContent = state.outcomes.length;
-}
-
-function renderHistoryItem(round, outcome, bet, pnl, conf) {
-  const list = document.getElementById('history-list');
-  const pnlClass = bet === 'SKIP' ? 'pnl-sk' : pnl > 0 ? 'pnl-pos' : pnl < 0 ? 'pnl-neg' : 'pnl-sk';
-  const pnlText = bet === 'SKIP' ? 'skip' : (pnl >= 0 ? '+' : '') + `$${pnl.toFixed(2)}`;
-  const result = bet === 'SKIP' ? '—' : bet === outcome ? '✓ WIN' : outcome === 'T' ? '~ PUSH' : '✗ LOSS';
-  const item = document.createElement('div');
-  item.className = 'hist-item';
-  item.innerHTML = `<span class="hnum">#${round}</span><div class="hist-badge hb-${outcome}">${outcome}</div><span class="hresult">${result}</span><span class="hedge">${conf > 0 ? conf+'%' : ''}</span><span class="hpnl ${pnlClass}">${pnlText}</span>`;
-  list.insertBefore(item, list.firstChild);
-}
-
-let equityChart, distChart;
-
-function initCharts() {
-  const chartDefaults = { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, animation: { duration: 200 } };
-  equityChart = new Chart(document.getElementById('equity-chart'), {
-    type: 'line', data: { labels: ['0'], datasets: [{ data: [state.startBankroll], borderColor: '#059669', borderWidth: 1.5, backgroundColor: 'rgba(5,150,105,0.08)', fill: true, tension: 0.3, pointRadius: 0 }] },
-    options: { ...chartDefaults, scales: { x: { ticks: { color: '#475569', font: { size: 9 } }, grid: { color: '#1A2330' } }, y: { ticks: { color: '#475569', font: { size: 9 }, callback: v => '$'+v.toFixed(0) }, grid: { color: '#1A2330' } } } }
-  });
-  distChart = new Chart(document.getElementById('dist-chart'), {
-    type: 'bar', data: { labels: ['Banker','Player','Tie'], datasets: [{ label: 'Observed', data: [45.8,44.6,9.6], backgroundColor: ['#92400E','#0C4A6E','#4C1D95'] }, { label: 'Theoretical', data: [45.85,44.60,9.55], backgroundColor: ['#D97706','#0891B2','#7C3AED'], borderWidth: 0, borderRadius: 2 }] },
-    options: { ...chartDefaults, plugins: { legend: { display: true, labels: { color: '#94A3B8', font: { size: 9 } } } }, scales: { x: { ticks: { color: '#475569', font: { size: 9 } }, grid: { color: '#1A2330' } }, y: { ticks: { color: '#475569', font: { size: 9 }, callback: v => v+'%' }, grid: { color: '#1A2330' }, max: 55 } } }
-  });
-}
-
-function updateCharts() {
-  equityChart.data.labels = state.equityHistory.map((_,i) => i);
-  equityChart.data.datasets[0].data = state.equityHistory;
-  const last = state.equityHistory[state.equityHistory.length-1];
-  equityChart.data.datasets[0].borderColor = last >= state.startBankroll ? '#059669' : '#DC2626';
-  equityChart.data.datasets[0].backgroundColor = last >= state.startBankroll ? 'rgba(5,150,105,0.08)' : 'rgba(220,38,38,0.08)';
-  equityChart.update('none');
-  if (state.outcomes.length >= 10) {
-    const counts = countOutcomes(state.outcomes);
-    const n = state.outcomes.length;
-    distChart.data.datasets[0].data = [ (counts.B/n*100).toFixed(1), (counts.P/n*100).toFixed(1), (counts.T/n*100).toFixed(1) ];
-    distChart.update('none');
-  }
-}
-
-// ============================================================
-//  SIMULATION ENGINE
-// ============================================================
-function runSimulation() {
-  const outcomes = state.outcomes;
-  if (outcomes.length < 30) { showAlert('Need ≥30 outcomes to simulate.', 'warn'); return; }
-  const config = { ...state.config };
-  const startBank = parseFloat(document.getElementById('sl-bank').value);
-  let bankroll = startBank, wins = 0, losses = 0, skips = 0, maxDD = 0, peakBank = startBank, totalConf = 0, betsPlaced = 0;
-  for (let i = 20; i < outcomes.length; i++) {
-    const history = outcomes.slice(0, i);
-    const dec = computeDecision(history, config);
-    const stake = computeStake(dec, bankroll, config);
-    if (dec.side === 'SKIP') { skips++; continue; }
-    betsPlaced++; totalConf += dec.confidence;
-    const actual = outcomes[i];
-    const betSide = dec.side === 'BANKER' ? 'B' : 'P';
-    let pnl;
-    if (actual === betSide) { pnl = stake * (betSide === 'B' ? HOUSE_EDGE_B : 1); wins++; }
-    else if (actual === 'T') pnl = 0;
-    else { pnl = -stake; losses++; }
-    bankroll += pnl;
-    if (bankroll > peakBank) peakBank = bankroll;
-    const dd = (peakBank - bankroll) / peakBank * 100;
-    if (dd > maxDD) maxDD = dd;
-    const risk = checkRiskLimits(bankroll, startBank, config);
-    if (risk.halt) break;
-  }
-  const roi = ((bankroll - startBank) / startBank * 100).toFixed(2);
-  const wr = betsPlaced > 0 ? (wins / betsPlaced * 100).toFixed(1) : 0;
-  const avgConf = betsPlaced > 0 ? (totalConf / betsPlaced).toFixed(1) : 0;
-  document.getElementById('sim-results').style.display = 'block';
-  document.getElementById('sim-roi').textContent = `${roi}%`;
-  document.getElementById('sim-roi').style.color = roi >= 0 ? 'var(--profit-l)' : 'var(--loss-l)';
-  document.getElementById('sim-wr').textContent = `${wr}%`;
-  document.getElementById('sim-dd').textContent = `${maxDD.toFixed(1)}%`;
-  document.getElementById('sim-ac').textContent = `${avgConf}%`;
-  document.getElementById('sim-bets').textContent = betsPlaced;
-  document.getElementById('sim-skip').textContent = skips;
-  document.getElementById('sim-final').textContent = `$${bankroll.toFixed(2)}`;
-  document.getElementById('sim-status').textContent = `Simulation complete (${outcomes.length} rounds)`;
-  showAlert(`Sim: ROI ${roi}%, WR ${wr}%, ${betsPlaced} bets`, roi >= 0 ? 'info' : 'warn');
-}
-
-// ============================================================
-//  CORE ACTIONS
-// ============================================================
-function recordOutcome(outcome) {
-  if (state.halted) { showAlert('Trading halted. Reset session to continue.', 'danger'); return; }
-  const round = state.outcomes.length + 1;
-  const bet = state.pendingBet;
-  let pnl = 0, result = 'skip';
-  const betSide = bet ? (bet.side === 'BANKER' ? 'B' : 'P') : null;
-  if (bet && betSide) {
-    if (outcome === betSide) { pnl = bet.stake * (betSide === 'B' ? HOUSE_EDGE_B : 1); result = 'win'; }
-    else if (outcome === 'T') pnl = 0;
-    else { pnl = -bet.stake; result = 'loss'; }
-    state.bankroll = parseFloat((state.bankroll + pnl).toFixed(2));
-    state.equityHistory.push(state.bankroll);
-    // Record prediction error for adaptive learning
-    const wasCorrect = (betSide === outcome) ? 0 : 1;
-    state.predictionErrors.push(wasCorrect);
-    if (state.predictionErrors.length > 100) state.predictionErrors.shift();
-  }
-  state.bets.push({ round, side: bet ? bet.side : 'SKIP', stake: bet ? bet.stake : 0, result, pnl, conf: state.lastDecision?.confidence || 0 });
-  renderHistoryItem(round, outcome, betSide, pnl, state.lastDecision?.confidence || 0);
-  state.outcomes.push(outcome);
-  // Simulate third card data (for demo - 30% random third card draw)
-  state.thirdCardHistory.push({ thirdCardDrawn: Math.random() < 0.42 });
-  if (state.thirdCardHistory.length > 500) state.thirdCardHistory.shift();
-  const risk = checkRiskLimits(state.bankroll, state.startBankroll, state.config);
-  if (risk.halt) { state.halted = true; showAlert(risk.reason, 'danger'); }
-  renderDecision();
-  renderTopBar();
-  updateCharts();
-}
-
-function batchInput() {
-  const raw = document.getElementById('batch-input').value.toUpperCase().replace(/[^BPT]/g,'');
-  if (!raw) return;
-  raw.split('').forEach(c => { state.outcomes.push(c); state.bets.push({ round: state.outcomes.length, side:'SKIP', stake:0, result:'skip', pnl:0, conf:0 }); renderHistoryItem(state.outcomes.length, c, null, 0, 0); });
-  document.getElementById('batch-input').value = '';
-  renderDecision();
-  renderTopBar();
-  updateCharts();
-  showAlert(`Imported ${raw.length} outcomes.`, 'info');
-}
-
-function resetSession() {
-  state.outcomes = []; state.bets = []; state.bankroll = state.startBankroll; state.equityHistory = [state.startBankroll]; state.halted = false; state.pendingBet = null; state.lastDecision = null; state.predictionErrors = [];
-  document.getElementById('history-list').innerHTML = '';
-  document.getElementById('reason-list').innerHTML = '<div class="reason-item" style="color:var(--text3)">No analysis yet — record at least 10 outcomes.</div>';
-  document.getElementById('bet-action').textContent = '—';
-  document.getElementById('bet-action').className = 'SKIP';
-  document.getElementById('bet-side').className = 'SKIP';
-  document.getElementById('bet-sub').textContent = 'enter outcomes to begin';
-  document.getElementById('round-label').textContent = 'Awaiting data...';
-  document.getElementById('road-map').innerHTML = '';
-  document.getElementById('pattern-list').innerHTML = '<div style="font-size:11px;color:var(--text3)">Collecting data...</div>';
-  document.getElementById('sim-results').style.display = 'none';
-  renderTopBar();
-  updateCharts();
-  showAlert('Session reset.', 'info');
-}
-
-function clearHistory() { document.getElementById('history-list').innerHTML = ''; }
-
-function updateConfig() {
-  state.config.confThreshold = parseFloat(document.getElementById('sl-conf').value);
-  state.config.fixedStakePct = parseFloat(document.getElementById('sl-stake').value);
-  state.config.kellyFrac = parseFloat(document.getElementById('sl-kelly').value);
-  state.config.stopLoss = parseFloat(document.getElementById('sl-stop').value);
-  state.config.takeProfit = parseFloat(document.getElementById('sl-tp').value);
-  const bank = parseFloat(document.getElementById('sl-bank').value);
-  if (bank !== state.startBankroll && state.outcomes.length === 0) { state.startBankroll = bank; state.bankroll = bank; state.equityHistory = [bank]; renderTopBar(); }
-  document.getElementById('sl-conf-v').textContent = state.config.confThreshold+'%';
-  document.getElementById('sl-bank-v').textContent = bank >= 1000 ? '$' + (bank/1000).toFixed(0) + 'K' : '$' + bank;
-  document.getElementById('sl-stake-v').textContent = state.config.fixedStakePct.toFixed(1)+'%';
-  document.getElementById('sl-kelly-v').textContent = state.config.kellyFrac.toFixed(2);
-  document.getElementById('sl-stop-v').textContent = state.config.stopLoss+'%';
-  document.getElementById('sl-tp-v').textContent = state.config.takeProfit+'%';
-  if (state.outcomes.length >= 10) renderDecision();
-}
-
-function setStakingMode(mode) { state.config.stakingMode = mode; document.getElementById('mode-fixed').className = 'mode-btn' + (mode === 'fixed' ? ' active' : ''); document.getElementById('mode-kelly').className = 'mode-btn' + (mode === 'kelly' ? ' active' : ''); if (state.outcomes.length >= 10) renderDecision(); }
-function setAdaptiveThreshold(enabled) { state.adaptiveThresholdEnabled = enabled; document.getElementById('adapt-on').className = 'mode-btn' + (enabled ? ' active' : ''); document.getElementById('adapt-off').className = 'mode-btn' + (!enabled ? ' active' : ''); if (state.outcomes.length >= 10) renderDecision(); }
-
-function showAlert(msg, type) { const az = document.getElementById('alert-zone'); const el = document.createElement('div'); el.className = `alert ${type}`; el.textContent = msg; az.appendChild(el); setTimeout(() => el.remove(), 4000); }
-
-// Keyboard shortcuts
-document.addEventListener('keydown', e => { if (document.activeElement.tagName === 'INPUT') return; if (e.key === 'b' || e.key === 'B') recordOutcome('B'); else if (e.key === 'p' || e.key === 'P') recordOutcome('P'); else if (e.key === 't' || e.key === 'T') recordOutcome('T'); });
-
-// Load demo data
-function loadDemo() {
-  const demo = 'BPBBPBPPBBBPPTBPBPBBPBPPBPBBPPPBBBPBPBPPBBPBBBPB';
-  demo.split('').forEach(c => { if ('BPT'.includes(c)) state.outcomes.push(c); });
-  renderDecision(); renderTopBar(); updateCharts();
-  showAlert(`Demo: ${state.outcomes.length} rounds loaded. Press B/P/T to record outcomes.`, 'info');
-}
-
-window.addEventListener('load', () => { updateConfig(); initCharts(); loadDemo(); });
+    
+    // Rolling dominance (20-round window)
+    function rollingDominance20() {
+        let res = [];
+        for (let i=0; i<outcomes.length; i++) {
+            const start = Math.max(0, i-19);
+            const slice = outcomes.slice(start, i+1);
+            res.push(computeDominance(slice));
+        }
+        return res;
+    }
+    
+    // Exponential momentum (weighted recent)
+    function computeMomentumScore() {
+        if (outcomes.length < 6) return 0;
+        const recent = outcomes.slice(-18);
+        let weightSum = 0, weightedB = 0;
+        for (let i=0; i<recent.length; i++) {
+            const weight = Math.exp(i * 0.18);
+            if (recent[i] !== 'T') {
+                weightedB += recent[i] === 'B' ? weight : 0;
+                weightSum += weight;
+            }
+        }
+        const pB = weightSum > 0 ? weightedB / weightSum : 0.5;
+        return (pB - 0.5) * 200; // -100 to +100
+    }
+    
+    // Streak/Chop Index: >0 means streak bias, <0 means chop tendency
+    function streakChopIndex() {
+        if (outcomes.length < 10) return 0;
+        let streakScore = 0;
+        for (let i=1; i<outcomes.length; i++) {
+            if (outcomes[i] !== 'T' && outcomes[i-1] !== 'T') {
+                if (outcomes[i] === outcomes[i-1]) streakScore += 1;
+                else streakScore -= 1.2;
+            }
+        }
+        return Math.min(50, Math.max(-50, streakScore / 3));
+    }
+    
+    // Phase extraction (20 rounds)
+    function extractPhases() {
+        const phases = [];
+        const phaseSize = 20;
+        const count = Math.ceil(outcomes.length / phaseSize);
+        for (let i=0; i<count; i++) {
+            const slice = outcomes.slice(i*phaseSize, (i+1)*phaseSize);
+            const dom = computeDominance(slice);
+            phases.push({ idx:i, start:i*phaseSize+1, end:Math.min((i+1)*phaseSize, outcomes.length), ...dom, isCurrent: i === count-1 });
+        }
+        return phases;
+    }
+    
+    // Shift detection: robust regime change with confirmation
+    function detectRegimeShifts() {
+        if (outcomes.length < 24) return [];
+        const rolling = rollingDominance20();
+        let shifts = [];
+        let lastRegime = rolling[14]?.side;
+        for (let i=18; i<rolling.length; i++) {
+            const cur = rolling[i];
+            if (cur.side && lastRegime && cur.side !== lastRegime && cur.pct > 0.57) {
+                const confirmWindow = outcomes.slice(Math.max(0,i-5), i+1);
+                const confirmDom = computeDominance(confirmWindow);
+                if (confirmDom.side === cur.side && confirmDom.pct > 0.56) {
+                    shifts.push({ round: i+1, from: lastRegime, to: cur.side, pct: cur.pct });
+                    lastRegime = cur.side;
+                }
+            }
+        }
+        return shifts;
+    }
+    
+    // PREDICTION ENGINE: commission-aware + Kelly + streak/chop adaptation
+    function computePrediction() {
+        if (outcomes.length < 12) return { side: 'SKIP', confidence: 0, stake: 0, reason: `Need 12 rounds (have ${outcomes.length})`, edge: 0 };
+        
+        const recent20 = computeDominance(outcomes.slice(-20));
+        const recent10 = computeDominance(outcomes.slice(-10));
+        const momentum = computeMomentumScore();
+        const phases = extractPhases();
+        const phaseLead = phases.filter(p => p.side).reduce((acc,p) => { if(p.side === 'B') acc.B++; else if(p.side === 'P') acc.P++; return acc; }, {B:0,P:0});
+        const phaseScore = (phaseLead.B > phaseLead.P ? 'B' : (phaseLead.P > phaseLead.B ? 'P' : null));
+        const streakIdx = streakChopIndex();
+        const shiftRisk = detectRegimeShifts();
+        const recentShift = shiftRisk.length ? shiftRisk[shiftRisk.length-1] : null;
+        
+        let bankerScore = 0, playerScore = 0, totalWeight = 0;
+        
+        // 1) Recent dominance (weight 3.2)
+        if (recent20.side === 'B') bankerScore += recent20.pct * 3.2;
+        else if (recent20.side === 'P') playerScore += recent20.pct * 3.2;
+        
+        // 2) Short term trend (weight 2.6)
+        if (recent10.side === 'B') bankerScore += recent10.pct * 2.6;
+        else if (recent10.side === 'P') playerScore += recent10.pct * 2.6;
+        
+        // 3) Momentum (weight 2.2)
+        if (momentum > 12) bankerScore += Math.min(0.75, momentum/100) * 2.2;
+        else if (momentum < -12) playerScore += Math.min(0.75, Math.abs(momentum)/100) * 2.2;
+        
+        // 4) Phase leadership (weight 1.5)
+        if (phaseScore === 'B') bankerScore += 1.5;
+        else if (phaseScore === 'P') playerScore += 1.5;
+        
+        // 5) Streak/Chop adaptation (weight 1.8)
+        if (streakIdx > 8 && recent20.side === 'B') bankerScore += 1.6;
+        else if (streakIdx < -8 && recent20.side === 'P') playerScore += 1.6;
+        else if (streakIdx > 12) playerScore += 1.2;  // reversal expectation
+        else if (streakIdx < -12) bankerScore += 1.2;
+        
+        // 6) Recent shift reversal signal
+        if (recentShift && (outcomes.length - recentShift.round) < 30) {
+            if (recentShift.to === 'B') bankerScore += 1.4;
+            else playerScore += 1.4;
+        }
+        
+        const probBankerRaw = bankerScore / (bankerScore + playerScore + 0.001);
+        const finalProb = Math.min(0.85, Math.max(0.15, probBankerRaw));
+        const winProb = finalProb;
+        
+        // Determine side & edge calculation with commission
+        const predictedSide = winProb >= 0.5 ? 'B' : 'P';
+        const payout = predictedSide === 'B' ? PAYOUT.B : PAYOUT.P;
+        const edge = (winProb * payout) - (1 - winProb);
+        
+        // confidence percentage (based on distance from 0.5)
+        let rawConf = Math.abs(winProb - 0.5) * 200;
+        rawConf = Math.min(92, Math.max(20, rawConf));
+        
+        // Kelly stake (full Kelly adjusted)
+        let stake = 0;
+        let reason = "";
+        if (edge >= MIN_EDGE_REQUIRED && winProb >= CONFIDENCE_THRESH) {
+            const kellyFrac = (edge / payout) * KELLY_FRACTION;
+            const maxRisk = bankroll * 0.055;
+            stake = Math.min(maxRisk, bankroll * Math.min(0.045, kellyFrac));
+            stake = Math.max(0.5, stake);
+            reason = `Edge ${(edge*100).toFixed(2)}% · Kelly fraction ${(kellyFrac*100).toFixed(1)}% · StreakIdx ${streakIdx.toFixed(0)}`;
+        } else {
+            stake = 0;
+            reason = `Edge ${(edge*100).toFixed(2)}% below ${(MIN_EDGE_REQUIRED*100).toFixed(1)}% threshold or winProb ${(winProb*100).toFixed(1)}% < 53.5%`;
+        }
+        
+        return {
+            side: predictedSide === 'B' ? 'BANKER' : 'PLAYER',
+            confidence: Math.round(rawConf),
+            stake: parseFloat(stake.toFixed(2)),
+            reason,
+            edge: edge,
+            winProb,
+            momentum
+        };
+    }
+    
+    function recordOutcome(outcome) {
+        const pred = computePrediction();
+        let result = "skip";
+        let pnl = 0;
+        if (pred.stake > 0 && pred.side !== "SKIP") {
+            const betSideCode = pred.side === "BANKER" ? "B" : "P";
+            if (outcome === betSideCode) {
+                const multiplier = (betSideCode === 'B') ? COMMISSION : 1.0;
+                pnl = pred.stake * multiplier;
+                result = "win";
+                totalWon++;
+            } else if (outcome === 'T') {
+                pnl = 0;
+                result = "push";
+            } else {
+                pnl = -pred.stake;
+                result = "loss";
+                totalLost++;
+            }
+            bankroll = parseFloat((bankroll + pnl).toFixed(2));
+            if (bankroll < 5) bankroll = 5;
+        } else {
+            totalSkipped++;
+        }
+        
+        outcomes.push(outcome);
+        
+        // update dominance streak
+        const currentDom = computeDominance(outcomes.slice(-20));
+        if (currentDom.side && currentDom.side === lastDominantSide) dominantStreakCounter++;
+        else { lastDominantSide = currentDom.side; dominantStreakCounter = 1; }
+        
+        // detect new shifts
+        const freshShifts = detectRegimeShifts();
+        if (freshShifts.length > shiftLog.length) {
+            const newShift = freshShifts[freshShifts.length-1];
+            shiftLog.push(newShift);
+            flashNotif(`⚡ REGIME SHIFT: ${newShift.from} → ${newShift.to} at R${newShift.round} (${(newShift.pct*100).toFixed(0)}% dom)`, "warning");
+        }
+        
+        renderAll();
+        if (result === "win") flashNotif(`✓ WIN +$${pnl.toFixed(2)} on ${pred.side}`, "success");
+        else if (result === "loss") flashNotif(`✗ LOSS -$${Math.abs(pnl).toFixed(2)}`, "danger");
+    }
+    
+    function batchImport() {
+        const raw = document.getElementById('batchInput').value.toUpperCase().replace(/[^BPT]/g, '');
+        if (!raw) return;
+        for (let ch of raw) outcomes.push(ch);
+        document.getElementById('batchInput').value = '';
+        renderAll();
+        flashNotif(`Imported ${raw.length} hands · engine analyzing`, "info");
+    }
+    
+    function resetSession() {
+        outcomes = [];
+        bankroll = startBank;
+        totalWon = totalLost = totalSkipped = 0;
+        shiftLog = [];
+        lastDominantSide = null;
+        dominantStreakCounter = 0;
+        renderAll();
+        flashNotif("Session reset · bankroll restored", "info");
+    }
+    
+    function renderAll() {
+        const phases = extractPhases();
+        const recentDom = computeDominance(outcomes.slice(-24));
+        const momentum = computeMomentumScore();
+        const pred = computePrediction();
+        const streakIdx = streakChopIndex();
+        const edgeRaw = pred.edge || 0;
+        
+        // top bar
+        document.getElementById('topDom').innerHTML = recentDom.side || "—";
+        document.getElementById('topDomPct').innerHTML = recentDom.side ? (recentDom.pct*100).toFixed(1)+"%" : "—";
+        document.getElementById('topMomentum').innerHTML = momentum > 0 ? `+${momentum.toFixed(0)}` : momentum.toFixed(0);
+        document.getElementById('topRounds').innerHTML = outcomes.length;
+        document.getElementById('domIconSide').innerHTML = recentDom.side === 'B' ? "🏦 BANKER DOM" : (recentDom.side === 'P' ? "👤 PLAYER DOM" : "⚖️ NEUTRAL");
+        document.getElementById('domPctValue').innerHTML = recentDom.side ? (recentDom.pct*100).toFixed(1)+"%" : "0%";
+        document.getElementById('domStreak').innerHTML = dominantStreakCounter;
+        const riskLabel = edgeRaw > 0.035 ? "HIGH" : (edgeRaw > 0.018 ? "MED" : "LOW");
+        document.getElementById('riskLevel').innerHTML = riskLabel;
+        document.getElementById('shiftDesc').innerHTML = `Kelly edge: ${(edgeRaw*100).toFixed(2)}% · streakIdx ${streakIdx.toFixed(0)}`;
+        
+        // prediction box
+        document.getElementById('predSideText').innerHTML = pred.side === "SKIP" ? "⛔ SKIP" : (pred.side === "BANKER" ? "🏦 BANKER" : "👤 PLAYER");
+        document.getElementById('predConf').innerHTML = `Confidence ${pred.confidence}% · ${(pred.winProb*100).toFixed(1)}% win prob`;
+        document.getElementById('predReason').innerHTML = pred.reason;
+        document.getElementById('predStake').innerHTML = pred.stake > 0 ? `$${pred.stake.toFixed(2)}` : "$0";
+        
+        // stats
+        const globalDom = computeDominance(outcomes);
+        document.getElementById('statB').innerHTML = globalDom.B ? (globalDom.B*100).toFixed(1)+"%" : "0%";
+        document.getElementById('statP').innerHTML = globalDom.P ? (globalDom.P*100).toFixed(1)+"%" : "0%";
+        document.getElementById('statT').innerHTML = globalDom.T ? (globalDom.T*100).toFixed(1)+"%" : "0%";
+        const phaseLeadVal = phases.filter(p=>p.side).reduce((a,b)=>b.side==='B'?a+1:a,0);
+        document.getElementById('phaseLead').innerHTML = phaseLeadVal > (phases.length/2) ? "BANKER phases" : (phaseLeadVal < phases.length/2 ? "PLAYER phases" : "balanced");
+        document.getElementById('streakIndex').innerHTML = streakIdx.toFixed(1);
+        document.getElementById('edgeValue').innerHTML = (edgeRaw*100).toFixed(2)+"%";
+        document.getElementById('bankrollDisplay').innerHTML = `$${bankroll.toFixed(2)}`;
+        document.getElementById('statWon').innerHTML = totalWon;
+        document.getElementById('statLost').innerHTML = totalLost;
+        const winRate = (totalWon+totalLost) ? ((totalWon/(totalWon+totalLost))*100).toFixed(1) : 0;
+        document.getElementById('statWR').innerHTML = `${winRate}%`;
+        
+        // gauge
+        const gaugePos = 50 + (momentum * 0.35);
+        const clamped = Math.min(92, Math.max(8, gaugePos));
+        document.getElementById('gaugeFill').style.width = `${clamped}%`;
+        
+        // phase strip rendering
+        const stripDiv = document.getElementById('phaseStrip');
+        stripDiv.innerHTML = phases.slice(-8).map(p => `<div class="phase-card ${p.isCurrent ? 'active-phase' : ''}"><div class="phase-name">P${p.idx+1}</div><div class="phase-side" style="color:${p.side==='B'?'#f39c12':p.side==='P'?'#38bdf8':'#94a3b8'}">${p.side||'?'}</div><div style="font-size:9px;">${p.pct?(p.pct*100).toFixed(0)+'%':''}</div></div>`).join('');
+        
+        // heatmap (10-block)
+        const hmDiv = document.getElementById('heatmapContainer');
+        const blockCount = Math.ceil(outcomes.length / 10) || 1;
+        let hmHtml = '<div class="heatmap-block">';
+        for(let i=0; i<Math.min(20, blockCount+6); i++) {
+            const slice = outcomes.slice(i*10, (i+1)*10);
+            const dom = computeDominance(slice);
+            const sideChar = dom.side || '—';
+            const colorStyle = sideChar === 'B' ? '#e67e22' : (sideChar === 'P' ? '#0ea5e9' : '#475569');
+            hmHtml += `<div class="hm-cell" style="background:${dom.side? (dom.side==='B'?'rgba(230,126,34,0.25)':'rgba(14,165,233,0.25)'):'#0a1119'}; border:1px solid ${colorStyle}30">${sideChar}</div>`;
+        }
+        hmHtml += '</div>';
+        hmDiv.innerHTML = hmHtml;
+        
+        // block list (10-round blocks)
+        const blockDiv = document.getElementById('blockList');
+        let blockHtml = '';
+        for(let i=Math.max(0, Math.floor(outcomes.length/10)-6); i<Math.ceil(outcomes.length/10); i++) {
+            const slice = outcomes.slice(i*10, (i+1)*10);
+            const dom = computeDominance(slice);
+            const seq = slice.map(s=>`<span style="color:${s==='B'?'#f39c12':s==='P'?'#38bdf8':'#c084fc'}">${s}</span>`).join('');
+            blockHtml += `<div style="border-bottom:1px solid #1e2a36; padding:4px 0;"><strong>B${i+1}</strong> ${seq} → <span style="color:${dom.side==='B'?'#f39c12':'#0ea5e9'}">${dom.side||'?'} ${dom.pct?(dom.pct*100).toFixed(0)+'%':''}</span></div>`;
+        }
+        blockDiv.innerHTML = blockHtml || '<div style="color:#475569;">—</div>';
+        
+        // shift log
+        const logDiv = document.getElementById('shiftLogPanel');
+        if(shiftLog.length===0) logDiv.innerHTML = '<div style="color:#475569;">no regime shifts yet</div>';
+        else logDiv.innerHTML = shiftLog.slice().reverse().map(s => `<div class="shift-entry">🔁 R${s.round} · ${s.from} → ${s.to} (${(s.pct*100).toFixed(0)}% dom)</div>`).join('');
+        
+        // update charts
+        updateCharts();
+    }
+    
+    function updateCharts() {
+        if(!domChart) {
+            const ctxDom = document.getElementById('domChartCanvas').getContext('2d');
+            const ctxMom = document.getElementById('momChartCanvas').getContext('2d');
+            domChart = new Chart(ctxDom, { type:'line', data:{ labels:[], datasets:[{label:'Banker %', borderColor:'#e67e22', data:[], tension:0.3, fill:false, pointRadius:0}] }, options:{ responsive:true, maintainAspectRatio:true, plugins:{ legend:{ labels:{ color:'#94a3b8' } } } } });
+            momChart = new Chart(ctxMom, { type:'bar', data:{ labels:[], datasets:[{ label:'Momentum', data:[], backgroundColor:'#f59e0b' }] }, options:{ responsive:true, scales:{ y:{ min:-100, max:100 } } } });
+        }
+        const roll = rollingDominance20();
+        domChart.data.labels = roll.map((_,i)=>i+1);
+        domChart.data.datasets[0].data = roll.map(d=>d.B || 0.5);
+        domChart.update('none');
+        
+        const momHist = outcomes.map((_,i)=> { const slice=outcomes.slice(0,i+1); let wB=0, wSum=0; for(let j=0;j<slice.length;j++){ const w=Math.exp(j*0.12); if(slice[j]!=='T'){ wB += slice[j]==='B'?w:0; wSum+=w; } } const pB=wSum>0?wB/wSum:0.5; return (pB-0.5)*200; });
+        momChart.data.labels = momHist.map((_,i)=>i+1);
+        momChart.data.datasets[0].data = momHist;
+        momChart.update('none');
+    }
+    
+    function flashNotif(msg, type) {
+        const div = document.createElement('div');
+        div.className = 'flash-message';
+        div.innerHTML = msg;
+        document.body.appendChild(div);
+        setTimeout(()=>div.remove(), 3000);
+    }
+    
+    // keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+        if(document.activeElement.tagName === 'INPUT') return;
+        if(e.key === 'b' || e.key === 'B') recordOutcome('B');
+        if(e.key === 'p' || e.key === 'P') recordOutcome('P');
+        if(e.key === 't' || e.key === 'T') recordOutcome('T');
+    });
+    
+    // init with demo realistic pattern (60 rounds mixed)
+    const demoSeq = "BPBPBBBPBBPPPBBBPBBBBPPPBPBPBBBPBPTPBBPBPBBBBPBPBBPPBBBPBBP".split('');
+    for(let d of demoSeq) if('BPT'.includes(d)) outcomes.push(d);
+    startBank = 1000; bankroll = 1000;
+    renderAll();
+    flashNotif("✅ BaccaratIQ active | Banker commission 5% | Kelly fraction 0.28 | Min edge 2.2%", "info");
 </script>
 </body>
 </html>
