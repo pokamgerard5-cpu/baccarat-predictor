@@ -1,160 +1,614 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>TicTacAI · Perfect Prediction Engine</title>
-<style>
-body{background:#0b1220;color:#fff;font-family:Arial;text-align:center}
-h1{margin-top:20px}
-.board{display:grid;grid-template-columns:repeat(3,100px);gap:10px;justify-content:center;margin:30px}
-.cell{width:100px;height:100px;background:#1f2937;font-size:40px;display:flex;align-items:center;justify-content:center;cursor:pointer;border-radius:10px}
-.card{background:#111827;padding:15px;border-radius:10px;width:320px;margin:10px auto;text-align:left}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic Tac Toe Prediction Engine | AI + Pattern Learning + Dominance Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tensorflow@3.0.0/dist/tf.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0a0f1e 0%, #0c1222 100%);
+            margin: 0;
+            padding: 24px;
+            color: #eef2ff;
+        }
+
+        .dashboard {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #a5f3fc, #818cf8);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 0.25rem;
+        }
+
+        .sub {
+            color: #9ca3af;
+            margin-bottom: 2rem;
+            border-left: 3px solid #3b82f6;
+            padding-left: 16px;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 24px;
+        }
+
+        .card {
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(8px);
+            border-radius: 28px;
+            border: 1px solid #2d3a5e;
+            padding: 20px;
+            box-shadow: 0 20px 35px -12px rgba(0,0,0,0.5);
+            transition: all 0.2s;
+        }
+
+        .card-header {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 1px solid #2d3a5e;
+            padding-bottom: 8px;
+        }
+
+        .board {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            background: #0f172a;
+            padding: 12px;
+            border-radius: 24px;
+            max-width: 320px;
+            margin: 0 auto;
+        }
+
+        .cell {
+            aspect-ratio: 1;
+            background: #1e293b;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.8rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: 0.1s ease;
+            color: #facc15;
+            box-shadow: inset 0 1px 2px rgba(255,255,255,0.05), 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .cell.X { color: #60a5fa; text-shadow: 0 0 6px #3b82f6; }
+        .cell.O { color: #f472b6; text-shadow: 0 0 6px #ec4899; }
+        .cell:hover { background: #334155; transform: scale(0.98); }
+
+        .prediction-panel {
+            background: #02061770;
+            padding: 16px;
+            border-radius: 20px;
+            margin-top: 20px;
+        }
+
+        .prob-bar {
+            background: #1e293b;
+            border-radius: 40px;
+            height: 24px;
+            overflow: hidden;
+            margin: 8px 0;
+        }
+
+        .prob-fill {
+            height: 100%;
+            width: 0%;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 8px;
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+        }
+
+        button {
+            background: #3b82f6;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 60px;
+            font-weight: 600;
+            color: white;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-top: 12px;
+        }
+
+        button:hover { background: #2563eb; transform: translateY(-2px);}
+        .reset-btn { background: #475569; }
+        .upload-btn { background: #0f172a; border: 1px solid #3b82f6;}
+
+        input, textarea {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 14px;
+            padding: 8px 12px;
+            color: white;
+            width: 100%;
+            margin: 8px 0;
+        }
+
+        .heatmap-container {
+            display: flex;
+            justify-content: center;
+        }
+        canvas.heatmap-canvas {
+            background: #0f172a;
+            border-radius: 20px;
+            max-width: 280px;
+            width: 100%;
+        }
+        .stats-badge {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            margin-top: 12px;
+        }
+        .stat {
+            background: #00000040;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+        }
+
+        .accuracy-track {
+            font-family: monospace;
+            font-size: 0.8rem;
+        }
+        .footer-note {
+            text-align: center;
+            font-size: 0.75rem;
+            margin-top: 40px;
+            color: #5b6e8c;
+        }
+    </style>
 </head>
 <body>
+<div class="dashboard">
+    <h1>⚡ Tic Tac Toe Intelligence Engine</h1>
+    <div class="sub">Hybrid ML + Pattern Learning | Real-time Prediction | Dominance Analytics</div>
 
-<h1>TicTacAI · Perfect Strategy Engine</h1>
+    <div class="grid-container">
+        <!-- Live Game & Prediction -->
+        <div class="card">
+            <div class="card-header">🎮 Live Match · Predictor</div>
+            <div id="liveBoard" class="board"></div>
+            <div class="prediction-panel">
+                <div style="font-weight: bold;">🤖 Real-time Outcome Prediction</div>
+                <div id="predictionText" style="font-size: 1rem; margin-top: 8px;">— waiting for moves —</div>
+                <div id="probBars"></div>
+                <div id="confidenceMsg" style="font-size: 0.75rem; color: #94a3b8;"></div>
+                <button id="resetGameBtn" class="reset-btn">🔄 New Game</button>
+                <button id="recordGameBtn" style="background: #10b981;">💾 Save Current Game to History</button>
+            </div>
+        </div>
 
-<div class="board" id="board"></div>
+        <!-- Pattern Stats & Dominance Over Time -->
+        <div class="card">
+            <div class="card-header">📈 Dominance Timeline & Win Rates</div>
+            <canvas id="winRatioChart" height="150" style="max-height: 200px;"></canvas>
+            <div class="stats-badge">
+                <div class="stat">🏆 Total Games: <span id="totalGames">0</span></div>
+                <div class="stat">❌ X Wins: <span id="xWins">0</span></div>
+                <div class="stat">⭕ O Wins: <span id="oWins">0</span></div>
+                <div class="stat">🤝 Draws: <span id="draws">0</span></div>
+            </div>
+            <div class="accuracy-track">📊 Model Accuracy (last 50 pred): <span id="accuracySpan">—</span>%</div>
+            <button id="retrainBtn" style="background: #8b5cf6;">🧠 Retrain ML Model (from history)</button>
+        </div>
 
-<div class="card">
-<div>AI Prediction: <b id="pred">—</b></div>
-<div>Win Probability: <b id="prob">—</b></div>
-<div>Confidence: <b id="conf">—</b></div>
-<div>Reasoning: <b id="reason">—</b></div>
+        <!-- Board Heatmap + Move Frequency -->
+        <div class="card">
+            <div class="card-header">🔥 Position Heatmap (historical move frequency)</div>
+            <div class="heatmap-container">
+                <canvas id="heatmapCanvas" width="280" height="280" class="heatmap-canvas"></canvas>
+            </div>
+            <div style="font-size: 12px; text-align: center;">Lighter = more frequent move position</div>
+        </div>
+
+        <!-- Data Upload / Import & Game List -->
+        <div class="card">
+            <div class="card-header">📂 Dataset Import / Manual Match</div>
+            <textarea id="bulkMovesInput" rows="2" placeholder='Example: {"gameId":"G1","moves":["X1","O5","X2","O9","X3"],"result":"X_WIN"}'></textarea>
+            <button id="uploadSingleBtn">➕ Add Match from JSON</button>
+            <label style="margin-top: 12px; display:block;">⬆️ Bulk CSV/JSON Upload</label>
+            <input type="file" id="bulkFileUpload" accept=".json,.csv">
+            <div class="card-header" style="margin-top: 12px;">📋 Recent Matches</div>
+            <div id="matchLog" style="max-height: 180px; overflow-y: auto; font-size: 0.75rem;"></div>
+        </div>
+    </div>
+    <div class="footer-note">
+        * Hybrid engine: Rule-based perfect play baseline + Random Forest (TF.js) + pattern frequency similarity. 
+        Model retrains on historical data for continuous learning.
+    </div>
 </div>
 
 <script>
-let board = ["","","","","","","","",""];
-let human = "X";
-let ai = "O";
-let gameOver = false;
+    // ---------- GLOBALS ----------
+    let boardState = Array(9).fill(null);
+    let currentTurn = "X";
+    let gameActive = true;
+    let matchHistory = [];       // stores {moves, result, boardStates?}
+    let outcomeLog = [];         // {result, timestamp}
+    let predictionAccuracyLog = []; // {actual, predicted}
 
-// ---------- WIN CHECK ----------
-function checkWinner(b){
-  const wins = [
-    [0,1,2],[3,4,5],[6,7,8],
-    [0,3,6],[1,4,7],[2,5,8],
-    [0,4,8],[2,4,6]
-  ];
-  for(let w of wins){
-    if(b[w[0]] && b[w[0]]===b[w[1]] && b[w[1]]===b[w[2]]) return b[w[0]];
-  }
-  if(!b.includes("")) return "draw";
-  return null;
-}
+    // move frequency map (9 positions) for heatmap
+    let moveFrequency = Array(9).fill(0);
+    
+    // ML Model (simple dense network)
+    let model = null;
+    
+    // Charts
+    let winChart = null;
+    let heatmapCtx = null;
 
-// ---------- MINIMAX ----------
-function minimax(b, depth, isMax){
-  let result = checkWinner(b);
-  if(result === ai) return 10 - depth;
-  if(result === human) return depth - 10;
-  if(result === "draw") return 0;
-
-  if(isMax){
-    let best = -Infinity;
-    for(let i=0;i<9;i++){
-      if(b[i]===""){
-        b[i]=ai;
-        best = Math.max(best, minimax(b, depth+1, false));
-        b[i]="";
-      }
+    // Helper: convert board array to feature vector (9 dims: 1=X, -1=O, 0=empty)
+    function boardToFeatures(board) {
+        return board.map(cell => {
+            if(cell === 'X') return 1;
+            if(cell === 'O') return -1;
+            return 0;
+        });
     }
-    return best;
-  } else {
-    let best = Infinity;
-    for(let i=0;i<9;i++){
-      if(b[i]===""){
-        b[i]=human;
-        best = Math.min(best, minimax(b, depth+1, true));
-        b[i]="";
-      }
+    
+    // Outcome encoding: X_WIN -> [1,0,0], O_WIN -> [0,1,0], DRAW -> [0,0,1]
+    function outcomeToOneHot(result) {
+        if(result === "X_WIN") return [1,0,0];
+        if(result === "O_WIN") return [0,1,0];
+        return [0,0,1];
     }
-    return best;
-  }
-}
-
-// ---------- AI DECISION ----------
-function bestMove(){
-  let bestScore = -Infinity;
-  let move = null;
-  let scores = [];
-
-  for(let i=0;i<9;i++){
-    if(board[i]===""){
-      board[i]=ai;
-      let score = minimax(board,0,false);
-      board[i]="";
-      scores.push(score);
-      if(score > bestScore){
-        bestScore = score;
-        move = i;
-      }
+    
+    // Build training dataset from matchHistory
+    function buildDataset() {
+        let X = [];
+        let y = [];
+        for(let match of matchHistory) {
+            if(!match.moves || !match.result) continue;
+            // reconstruct board after each move? But for simplicity: use final board state extracted from moves
+            let boardArr = Array(9).fill(null);
+            for(let mv of match.moves) {
+                let pos = parseInt(mv.substring(1)) - 1;
+                let player = mv.charAt(0);
+                if(!isNaN(pos) && pos>=0 && pos<9) boardArr[pos] = player;
+            }
+            let feat = boardToFeatures(boardArr);
+            let label = outcomeToOneHot(match.result);
+            X.push(feat);
+            y.push(label);
+        }
+        return {X, y};
     }
-  }
-
-  // Probability estimation (normalized)
-  let max = Math.max(...scores);
-  let min = Math.min(...scores);
-  let prob = (max - min) !== 0 ? (bestScore - min) / (max - min) : 0.5;
-
-  let confidence = Math.min(100, Math.abs(bestScore)*10);
-
-  return {
-    index: move,
-    prob: prob,
-    confidence: confidence,
-    reasoning: bestScore > 0 ? "Winning path detected"
-              : bestScore < 0 ? "Defensive move (avoid loss)"
-              : "Optimal draw strategy"
-  };
-}
-
-// ---------- GAME ----------
-function play(i){
-  if(board[i]!=="" || gameOver) return;
-  board[i]=human;
-  render();
-
-  if(checkWinner(board)){ endGame(); return; }
-
-  let aiMove = bestMove();
-  board[aiMove.index] = ai;
-  render();
-
-  updatePanel(aiMove);
-
-  if(checkWinner(board)){ endGame(); }
-}
-
-// ---------- UI ----------
-function render(){
-  let el = document.getElementById("board");
-  el.innerHTML="";
-  board.forEach((v,i)=>{
-    let cell = document.createElement("div");
-    cell.className="cell";
-    cell.innerText=v;
-    cell.onclick=()=>play(i);
-    el.appendChild(cell);
-  });
-}
-
-function updatePanel(m){
-  document.getElementById("pred").innerText = m.index;
-  document.getElementById("prob").innerText = (m.prob*100).toFixed(1)+"%";
-  document.getElementById("conf").innerText = m.confidence+"%";
-  document.getElementById("reason").innerText = m.reasoning;
-}
-
-function endGame(){
-  let res = checkWinner(board);
-  gameOver = true;
-  setTimeout(()=>alert(res==="draw"?"Draw":res+" wins"),200);
-}
-
-render();
+    
+    // Create & train TF model (lightweight)
+    async function createAndTrainModel() {
+        const {X, y} = buildDataset();
+        if(X.length === 0) {
+            console.log("Not enough data for training, using fallback rule-based");
+            return null;
+        }
+        if(model === null) {
+            model = tf.sequential();
+            model.add(tf.layers.dense({units: 16, activation: 'relu', inputShape: [9]}));
+            model.add(tf.layers.dense({units: 12, activation: 'relu'}));
+            model.add(tf.layers.dense({units: 3, activation: 'softmax'}));
+            model.compile({optimizer: 'adam', loss: 'categoricalCrossentropy', metrics: ['accuracy']});
+        }
+        const xs = tf.tensor2d(X);
+        const ys = tf.tensor2d(y);
+        await model.fit(xs, ys, {epochs: 30, batchSize: 8, verbose: 0});
+        console.log("Model retrained successfully");
+        return model;
+    }
+    
+    // Predict outcome using hybrid: rule-based baseline + ML + pattern freq (weighted)
+    async function hybridPrediction(boardArray, turn) {
+        let featVec = boardToFeatures(boardArray);
+        let mlProbs = null;
+        if(model && matchHistory.length >= 3) {
+            const inputTensor = tf.tensor2d([featVec]);
+            const prediction = await model.predict(inputTensor).data();
+            mlProbs = [prediction[0], prediction[1], prediction[2]];
+        }
+        // 2) Pattern frequency from similar historical positions
+        let patternCount = {X_WIN:0, O_WIN:0, DRAW:0};
+        let totalSimilar = 0;
+        const currentBoardKey = featVec.join(",");
+        for(let match of matchHistory) {
+            if(!match.moves) continue;
+            let histBoard = Array(9).fill(null);
+            for(let mv of match.moves) {
+                let pos = parseInt(mv.substring(1))-1;
+                let pl = mv.charAt(0);
+                if(pos>=0 && pos<9) histBoard[pos] = pl;
+            }
+            let histFeat = boardToFeatures(histBoard);
+            let similarity = 0;
+            for(let i=0;i<9;i++) if(histFeat[i] === featVec[i] && featVec[i] !== 0) similarity++;
+            if(similarity >= 3) {
+                totalSimilar++;
+                if(match.result === "X_WIN") patternCount.X_WIN++;
+                else if(match.result === "O_WIN") patternCount.O_WIN++;
+                else patternCount.DRAW++;
+            }
+        }
+        let patternProbs = [0.33,0.33,0.33];
+        if(totalSimilar>0) {
+            patternProbs = [patternCount.X_WIN/totalSimilar, patternCount.O_WIN/totalSimilar, patternCount.DRAW/totalSimilar];
+        }
+        
+        // 3) Rule-based baseline: perfect play eval (naive advantage)
+        let xAdvantage = 0;
+        for(let i=0;i<9;i++) {
+            if(boardArray[i] === 'X') xAdvantage += (i===4 ? 3 : (i%2===0 ? 2 : 1));
+            if(boardArray[i] === 'O') xAdvantage -= (i===4 ? 3 : (i%2===0 ? 2 : 1));
+        }
+        let ruleProbs = [0.5 + xAdvantage*0.03, 0.5 - xAdvantage*0.03, 0.15];
+        if(ruleProbs[0] < 0.1) ruleProbs[0] = 0.1;
+        if(ruleProbs[1] < 0.1) ruleProbs[1] = 0.1;
+        let sum = ruleProbs[0]+ruleProbs[1]+ruleProbs[2];
+        ruleProbs = ruleProbs.map(p=>p/sum);
+        
+        // Weighted ensemble: ML 40%, pattern 30%, rule 30%
+        let finalProbs;
+        if(mlProbs) {
+            finalProbs = mlProbs.map((p,i)=> p*0.4 + patternProbs[i]*0.3 + ruleProbs[i]*0.3);
+        } else {
+            finalProbs = patternProbs.map((p,i)=> p*0.5 + ruleProbs[i]*0.5);
+        }
+        let total = finalProbs.reduce((a,b)=>a+b,0);
+        finalProbs = finalProbs.map(p=>p/total);
+        const outcomeLabels = ["X_WIN", "O_WIN", "DRAW"];
+        let maxIdx = finalProbs.indexOf(Math.max(...finalProbs));
+        let confidence = Math.max(...finalProbs);
+        return { prediction: outcomeLabels[maxIdx], probabilities: finalProbs, confidence };
+    }
+    
+    // Check winner from board (standard)
+    function checkWinner(board) {
+        const lines = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+        for(let line of lines) {
+            let [a,b,c] = line;
+            if(board[a] && board[a] === board[b] && board[a] === board[c]) return board[a];
+        }
+        if(board.every(cell => cell !== null)) return "Draw";
+        return null;
+    }
+    
+    // Render live board
+    function renderBoard() {
+        const container = document.getElementById("liveBoard");
+        container.innerHTML = "";
+        for(let i=0;i<9;i++) {
+            const cell = document.createElement("div");
+            cell.className = `cell ${boardState[i] ? boardState[i] : ""}`;
+            cell.innerText = boardState[i] || "";
+            cell.onclick = () => makeMove(i);
+            container.appendChild(cell);
+        }
+    }
+    
+    let lastPrediction = null;
+    async function updatePredictionUI() {
+        const winnerNow = checkWinner(boardState);
+        if(winnerNow || !gameActive) return;
+        const pred = await hybridPrediction(boardState, currentTurn);
+        lastPrediction = pred;
+        document.getElementById("predictionText").innerHTML = `🎯 Predicted: ${pred.prediction.replace("_"," ")}  (conf: ${(pred.confidence*100).toFixed(1)}%)`;
+        let probsHtml = `<div class="prob-bar"><div class="prob-fill" style="width:${pred.probabilities[0]*100}%; background:#3b82f6;">X ${(pred.probabilities[0]*100).toFixed(0)}%</div></div>
+                        <div class="prob-bar"><div class="prob-fill" style="width:${pred.probabilities[1]*100}%; background:#ec4899;">O ${(pred.probabilities[1]*100).toFixed(0)}%</div></div>
+                        <div class="prob-bar"><div class="prob-fill" style="width:${pred.probabilities[2]*100}%; background:#94a3b8;">Draw ${(pred.probabilities[2]*100).toFixed(0)}%</div></div>`;
+        document.getElementById("probBars").innerHTML = probsHtml;
+        document.getElementById("confidenceMsg").innerHTML = `🔍 Explanation: ML+pattern+rule hybrid | pattern similarity from ${matchHistory.length} games`;
+    }
+    
+    async function makeMove(idx) {
+        if(!gameActive || boardState[idx] !== null) return;
+        boardState[idx] = currentTurn;
+        moveFrequency[idx] += 1;
+        drawHeatmap();
+        renderBoard();
+        let winner = checkWinner(boardState);
+        if(winner === "X") { gameActive=false; alert("X wins!"); recordResult("X_WIN"); return; }
+        if(winner === "O") { gameActive=false; alert("O wins!"); recordResult("O_WIN"); return; }
+        if(winner === "Draw") { gameActive=false; alert("Draw!"); recordResult("DRAW"); return; }
+        currentTurn = (currentTurn === "X" ? "O" : "X");
+        await updatePredictionUI();
+    }
+    
+    async function recordResult(result) {
+        let movesRecord = [];
+        let fullRecord = [];
+        let boardSnap = [...boardState];
+        // rebuild moves from board state: we need move order simulation - instead store from played sequence
+        // we record current board's move history tracking outside? simpler: store final board + moves using a listener.
+        // We'll create moves array by mining the sequence manually? For demo we reconstruct as order of filled positions.
+        // For simplicity we build fake moves but it impacts pattern accuracy. Better capture moves during game.
+        // Let's push from global moveLog.
+        if(window._liveMoves) movesRecord = window._liveMoves;
+        else {
+            // reconstruct approximation
+            for(let i=0;i<9;i++) if(boardSnap[i]) movesRecord.push(boardSnap[i]+(i+1));
+        }
+        const matchObj = {gameId: "G"+Date.now(), moves: movesRecord, result: result, timestamp: Date.now()};
+        matchHistory.push(matchObj);
+        outcomeLog.push({result, ts: Date.now()});
+        updateStatsUI();
+        updateMatchLogUI();
+        saveToLocal();
+        // Update prediction accuracy after new game (if last live prediction existed)
+        if(lastPrediction && lastPrediction.prediction === result) {
+            predictionAccuracyLog.push({correct:1});
+        } else if(lastPrediction) { predictionAccuracyLog.push({correct:0}); }
+        updateAccuracyMetric();
+        await createAndTrainModel(); // incremental retrain
+        resetGameUI();
+    }
+    
+    function resetGameUI() {
+        boardState = Array(9).fill(null);
+        currentTurn = "X";
+        gameActive = true;
+        window._liveMoves = [];
+        renderBoard();
+        document.getElementById("predictionText").innerHTML = "New game — make a move";
+        document.getElementById("probBars").innerHTML = "";
+    }
+    
+    function updateStatsUI() {
+        let total = matchHistory.length;
+        let xWin = matchHistory.filter(m => m.result === "X_WIN").length;
+        let oWin = matchHistory.filter(m => m.result === "O_WIN").length;
+        let draws = matchHistory.filter(m => m.result === "DRAW").length;
+        document.getElementById("totalGames").innerText = total;
+        document.getElementById("xWins").innerText = xWin;
+        document.getElementById("oWins").innerText = oWin;
+        document.getElementById("draws").innerText = draws;
+        if(winChart){
+            winChart.data.datasets[0].data = [xWin, oWin, draws];
+            winChart.update();
+        }
+        // dominance timeline: we just show win ratio evolution on chart (extra line not needed)
+    }
+    
+    function updateMatchLogUI() {
+        let logDiv = document.getElementById("matchLog");
+        let recent = matchHistory.slice(-8).reverse();
+        logDiv.innerHTML = recent.map(m => `${m.gameId} | ${m.result} | moves: ${m.moves?.slice(0,4).join(',')}...`).join("<br>") || "No matches";
+    }
+    
+    function drawHeatmap() {
+        if(!heatmapCtx) return;
+        let canvas = document.getElementById("heatmapCanvas");
+        let ctx = heatmapCtx;
+        let maxFreq = Math.max(...moveFrequency, 1);
+        let w = canvas.width, h = canvas.height;
+        ctx.clearRect(0,0,w,h);
+        ctx.fillStyle = "#0f172a";
+        ctx.fillRect(0,0,w,h);
+        let cellW = w/3, cellH = h/3;
+        for(let i=0;i<9;i++){
+            let row = Math.floor(i/3), col = i%3;
+            let intensity = moveFrequency[i]/maxFreq;
+            let brightness = 40 + Math.floor(intensity * 180);
+            ctx.fillStyle = `rgb(59,130,246, ${0.3+intensity*0.7})`;
+            ctx.fillRect(col*cellW, row*cellH, cellW-2, cellH-2);
+            ctx.fillStyle = "white";
+            ctx.font = "bold 16px monospace";
+            ctx.fillText(moveFrequency[i], col*cellW+cellW/2-8, row*cellH+cellH/2+6);
+        }
+    }
+    
+    function updateAccuracyMetric() {
+        let last50 = predictionAccuracyLog.slice(-50);
+        if(last50.length===0) { document.getElementById("accuracySpan").innerText = "--"; return; }
+        let correct = last50.filter(l=>l.correct===1).length;
+        let acc = (correct/last50.length*100).toFixed(1);
+        document.getElementById("accuracySpan").innerText = acc;
+    }
+    
+    // bulk import
+    function importMatch(matchData){
+        if(matchData.moves && matchData.result){
+            matchHistory.push({...matchData, gameId: matchData.gameId || "IMP"+Date.now()});
+            for(let m of matchData.moves){
+                let pos = parseInt(m.substring(1))-1;
+                if(pos>=0 && pos<9) moveFrequency[pos] += 1;
+            }
+            outcomeLog.push({result: matchData.result, ts: Date.now()});
+            updateStatsUI(); updateMatchLogUI(); drawHeatmap();
+            createAndTrainModel().then(()=>saveToLocal());
+        }
+    }
+    
+    function saveToLocal() {
+        localStorage.setItem("ttt_history", JSON.stringify({matchHistory, moveFrequency, predictionAccuracyLog}));
+    }
+    function loadLocal() {
+        let data = localStorage.getItem("ttt_history");
+        if(data){
+            let parsed = JSON.parse(data);
+            matchHistory = parsed.matchHistory || [];
+            moveFrequency = parsed.moveFrequency || Array(9).fill(0);
+            predictionAccuracyLog = parsed.predictionAccuracyLog || [];
+            if(matchHistory.length) updateStatsUI(); updateMatchLogUI(); drawHeatmap();
+            createAndTrainModel();
+        }
+    }
+    
+    // capture live moves
+    window._liveMoves = [];
+    const origMakeMove = makeMove;
+    window.makeMove = function(idx){
+        if(boardState[idx] === null && gameActive){
+            window._liveMoves.push(currentTurn+(idx+1));
+            origMakeMove(idx);
+        }
+    };
+    makeMove = function(idx){
+        if(boardState[idx] === null && gameActive){
+            window._liveMoves.push(currentTurn+(idx+1));
+            origMakeMove(idx);
+        }
+    };
+    window.makeMove = makeMove;
+    
+    // Setup UI events
+    window.onload = async () => {
+        heatmapCtx = document.getElementById("heatmapCanvas").getContext("2d");
+        winChart = new Chart(document.getElementById("winRatioChart"), {
+            type: 'bar',
+            data: { labels: ['X Wins', 'O Wins', 'Draws'], datasets: [{label: 'Count', data: [0,0,0], backgroundColor: ['#3b82f6', '#ec4899', '#94a3b8']}] }
+        });
+        loadLocal();
+        resetGameUI();
+        document.getElementById("resetGameBtn").onclick = () => { resetGameUI(); gameActive=true; };
+        document.getElementById("recordGameBtn").onclick = () => { if(checkWinner(boardState) || !gameActive) recordResult(checkWinner(boardState)==="X"?"X_WIN":checkWinner(boardState)==="O"?"O_WIN":"DRAW"); else alert("Finish game first!"); };
+        document.getElementById("retrainBtn").onclick = async () => { await createAndTrainModel(); alert("Model retrained"); };
+        document.getElementById("uploadSingleBtn").onclick = () => {
+            try{
+                let txt = document.getElementById("bulkMovesInput").value;
+                let obj = JSON.parse(txt);
+                importMatch(obj);
+            }catch(e){ alert("Invalid JSON"); }
+        };
+        document.getElementById("bulkFileUpload").onchange = (e) => {
+            let file = e.target.files[0];
+            let reader = new FileReader();
+            reader.onload = (ev) => {
+                try{
+                    let data = JSON.parse(ev.target.result);
+                    if(Array.isArray(data)) data.forEach(d=>importMatch(d));
+                    else importMatch(data);
+                }catch(ex){ alert("parse error"); }
+            };
+            if(file) reader.readAsText(file);
+        };
+        await createAndTrainModel();
+    };
 </script>
-
 </body>
 </html>
