@@ -2,111 +2,158 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>EdgeAI · Statistical Betting Engine</title>
+<title>TicTacAI · Perfect Prediction Engine</title>
 <style>
-body{font-family:Arial;background:#0b1220;color:#fff;padding:20px}
-button{padding:10px;margin:5px;border:none;border-radius:6px;cursor:pointer}
-.B{background:#f59e0b}.P{background:#3b82f6}
-.card{background:#111827;padding:15px;border-radius:10px;margin-bottom:15px}
+body{background:#0b1220;color:#fff;font-family:Arial;text-align:center}
+h1{margin-top:20px}
+.board{display:grid;grid-template-columns:repeat(3,100px);gap:10px;justify-content:center;margin:30px}
+.cell{width:100px;height:100px;background:#1f2937;font-size:40px;display:flex;align-items:center;justify-content:center;cursor:pointer;border-radius:10px}
+.card{background:#111827;padding:15px;border-radius:10px;width:320px;margin:10px auto;text-align:left}
 </style>
 </head>
 <body>
 
-<h2>EdgeAI · Value Detection Engine</h2>
+<h1>TicTacAI · Perfect Strategy Engine</h1>
+
+<div class="board" id="board"></div>
 
 <div class="card">
-  <button class="B" onclick="record('B')">BANKER</button>
-  <button class="P" onclick="record('P')">PLAYER</button>
-</div>
-
-<div class="card">
-  <div>Prediction: <b id="pred">—</b></div>
-  <div>Win Probability: <b id="wp">—</b></div>
-  <div>Edge: <b id="edge">—</b></div>
-  <div>Confidence: <b id="conf">—</b></div>
-  <div>Stake: <b id="stake">—</b></div>
-  <div>Bankroll: <b id="bank">1000</b></div>
+<div>AI Prediction: <b id="pred">—</b></div>
+<div>Win Probability: <b id="prob">—</b></div>
+<div>Confidence: <b id="conf">—</b></div>
+<div>Reasoning: <b id="reason">—</b></div>
 </div>
 
 <script>
-let data = [];
-let bankroll = 1000;
+let board = ["","","","","","","","",""];
+let human = "X";
+let ai = "O";
+let gameOver = false;
 
-// ---------- STAT FUNCTIONS ----------
-function entropy(arr){
-  let b=0,p=0;
-  arr.forEach(x=>{if(x==='B')b++;if(x==='P')p++;});
-  let t=b+p;if(t===0)return 1;
-  let pb=b/t, pp=p/t;
-  return -(pb*Math.log2(pb||1)+pp*Math.log2(pp||1));
+// ---------- WIN CHECK ----------
+function checkWinner(b){
+  const wins = [
+    [0,1,2],[3,4,5],[6,7,8],
+    [0,3,6],[1,4,7],[2,5,8],
+    [0,4,8],[2,4,6]
+  ];
+  for(let w of wins){
+    if(b[w[0]] && b[w[0]]===b[w[1]] && b[w[1]]===b[w[2]]) return b[w[0]];
+  }
+  if(!b.includes("")) return "draw";
+  return null;
 }
 
-function logistic(x){return 1/(1+Math.exp(-x));}
+// ---------- MINIMAX ----------
+function minimax(b, depth, isMax){
+  let result = checkWinner(b);
+  if(result === ai) return 10 - depth;
+  if(result === human) return depth - 10;
+  if(result === "draw") return 0;
 
-// ---------- MODEL ----------
-function predict(){
-  if(data.length < 30) return {side:'SKIP',reason:'Not enough data'};
-
-  let last = data.slice(-50);
-
-  // RANDOMNESS CHECK
-  let H = entropy(last);
-  if(H > 0.98){
-    return {side:'SKIP',reason:'Random detected'};
+  if(isMax){
+    let best = -Infinity;
+    for(let i=0;i<9;i++){
+      if(b[i]===""){
+        b[i]=ai;
+        best = Math.max(best, minimax(b, depth+1, false));
+        b[i]="";
+      }
+    }
+    return best;
+  } else {
+    let best = Infinity;
+    for(let i=0;i<9;i++){
+      if(b[i]===""){
+        b[i]=human;
+        best = Math.min(best, minimax(b, depth+1, true));
+        b[i]="";
+      }
+    }
+    return best;
   }
-
-  // SIMPLE SIGNALS
-  let b = last.filter(x=>x==='B').length;
-  let p = last.filter(x=>x==='P').length;
-
-  let rawProb = b/(b+p);
-
-  // CALIBRATION
-  let logit = Math.log(rawProb/(1-rawProb));
-  let prob = logistic(logit * 0.7);
-
-  let side = prob > 0.5 ? 'BANKER' : 'PLAYER';
-  let edge = (prob*2)-1;
-
-  // CONFIDENCE
-  let conf = Math.max(0, Math.min(80, (1-H)*80));
-
-  if(edge < 0.03 || conf < 55){
-    return {side:'SKIP',prob,edge,conf,reason:'No edge'};
-  }
-
-  let stake = bankroll * 0.01;
-
-  return {side,prob,edge,conf,stake};
 }
 
-// ---------- GAME LOOP ----------
-function record(x){
-  let pred = predict();
+// ---------- AI DECISION ----------
+function bestMove(){
+  let bestScore = -Infinity;
+  let move = null;
+  let scores = [];
 
-  data.push(x);
-
-  if(pred.side !== 'SKIP'){
-    let bet = pred.side === 'BANKER' ? 'B' : 'P';
-    if(bet === x){
-      bankroll += pred.stake;
-    } else {
-      bankroll -= pred.stake;
+  for(let i=0;i<9;i++){
+    if(board[i]===""){
+      board[i]=ai;
+      let score = minimax(board,0,false);
+      board[i]="";
+      scores.push(score);
+      if(score > bestScore){
+        bestScore = score;
+        move = i;
+      }
     }
   }
 
-  render(pred);
+  // Probability estimation (normalized)
+  let max = Math.max(...scores);
+  let min = Math.min(...scores);
+  let prob = (max - min) !== 0 ? (bestScore - min) / (max - min) : 0.5;
+
+  let confidence = Math.min(100, Math.abs(bestScore)*10);
+
+  return {
+    index: move,
+    prob: prob,
+    confidence: confidence,
+    reasoning: bestScore > 0 ? "Winning path detected"
+              : bestScore < 0 ? "Defensive move (avoid loss)"
+              : "Optimal draw strategy"
+  };
+}
+
+// ---------- GAME ----------
+function play(i){
+  if(board[i]!=="" || gameOver) return;
+  board[i]=human;
+  render();
+
+  if(checkWinner(board)){ endGame(); return; }
+
+  let aiMove = bestMove();
+  board[aiMove.index] = ai;
+  render();
+
+  updatePanel(aiMove);
+
+  if(checkWinner(board)){ endGame(); }
 }
 
 // ---------- UI ----------
-function render(p){
-  document.getElementById('pred').innerText = p.side || '—';
-  document.getElementById('wp').innerText = p.prob ? (p.prob*100).toFixed(1)+'%' : '—';
-  document.getElementById('edge').innerText = p.edge ? (p.edge*100).toFixed(1)+'%' : '—';
-  document.getElementById('conf').innerText = p.conf ? p.conf+'%' : '—';
-  document.getElementById('stake').innerText = p.stake ? '$'+p.stake.toFixed(2) : '—';
-  document.getElementById('bank').innerText = bankroll.toFixed(2);
+function render(){
+  let el = document.getElementById("board");
+  el.innerHTML="";
+  board.forEach((v,i)=>{
+    let cell = document.createElement("div");
+    cell.className="cell";
+    cell.innerText=v;
+    cell.onclick=()=>play(i);
+    el.appendChild(cell);
+  });
 }
+
+function updatePanel(m){
+  document.getElementById("pred").innerText = m.index;
+  document.getElementById("prob").innerText = (m.prob*100).toFixed(1)+"%";
+  document.getElementById("conf").innerText = m.confidence+"%";
+  document.getElementById("reason").innerText = m.reasoning;
+}
+
+function endGame(){
+  let res = checkWinner(board);
+  gameOver = true;
+  setTimeout(()=>alert(res==="draw"?"Draw":res+" wins"),200);
+}
+
+render();
 </script>
 
 </body>
