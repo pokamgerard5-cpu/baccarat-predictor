@@ -1,843 +1,956 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>BaccaratIQ · Precision Dominance Engine | Commission-Aware Kelly System</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>BaccaratML v6 · Neural Adaptive Intelligence</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#020609;--s1:#060D16;--s2:#0A1520;--s3:#0F1E2C;--s4:#152638;
+  --B:#E67E22;--Bl:#FBBF24;--Bg:rgba(230,126,34,.14);--Bb:rgba(230,126,34,.07);
+  --P:#0EA5E9;--Pl:#38BDF8;--Pg:rgba(14,165,233,.14);--Pb:rgba(14,165,233,.07);
+  --T:#A855F7;--Tl:#C084FC;--Tg:rgba(168,85,247,.1);
+  --G:#10B981;--Gl:#34D399;--Gd:rgba(16,185,129,.1);
+  --R:#EF4444;--Rl:#FCA5A5;--Rd:rgba(239,68,68,.1);
+  --W:#F59E0B;--Wl:#FCD34D;
+  --bd:#0F1E2C;--bd2:#172638;--bd3:#1E3248;
+  --t1:#F0F6FF;--t2:#8BA8C4;--t3:#445566;--t4:#1E3045;
+  --f:'Inter',sans-serif;--m:'JetBrains Mono',monospace;
+  --r:8px;--rs:5px;
+}
+html,body{height:100%;overflow:hidden;background:var(--bg)}
+body{color:var(--t1);font-family:var(--f);font-size:12px;line-height:1.4}
+::-webkit-scrollbar{width:3px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--bd3);border-radius:2px}
 
-        :root {
-            --bg-deep: #020408;
-            --bg-surface: #0a1017;
-            --bg-elevated: #111a24;
-            --border-dim: #1e2a36;
-            --border-glow: #2c3e4e;
-            --text-primary: #eef2ff;
-            --text-secondary: #94a3b8;
-            --text-muted: #475569;
-            --banker: #e67e22;
-            --banker-glow: #f39c12;
-            --banker-bg: rgba(230, 126, 34, 0.1);
-            --player: #0ea5e9;
-            --player-glow: #38bdf8;
-            --player-bg: rgba(14, 165, 233, 0.1);
-            --tie: #a855f7;
-            --tie-bg: rgba(168, 85, 247, 0.1);
-            --success: #10b981;
-            --danger: #ef4444;
-            --warning: #f59e0b;
-            --shift-accent: #c084fc;
-            --radius-card: 12px;
-        }
+#top{height:52px;background:rgba(2,6,9,.96);backdrop-filter:blur(20px);border-bottom:1px solid var(--bd2);padding:0 18px;display:flex;align-items:center;gap:0;position:sticky;top:0;z-index:300;flex-shrink:0}
+.logo{background:linear-gradient(135deg,#F59E0B,#FCD34D);-webkit-background-clip:text;background-clip:text;color:transparent;font-size:16px;font-weight:900;letter-spacing:-0.8px;margin-right:14px;white-space:nowrap}
+.logo em{color:var(--t3);font-style:normal;font-size:9px;font-family:var(--m);font-weight:400;margin-left:6px;letter-spacing:0}
+.sp{flex:1}
+.ts{display:flex;flex-direction:column;align-items:flex-end;padding:0 12px;border-left:1px solid var(--bd2)}
+.ts label{font-size:8px;color:var(--t3);text-transform:uppercase;letter-spacing:.1em}
+.ts .v{font-size:12px;font-weight:700;font-family:var(--m);line-height:1.3}
+.vB{color:var(--Bl)}.vP{color:var(--Pl)}.vG{color:var(--Gl)}.vR{color:var(--Rl)}.vW{color:var(--Wl)}.v2{color:var(--t2)}
+.live{display:flex;align-items:center;gap:6px;background:var(--s2);border:1px solid var(--bd2);padding:4px 12px;border-radius:40px;margin-left:10px}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--G);box-shadow:0 0 6px var(--G);animation:blink 1.4s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.live span{font-size:9px;font-weight:600;color:var(--t2);letter-spacing:.06em}
 
-        body {
-            background: var(--bg-deep);
-            font-family: 'Inter', sans-serif;
-            color: var(--text-primary);
-            height: 100vh;
-            overflow: hidden;
-            font-size: 13px;
-        }
+#app{display:flex;height:calc(100vh - 52px);overflow:hidden}
+#left{width:256px;flex-shrink:0;background:var(--s1);border-right:1px solid var(--bd2);overflow-y:auto;display:flex;flex-direction:column}
+#center{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--bg)}
+#right{width:288px;flex-shrink:0;background:var(--s1);border-left:1px solid var(--bd2);overflow-y:auto;display:flex;flex-direction:column}
 
-        .app {
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-        }
+.sec{border-bottom:1px solid var(--bd2);padding:12px 14px}
+.sec:last-child{border-bottom:none}
+.sh{font-size:8px;color:var(--t3);text-transform:uppercase;letter-spacing:.12em;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px}
+.g4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:3px}
+.cell{background:var(--s2);border:1px solid var(--bd);border-radius:var(--rs);padding:6px 8px}
+.cell label{font-size:8px;color:var(--t3);text-transform:uppercase;letter-spacing:.07em;display:block;margin-bottom:2px}
+.cell .cv{font-size:13px;font-weight:700;font-family:var(--m)}
 
-        .top-bar {
-            background: rgba(2, 6, 12, 0.95);
-            backdrop-filter: blur(12px);
-            border-bottom: 1px solid var(--border-dim);
-            padding: 0 24px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            height: 60px;
-            flex-shrink: 0;
-        }
+.obs{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin-bottom:7px}
+.ob{padding:10px 4px;border-radius:var(--rs);border:1px solid var(--bd2);background:var(--s2);color:var(--t2);font-family:var(--m);font-size:11px;font-weight:700;cursor:pointer;transition:all .1s;text-align:center}
+.ob:active{transform:scale(.95)}
+.ob.P{border-color:var(--P);background:var(--Pb);color:var(--Pl)}
+.ob.B{border-color:var(--B);background:var(--Bb);color:var(--Bl)}
+.ob.T{border-color:var(--T);background:rgba(168,85,247,.06);color:var(--Tl)}
+.slrow{display:flex;align-items:center;gap:6px;margin-bottom:6px}
+.slrow label{font-size:8px;color:var(--t3);width:84px;text-transform:uppercase;letter-spacing:.05em;flex-shrink:0}
+.slrow input[type=range]{flex:1;accent-color:var(--W);height:3px;cursor:pointer}
+.slrow .sv{font-size:9px;color:var(--W);width:36px;text-align:right;flex-shrink:0;font-family:var(--m)}
+.mg-grp{display:flex;gap:3px;flex:1}
+.mg{flex:1;padding:4px 3px;border-radius:3px;border:1px solid var(--bd);background:var(--s2);color:var(--t3);font-family:var(--m);font-size:9px;cursor:pointer;text-align:center;transition:all .1s}
+.mg.on{background:var(--s4);color:var(--t1);border-color:var(--bd2)}
+.btnrow{display:flex;gap:4px;margin-top:8px}
+.btn{flex:1;padding:6px;border-radius:var(--rs);border:1px solid var(--bd2);background:var(--s2);color:var(--t2);font-family:var(--m);font-size:9px;cursor:pointer;transition:all .12s;text-align:center}
+.btn:hover{border-color:var(--t3);color:var(--t1)}
+.btn.pri{border-color:var(--W);color:var(--W);background:rgba(245,158,11,.06)}
+.btn.dan{border-color:var(--R);color:var(--Rl);background:var(--Rd)}
 
-        .logo-area {
-            display: flex;
-            align-items: baseline;
-            gap: 10px;
-        }
+.hi{display:flex;align-items:center;gap:5px;padding:3px 0;border-bottom:1px solid var(--bd);font-size:10px}
+.hi:last-child{border-bottom:none}
+.hbg{width:18px;height:18px;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0}
+.hB{background:var(--Bg);color:var(--Bl)}.hP{background:var(--Pg);color:var(--Pl)}.hT{background:var(--Tg);color:var(--Tl)}
+.hn{color:var(--t3);width:22px;text-align:right;font-size:9px;font-family:var(--m);flex-shrink:0}
+.hr{flex:1;color:var(--t2)}.hc{color:var(--t3);width:24px;text-align:right;font-size:9px}
+.hp{font-weight:700;min-width:42px;text-align:right;font-family:var(--m);font-size:9px}
+.hp.pos{color:var(--Gl)}.hp.neg{color:var(--Rl)}.hp.sk{color:var(--t3)}.hp.push{color:var(--t2)}
 
-        .logo {
-            font-weight: 800;
-            font-size: 1.5rem;
-            letter-spacing: -1px;
-            background: linear-gradient(135deg, #f5b042, #ffd966);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-        }
+#dom-banner{padding:12px 18px;border-bottom:1px solid var(--bd2);flex-shrink:0}
+.db-row{display:flex;align-items:center;gap:14px}
+.db-left{flex-shrink:0;text-align:center;padding:10px 18px;border-radius:var(--r);border:1px solid var(--bd2);background:var(--s2);min-width:100px}
+.db-side-lbl{font-size:8px;color:var(--t3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:2px}
+.db-side-val{font-size:22px;font-weight:900;letter-spacing:-1px;line-height:1}
+.db-side-pct{font-size:10px;margin-top:2px}
+.db-mid{flex:1}
+.db-headline{font-size:12px;font-weight:700;margin-bottom:3px}
+.db-sub{font-size:10px;color:var(--t2);line-height:1.5}
+.db-tags{display:flex;gap:4px;flex-wrap:wrap;margin-top:5px}
+.tag{padding:2px 7px;border-radius:3px;font-size:8px;font-weight:600;letter-spacing:.05em;border:1px solid}
+.tB{background:var(--Bg);border-color:var(--B);color:var(--Bl)}
+.tP{background:var(--Pb);border-color:var(--P);color:var(--Pl)}
+.tN{background:var(--s3);border-color:var(--bd2);color:var(--t2)}
+.tW{background:rgba(245,158,11,.1);border-color:var(--W);color:var(--Wl)}
+.tR{background:var(--Rd);border-color:var(--R);color:var(--Rl)}
+.tG{background:var(--Gd);border-color:var(--G);color:var(--Gl)}
+.db-right{text-align:right;flex-shrink:0}
+.db-risk{font-size:20px;font-weight:900;font-family:var(--m);line-height:1}
+.db-lock{font-size:9px;color:var(--t2);margin-top:4px}
 
-        .logo-sub {
-            font-size: 0.7rem;
-            font-family: 'JetBrains Mono', monospace;
-            color: var(--text-muted);
-        }
+#phase-bar{padding:9px 18px;border-bottom:1px solid var(--bd2);flex-shrink:0;background:var(--s1)}
+.ph-title{font-size:8px;color:var(--t3);text-transform:uppercase;letter-spacing:.12em;margin-bottom:6px}
+.phases{display:flex;gap:3px;height:36px}
+.ph{flex:1;border-radius:4px;border:1px solid var(--bd);background:var(--s2);display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.ph-n{font-size:7px;color:var(--t3);text-transform:uppercase}
+.ph-s{font-size:10px;font-weight:700;line-height:1.1}
+.ph-p{font-size:7px;color:var(--t3)}
+.ph.dB{background:var(--Bg);border-color:var(--B)}
+.ph.dP{background:var(--Pb);border-color:var(--P)}
+.ph.cur::after{content:'NOW';position:absolute;top:2px;right:3px;font-size:6px;color:var(--Wl);font-weight:700}
 
-        .metrics-strip {
-            display: flex;
-            gap: 28px;
-        }
+#pred-box{padding:12px 18px;border-bottom:1px solid var(--bd2);flex-shrink:0;background:var(--s1);display:flex;gap:12px;align-items:stretch}
+.pred-badge{font-size:18px;font-weight:900;padding:10px 16px;border-radius:var(--r);border:1px solid var(--bd2);background:var(--s2);letter-spacing:-.5px;transition:all .2s;flex-shrink:0;min-width:96px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.pred-badge.BANKER{background:var(--Bg);border-color:var(--B);color:var(--Bl)}
+.pred-badge.PLAYER{background:var(--Pb);border-color:var(--P);color:var(--Pl)}
+.pred-badge.SKIP{background:var(--s2);border-color:var(--bd2);color:var(--t3)}
+.pred-odds{font-size:9px;color:var(--t3);margin-top:3px;font-family:var(--m);font-weight:400}
+.pred-info{flex:1;display:flex;flex-direction:column;justify-content:space-between}
+.pred-conf-row{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.pred-conf-val{font-size:13px;font-weight:700;font-family:var(--m)}
+.pred-win-prob{font-size:10px;color:var(--t2)}
+.pred-reason{font-size:9px;color:var(--t2);line-height:1.5}
+.pred-right{text-align:right;flex-shrink:0;display:flex;flex-direction:column;justify-content:space-between;align-items:flex-end}
+.stake-lbl{font-size:8px;color:var(--t3);text-transform:uppercase;letter-spacing:.08em}
+.stake-val{font-size:20px;font-weight:900;color:var(--Wl);font-family:var(--m);letter-spacing:-.5px;line-height:1.1}
+.stake-ev{font-size:9px;font-weight:600}
+.stake-prot{font-size:8px;color:var(--t3);margin-top:2px}
 
-        .metric {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-        }
+#conf-sec{padding:7px 18px;border-bottom:1px solid var(--bd2);flex-shrink:0;background:var(--s1)}
+.conf-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.conf-lbl{font-size:8px;color:var(--t3);text-transform:uppercase;letter-spacing:.1em}
+#conf-outer{height:5px;background:var(--s3);border-radius:3px;position:relative;overflow:visible}
+#conf-inner{height:100%;border-radius:3px;transition:width .3s,background .3s}
+#conf-thresh-line{position:absolute;top:-2px;width:1.5px;height:9px;background:var(--t3);border-radius:1px}
+.conf-scale{display:flex;justify-content:space-between;margin-top:3px}
+.conf-scale span{font-size:7px;color:var(--t4)}
 
-        .metric-label {
-            font-size: 9px;
-            text-transform: uppercase;
-            color: var(--text-muted);
-            letter-spacing: 0.8px;
-        }
+#loss-strip{padding:6px 18px;border-bottom:1px solid var(--bd2);flex-shrink:0;background:var(--s1);display:flex;gap:12px;align-items:center}
+.lp-item{display:flex;flex-direction:column;align-items:center}
+.lp-label{font-size:8px;color:var(--t3);text-transform:uppercase;letter-spacing:.08em}
+.lp-val{font-size:11px;font-weight:700;font-family:var(--m)}
+.loss-bar-outer{height:4px;background:var(--s3);border-radius:2px;overflow:hidden;flex:1;margin:0 8px}
+.loss-bar-inner{height:100%;border-radius:2px;transition:width .3s}
 
-        .metric-value {
-            font-weight: 700;
-            font-size: 1rem;
-            font-family: 'JetBrains Mono', monospace;
-        }
+#ctrl{padding:8px 18px;border-bottom:1px solid var(--bd2);flex-shrink:0;background:var(--s1);display:flex;gap:7px;align-items:center}
+.ob2{padding:8px 14px;border-radius:var(--rs);border:1px solid var(--bd2);background:var(--s2);color:var(--t2);font-family:var(--m);font-size:11px;font-weight:700;cursor:pointer;transition:all .1s;text-align:center;white-space:nowrap}
+.ob2:active{transform:scale(.95)}
+.ob2.P{border-color:var(--P);background:var(--Pb);color:var(--Pl)}
+.ob2.B{border-color:var(--B);background:var(--Bb);color:var(--Bl)}
+.ob2.T{border-color:var(--T);background:rgba(168,85,247,.06);color:var(--Tl)}
+#batch{flex:1;background:var(--s2);border:1px solid var(--bd2);border-radius:var(--rs);color:var(--t1);font-family:var(--m);font-size:10px;padding:7px 10px;outline:none}
+#batch:focus{border-color:var(--W)}
+.cbtn{padding:6px 11px;border-radius:var(--rs);border:1px solid var(--bd2);background:var(--s2);color:var(--t2);font-family:var(--m);font-size:9px;cursor:pointer;white-space:nowrap;transition:all .1s}
+.cbtn:hover{border-color:var(--t3);color:var(--t1)}
+.cbtn.pri{border-color:var(--W);color:var(--W)}
+.cbtn.dan{border-color:var(--R);color:var(--Rl)}
 
-        .live-badge {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background: var(--bg-elevated);
-            padding: 4px 14px;
-            border-radius: 40px;
-            border-left: 2px solid var(--success);
-        }
+#charts{flex:1;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;padding:9px;gap:7px;overflow:hidden}
+.cc{background:var(--s1);border:1px solid var(--bd2);border-radius:var(--r);padding:10px 12px;display:flex;flex-direction:column;overflow:hidden}
+.cc h4{font-size:8px;color:var(--t3);text-transform:uppercase;letter-spacing:.12em;margin-bottom:7px;flex-shrink:0}
+.cw{flex:1;position:relative;min-height:0}
+.cw canvas{position:absolute;top:0;left:0;width:100%!important;height:100%!important}
 
-        .pulse {
-            width: 8px;
-            height: 8px;
-            background: var(--success);
-            border-radius: 50%;
-            box-shadow: 0 0 8px var(--success);
-            animation: pulse 1.2s infinite;
-        }
+#az{position:fixed;top:60px;right:12px;z-index:999;display:flex;flex-direction:column;gap:4px;pointer-events:none;max-width:290px}
+.al{padding:7px 12px;border-radius:var(--rs);font-size:9px;font-family:var(--m);border-left:2px solid;animation:ain .16s ease;pointer-events:all;line-height:1.4}
+.al.ok{background:var(--Gd);border-color:var(--G);color:var(--Gl)}
+.al.warn{background:rgba(245,158,11,.07);border-color:var(--W);color:var(--Wl)}
+.al.bad{background:var(--Rd);border-color:var(--R);color:var(--Rl)}
+.al.info{background:var(--Pb);border-color:var(--P);color:var(--Pl)}
+@keyframes ain{from{opacity:0;transform:translateX(12px)}to{opacity:1;transform:translateX(0)}}
 
-        @keyframes pulse { 0% { opacity: 0.4; } 100% { opacity: 1; } }
-
-        .dashboard {
-            display: flex;
-            flex: 1;
-            overflow: hidden;
-            gap: 1px;
-            background: var(--border-dim);
-        }
-
-        .left-panel {
-            flex: 2.6;
-            background: var(--bg-surface);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-
-        .right-panel {
-            flex: 1.2;
-            background: var(--bg-surface);
-            display: flex;
-            flex-direction: column;
-            overflow-y: auto;
-            gap: 14px;
-            padding: 16px 14px;
-        }
-
-        .dominance-banner {
-            background: linear-gradient(105deg, rgba(2, 10, 18, 0.95), rgba(7, 19, 30, 0.98));
-            border-bottom: 1px solid var(--border-glow);
-            padding: 16px 24px;
-            display: flex;
-            align-items: center;
-            gap: 24px;
-            flex-wrap: wrap;
-        }
-
-        .dominance-icon {
-            font-size: 1.8rem;
-            font-weight: 800;
-            background: rgba(230,126,34,0.15);
-            padding: 8px 20px;
-            border-radius: 48px;
-            border-left: 3px solid var(--banker);
-            font-family: 'JetBrains Mono', monospace;
-        }
-
-        .dominance-stats {
-            display: flex;
-            gap: 32px;
-            flex: 1;
-        }
-
-        .dom-stat {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .dom-label {
-            font-size: 9px;
-            text-transform: uppercase;
-            color: var(--text-muted);
-        }
-
-        .dom-number {
-            font-size: 1.8rem;
-            font-weight: 800;
-            line-height: 1.2;
-        }
-
-        .risk-chip {
-            background: var(--bg-elevated);
-            border-radius: 32px;
-            padding: 6px 14px;
-            font-size: 12px;
-            font-weight: 600;
-            border: 1px solid var(--border-dim);
-        }
-
-        .phases-container {
-            padding: 12px 20px;
-            border-bottom: 1px solid var(--border-dim);
-        }
-
-        .phase-strip {
-            display: flex;
-            gap: 8px;
-            margin-top: 10px;
-            overflow-x: auto;
-        }
-
-        .phase-card {
-            background: var(--bg-elevated);
-            border-radius: 10px;
-            padding: 6px 10px;
-            min-width: 70px;
-            text-align: center;
-            border: 1px solid var(--border-dim);
-            transition: 0.1s;
-        }
-
-        .phase-card.active-phase {
-            border-color: var(--warning);
-            box-shadow: 0 0 0 1px var(--warning);
-        }
-
-        .prediction-bar {
-            background: var(--bg-elevated);
-            margin: 12px 20px;
-            padding: 14px 20px;
-            border-radius: var(--radius-card);
-            display: flex;
-            align-items: center;
-            gap: 18px;
-            border-left: 4px solid var(--warning);
-        }
-
-        .prediction-badge {
-            font-family: 'JetBrains Mono', monospace;
-            font-weight: 800;
-            font-size: 1.4rem;
-            padding: 6px 18px;
-            border-radius: 48px;
-            background: rgba(245,158,11,0.12);
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 12px;
-            padding: 0 20px 12px 20px;
-        }
-
-        .btn {
-            background: var(--bg-elevated);
-            border: 1px solid var(--border-dim);
-            padding: 8px 16px;
-            border-radius: 40px;
-            font-weight: 600;
-            font-size: 0.75rem;
-            cursor: pointer;
-            transition: 0.08s linear;
-            color: var(--text-primary);
-        }
-
-        .btn:active { transform: scale(0.96); }
-        .btn-banker { background: var(--banker-bg); border-color: var(--banker); color: var(--banker-glow); }
-        .btn-player { background: var(--player-bg); border-color: var(--player); color: var(--player-glow); }
-        .btn-tie { background: var(--tie-bg); border-color: var(--tie); color: var(--tie); }
-
-        .grid-2x2 {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            padding: 0 20px 16px 20px;
-            flex: 1;
-            min-height: 0;
-        }
-
-        .chart-card {
-            background: var(--bg-elevated);
-            border-radius: var(--radius-card);
-            border: 1px solid var(--border-dim);
-            padding: 12px;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .chart-title {
-            font-size: 10px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 10px;
-            color: var(--text-secondary);
-        }
-
-        canvas { max-height: 170px; width: 100%; }
-
-        .info-card {
-            background: #0b1119;
-            border-radius: 14px;
-            padding: 14px;
-            border: 1px solid var(--border-dim);
-        }
-
-        .momentum-gauge {
-            background: #060c14;
-            border-radius: 40px;
-            height: 10px;
-            margin: 10px 0;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .gauge-fill {
-            height: 100%;
-            width: 50%;
-            border-radius: 40px;
-            background: linear-gradient(90deg, var(--player), var(--banker));
-        }
-
-        .heatmap-block {
-            display: grid;
-            grid-template-columns: repeat(10, 1fr);
-            gap: 4px;
-            margin-top: 8px;
-        }
-
-        .hm-cell {
-            aspect-ratio: 1;
-            background: var(--bg-deep);
-            border-radius: 5px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 9px;
-            font-weight: 700;
-        }
-
-        .shift-log {
-            max-height: 200px;
-            overflow-y: auto;
-            font-size: 11px;
-            font-family: 'JetBrains Mono', monospace;
-        }
-
-        .shift-entry {
-            padding: 7px 0;
-            border-bottom: 1px solid var(--border-dim);
-        }
-
-        .flash-message {
-            position: fixed;
-            top: 75px;
-            right: 20px;
-            background: #1e293b;
-            border-left: 3px solid var(--warning);
-            padding: 10px 18px;
-            border-radius: 10px;
-            font-size: 12px;
-            z-index: 1000;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-            animation: fadeSlide 0.2s ease;
-        }
-
-        @keyframes fadeSlide {
-            from { opacity: 0; transform: translateX(20px); }
-            to { opacity: 1; transform: translateX(0); }
-        }
-    </style>
+.tabrow{display:flex;border-bottom:1px solid var(--bd2);margin:0 -14px 9px;padding:0 14px}
+.tab{font-size:8px;padding:6px 0;margin-right:12px;cursor:pointer;color:var(--t3);border-bottom:2px solid transparent;transition:all .12s;text-transform:uppercase;letter-spacing:.08em}
+.tab.on{color:var(--W);border-bottom-color:var(--W)}
+.tabp{display:none}.tabp.on{display:block}
+.mw-r{display:flex;align-items:center;gap:5px;margin-bottom:4px}
+.mw-n{font-size:8px;color:var(--t3);width:90px;flex-shrink:0}
+.mw-b{flex:1;height:3px;background:var(--s3);border-radius:2px;overflow:hidden}
+.mw-f{height:100%;border-radius:2px;transition:width .4s}
+.mw-v{font-size:8px;color:var(--t2);width:36px;text-align:right;font-family:var(--m)}
+</style>
 </head>
 <body>
-<div class="app">
-    <div class="top-bar">
-        <div class="logo-area"><div class="logo">BACCARAT·IQ</div><div class="logo-sub">COMMISSION-AWARE KELLY ENGINE</div></div>
-        <div class="metrics-strip">
-            <div class="metric"><span class="metric-label">DOMINANT</span><span class="metric-value" id="topDom">—</span></div>
-            <div class="metric"><span class="metric-label">DOM %</span><span class="metric-value" id="topDomPct">—</span></div>
-            <div class="metric"><span class="metric-label">MOMENTUM</span><span class="metric-value" id="topMomentum">0</span></div>
-            <div class="metric"><span class="metric-label">ROUNDS</span><span class="metric-value" id="topRounds">0</span></div>
+
+<div id="top">
+  <div class="logo">BACCARAT·ML <em>v6 · NEURAL ADAPTIVE INTELLIGENCE</em></div>
+  <div class="sp"></div>
+  <div class="ts"><label>ML Confidence</label><div class="v vW" id="t-mlconf">—</div></div>
+  <div class="ts"><label>Win Prob</label><div class="v vW" id="t-wp">—</div></div>
+  <div class="ts"><label>P&amp;L</label><div class="v" id="t-pnl">$0</div></div>
+  <div class="ts"><label>Win Rate</label><div class="v vG" id="t-wr">—</div></div>
+  <div class="ts"><label>Rounds</label><div class="v v2" id="t-rounds">0</div></div>
+  <div class="live"><div class="dot"></div><span>ODDS 2.0 · REAL P&L</span></div>
+</div>
+
+<div id="az"></div>
+
+<div id="app">
+<div id="left">
+  <div class="sec">
+    <div class="sh">ML Settings</div>
+    <div class="slrow"><label>Bankroll ($)</label><input type="range" min="100" max="20000" value="1000" step="100" id="sl-bank"><span class="sv" id="sv-bank">$1K</span></div>
+    <div class="slrow"><label>Max Stake %</label><input type="range" min="0.5" max="8" value="2" step="0.5" id="sl-maxstake"><span class="sv" id="sv-maxstake">2%</span></div>
+    <div class="slrow"><label>Kelly Fraction</label><input type="range" min="0.1" max="0.4" value="0.2" step="0.05" id="sl-kelly"><span class="sv" id="sv-kelly">0.20</span></div>
+    <div class="slrow"><label>Min Edge %</label><input type="range" min="2" max="10" value="5" step="0.5" id="sl-edge"><span class="sv" id="sv-edge">5%</span></div>
+    <div class="slrow"><label>Min Confidence</label><input type="range" min="30" max="60" value="40" step="2" id="sl-minconf"><span class="sv" id="sv-minconf">40%</span></div>
+    <div class="slrow"><label>Stop-Loss %</label><input type="range" min="5" max="30" value="15" step="1" id="sl-stop"><span class="sv" id="sv-stop">15%</span></div>
+    <div class="btnrow">
+      <button class="btn dan" onclick="resetAll()">RESET</button>
+      <button class="btn pri" onclick="runMLBacktest()">ML BACKTEST</button>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="sh">ML Model Performance</div>
+    <div id="ml-weights" style="font-size:9px"></div>
+    <div class="sh" style="margin-top:8px">Bayesian Posterior</div>
+    <div id="bayes-posterior" style="font-size:9px;color:var(--t2)"></div>
+  </div>
+
+  <div class="sec" style="flex:1;overflow:hidden;display:flex;flex-direction:column;min-height:160px">
+    <div class="sh">History Log <span class="sha" onclick="clearHist()">CLEAR</span></div>
+    <div id="hist-list" style="flex:1;overflow-y:auto"></div>
+  </div>
+</div>
+
+<div id="center">
+  <div id="dom-banner">
+    <div class="db-row">
+      <div class="db-left" id="db-box">
+        <div class="db-side-lbl">ML Prediction</div>
+        <div class="db-side-val" id="db-side">—</div>
+        <div class="db-side-pct" id="db-side-pct">—</div>
+      </div>
+      <div class="db-mid">
+        <div class="db-headline" id="db-headline">ML Engine Active · Bayesian Updating</div>
+        <div class="db-sub" id="db-sub">Adaptive weights trained on last 50 outcomes</div>
+        <div class="db-tags" id="db-tags"></div>
+      </div>
+      <div class="db-right">
+        <div><div style="font-size:8px;color:var(--t3)">ML Confidence</div>
+          <div class="db-risk" id="db-mlconf">—</div>
         </div>
-        <div class="live-badge"><div class="pulse"></div><span>REAL-TIME EDGE</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="pred-box">
+    <div class="pred-badge SKIP" id="pred-badge">
+      <div id="pred-side-text">SKIP</div>
+      <div class="pred-odds">ODDS 2.0</div>
+    </div>
+    <div class="pred-info">
+      <div>
+        <div class="pred-conf-row">
+          <span class="pred-conf-val" id="pred-conf-val">—</span>
+          <span class="pred-win-prob" id="pred-wp-text"></span>
+        </div>
+        <div class="pred-reason" id="pred-reason">Initializing ML models...</div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px" id="pred-signal-tags"></div>
+    </div>
+    <div class="pred-right">
+      <div>
+        <div class="stake-lbl">Kelly Stake</div>
+        <div class="stake-val" id="pred-stake">—</div>
+        <div class="stake-ev" id="pred-ev"></div>
+      </div>
+      <div class="stake-prot" id="pred-protect"></div>
+    </div>
+  </div>
+
+  <div id="conf-sec">
+    <div class="conf-row">
+      <span class="conf-lbl">ML Confidence · Adaptive Threshold</span>
+      <div style="display:flex;gap:10px;align-items:center">
+        <span style="font-size:8px;color:var(--t3)" id="conf-thresh-lbl">MIN 40%</span>
+        <span id="conf-pct" style="font-size:12px;font-weight:700;font-family:var(--m);color:var(--W)">0%</span>
+      </div>
+    </div>
+    <div id="conf-outer"><div id="conf-inner" style="width:0%;background:var(--t3)"></div><div id="conf-thresh-line"></div></div>
+    <div class="conf-scale"><span>NO BET</span><span id="csl-mid">THRESHOLD</span><span>MAX CONF</span></div>
+  </div>
+
+  <div id="loss-strip">
+    <div class="lp-item"><div class="lp-label">Consec. Losses</div><div class="lp-val" id="lp-streak">0</div></div>
+    <div class="loss-bar-outer"><div class="loss-bar-inner" id="lp-bar" style="width:0%;background:var(--G)"></div></div>
+    <div class="lp-item"><div class="lp-label">Stake Multiplier</div><div class="lp-val" id="lp-mult">1.00×</div></div>
+    <div class="lp-item" style="margin-left:auto"><div class="lp-label">Drawdown</div><div class="lp-val" id="lp-dd">0%</div></div>
+  </div>
+
+  <div id="ctrl">
+    <button class="ob2 P" onclick="recordOutcome('P')">👤 PLAYER</button>
+    <button class="ob2 B" onclick="recordOutcome('B')">🏦 BANKER</button>
+    <button class="ob2 T" onclick="recordOutcome('T')">🔗 TIE</button>
+    <input id="batch" placeholder="Paste PBBBPBT... then import">
+    <button class="cbtn" onclick="batchImport()">Import</button>
+    <button class="cbtn dan" onclick="resetAll()">Reset</button>
+  </div>
+
+  <div id="charts">
+    <div class="cc"><h4>Equity Curve · Real P&L</h4><div class="cw"><canvas id="eq-chart"></canvas></div></div>
+    <div class="cc"><h4>ML Confidence Timeline</h4><div class="cw"><canvas id="conf-chart"></canvas></div></div>
+    <div class="cc"><h4>Win Probability (Calibrated)</h4><div class="cw"><canvas id="wp-chart"></canvas></div></div>
+    <div class="cc"><h4>Model Weight Evolution</h4><div class="cw"><canvas id="weight-chart"></canvas></div></div>
+  </div>
+</div>
+
+<div id="right">
+  <div class="sec">
+    <div class="tabrow">
+      <button class="tab on" onclick="showTab('live')">LIVE</button>
+      <button class="tab" onclick="showTab('ml')">ML ANALYTICS</button>
+      <button class="tab" onclick="showTab('patterns')">PATTERNS</button>
     </div>
 
-    <div class="dashboard">
-        <div class="left-panel">
-            <div class="dominance-banner">
-                <div class="dominance-icon" id="domIconSide">⚡ BANKER</div>
-                <div class="dominance-stats">
-                    <div class="dom-stat"><span class="dom-label">DOMINANCE %</span><span class="dom-number" id="domPctValue">0%</span></div>
-                    <div class="dom-stat"><span class="dom-label">STREAK</span><span class="dom-number" id="domStreak">0</span></div>
-                    <div class="dom-stat"><span class="dom-label">SHIFT RISK</span><span class="dom-number" id="riskLevel">LOW</span></div>
-                </div>
-                <div class="risk-chip" id="shiftDesc">📐 Kelly fraction active</div>
-            </div>
-
-            <div class="phases-container">
-                <div style="font-size: 9px; color: var(--text-muted);">PHASES (20 ROUNDS) · STREAK/CHOP INDEX</div>
-                <div class="phase-strip" id="phaseStrip"></div>
-            </div>
-
-            <div class="prediction-bar">
-                <div class="prediction-badge" id="predSideText">SKIP</div>
-                <div style="flex:1"><span style="font-size:13px; font-weight:700;" id="predConf">—</span><br><span id="predReason" style="font-size:10px; color:var(--text-secondary);">analysis running</span></div>
-                <div style="text-align:right"><span style="font-size:9px;">KELLY STAKE</span><br><span style="font-size:22px; font-weight:800; color:#f59e0b;" id="predStake">$0</span></div>
-            </div>
-
-            <div class="action-buttons">
-                <button class="btn btn-banker" onclick="recordOutcome('B')">🏦 BANKER (0.95x)</button>
-                <button class="btn btn-player" onclick="recordOutcome('P')">👤 PLAYER (1x)</button>
-                <button class="btn btn-tie" onclick="recordOutcome('T')">🔗 TIE (8x)</button>
-                <div style="flex:1"></div>
-                <input type="text" id="batchInput" placeholder="P B B P T ..." style="background:#0a1119; border:1px solid #1e2a36; border-radius:40px; padding:6px 12px; width:140px;">
-                <button class="btn" onclick="batchImport()">IMPORT</button>
-                <button class="btn" onclick="resetSession()">RESET</button>
-            </div>
-
-            <div class="grid-2x2">
-                <div class="chart-card"><div class="chart-title">DOMINANCE · 20R ADJUSTED</div><canvas id="domChartCanvas"></canvas></div>
-                <div class="chart-card"><div class="chart-title">MOMENTUM (EXPONENTIAL)</div><canvas id="momChartCanvas"></canvas></div>
-                <div class="chart-card"><div class="chart-title">10‑ROAD HEATMAP</div><div id="heatmapContainer" style="min-height:100px;"></div></div>
-                <div class="chart-card"><div class="chart-title">RECENT BLOCKS (STREAK MODE)</div><div id="blockList" style="overflow-y:auto; font-size:10px;"></div></div>
-            </div>
-        </div>
-
-        <div class="right-panel">
-            <div class="info-card"><div class="chart-title">⚡ KELLY MOMENTUM GAUGE</div>
-                <div class="momentum-gauge"><div class="gauge-fill" id="gaugeFill" style="width:50%"></div></div>
-                <div style="display:flex; justify-content:space-between;"><span>PLAYER EDGE</span><span>NEUTRAL</span><span>BANKER EDGE</span></div>
-            </div>
-            <div class="info-card"><div class="chart-title">📐 COMMISSION-ADJUSTED STATS</div>
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                    <div><span class="metric-label">BANKER WIN%</span><div id="statB" class="dom-number" style="font-size:1.4rem;">0%</div></div>
-                    <div><span class="metric-label">PLAYER WIN%</span><div id="statP" style="font-size:1.4rem; font-weight:800;">0%</div></div>
-                    <div><span class="metric-label">TIE% (RAW)</span><div id="statT" style="font-size:1rem;">0%</div></div>
-                    <div><span class="metric-label">PHASE LEAD</span><div id="phaseLead" style="font-weight:700;">—</div></div>
-                    <div><span class="metric-label">STREAK/CHOP</span><div id="streakIndex">0.0</div></div>
-                    <div><span class="metric-label">EDGE (BANKER)</span><div id="edgeValue">0.00%</div></div>
-                </div>
-            </div>
-            <div class="info-card"><div class="chart-title">🔁 REGIME SHIFT LOG</div><div id="shiftLogPanel" class="shift-log"><div style="color:#475569;">awaiting data</div></div></div>
-            <div class="info-card"><div class="chart-title">💰 BANKROLL (KELLY)</div>
-                <div style="font-size:1.8rem; font-weight:800;" id="bankrollDisplay">$1,000</div>
-                <div style="display:flex; gap:12px; margin-top:8px;"><span>Won: <span id="statWon">0</span></span><span>Lost: <span id="statLost">0</span></span><span>WR: <span id="statWR">0%</span></span></div>
-            </div>
-        </div>
+    <div class="tabp on" id="tab-live">
+      <div class="sh">Live Stats · Real Odds 2.0</div>
+      <div class="g3">
+        <div class="cell"><label>B %</label><div class="cv vB" id="s-b">—</div></div>
+        <div class="cell"><label>P %</label><div class="cv vP" id="s-p">—</div></div>
+        <div class="cell"><label>T %</label><div class="cv" style="color:var(--Tl)" id="s-t">—</div></div>
+        <div class="cell"><label>Streak</label><div class="cv" id="s-streak">—</div></div>
+        <div class="cell"><label>ML Accuracy</label><div class="cv vG" id="s-mlacc">—</div></div>
+        <div class="cell"><label>Bets Placed</label><div class="cv" id="s-bets">0</div></div>
+      </div>
+      <div class="sh" style="margin-top:8px">ML Signal Strength</div>
+      <div id="signal-strength" style="height:60px;display:flex;flex-direction:column;gap:4px;margin-bottom:8px"></div>
+      <div class="sh">Recent ML Predictions</div>
+      <div id="ml-pred-log" style="max-height:200px;overflow-y:auto;font-size:9px"></div>
     </div>
+
+    <div class="tabp" id="tab-ml">
+      <div class="sh">Bayesian Posterior Probabilities</div>
+      <div id="bayes-detail" style="margin-bottom:12px"></div>
+      <div class="sh">Model Performance (Last 30)</div>
+      <div id="model-perf"></div>
+      <div class="sh" style="margin-top:8px">Feature Importance</div>
+      <div id="feature-importance"></div>
+    </div>
+
+    <div class="tabp" id="tab-patterns">
+      <div class="sh">Sequence Patterns Detected</div>
+      <div id="seq-patterns"></div>
+      <div class="sh" style="margin-top:8px">Streak Analysis</div>
+      <div id="streak-analysis"></div>
+    </div>
+  </div>
+</div>
 </div>
 
 <script>
-    // --------------------------------------------------------------
-    //  BACCARATIQ ACCURACY UPGRADE: COMMISSION, KELLY, STREAK/CHOP, MIN EDGE THRESHOLD
-    // --------------------------------------------------------------
-    const COMMISSION = 0.95;      // Banker pays 0.95:1
-    const PAYOUT = { B: COMMISSION, P: 1.0, T: 8.0 };
-    const MIN_EDGE_REQUIRED = 0.022;      // 2.2% minimum edge before betting
-    const CONFIDENCE_THRESH = 0.535;      // 53.5% win prob minimum (above random + commission edge)
-    const KELLY_FRACTION = 0.28;          // quarter-kelly for safety (aggressive but sustainable)
+'use strict';
+
+// ODDS: Bet 25 → Win 50 total (profit 25), Lose 25
+// TIE: When betting Player/Banker and TIE occurs → LOSS (stake lost)
+const ODDS = 2.0;
+const ODDS_NET = 1.0; // Profit on win = stake * 1.0
+
+// ML State
+const S = {
+  outcomes: [],
+  bets: [],
+  bankroll: 1000,
+  startBank: 1000,
+  equityHistory: [1000],
+  consecutiveLosses: 0,
+  won: 0, lost: 0, skipped: 0,
+  mlConfidenceHistory: [],
+  mlPredictions: [], // {round, side, confidence, actual, correct}
+  modelWeights: {markov:1.0, bayes:1.0, streak:1.0, pattern:1.0, momentum:1.0},
+  modelAccuracy: {markov:[], bayes:[], streak:[], pattern:[], momentum:[]},
+  bayesianPrior: {B:0.4585, P:0.4460, T:0.0955},
+  bayesianPosterior: {B:0.4585, P:0.4460, T:0.0955},
+  lastMLDecision: null
+};
+
+// Config
+let CFG = {
+  maxStakePct: 2,
+  kellyFrac: 0.2,
+  minEdge: 0.05,
+  minConfidence: 40,
+  stopLoss: 15,
+  bankroll: 1000
+};
+
+// Helper functions
+function alert2(msg, type='info') {
+  const az = document.getElementById('az');
+  const el = document.createElement('div');
+  el.className = `al ${type}`;
+  el.textContent = msg;
+  az.appendChild(el);
+  setTimeout(() => el.remove(), 3500);
+}
+
+function updateConfig() {
+  CFG.bankroll = parseFloat(document.getElementById('sl-bank').value);
+  CFG.maxStakePct = parseFloat(document.getElementById('sl-maxstake').value);
+  CFG.kellyFrac = parseFloat(document.getElementById('sl-kelly').value);
+  CFG.minEdge = parseFloat(document.getElementById('sl-edge').value) / 100;
+  CFG.minConfidence = parseFloat(document.getElementById('sl-minconf').value);
+  CFG.stopLoss = parseFloat(document.getElementById('sl-stop').value);
+  
+  document.getElementById('sv-bank').textContent = CFG.bankroll >= 1000 ? '$' + (CFG.bankroll/1000).toFixed(0) + 'K' : '$' + CFG.bankroll;
+  document.getElementById('sv-maxstake').textContent = CFG.maxStakePct + '%';
+  document.getElementById('sv-kelly').textContent = CFG.kellyFrac.toFixed(2);
+  document.getElementById('sv-edge').textContent = (CFG.minEdge * 100).toFixed(0) + '%';
+  document.getElementById('sv-minconf').textContent = CFG.minConfidence + '%';
+  document.getElementById('sv-stop').textContent = CFG.stopLoss + '%';
+  
+  if(S.outcomes.length > 0 && typeof render === 'function') render();
+}
+
+// BAYESIAN UPDATE (Online Learning)
+function updateBayesian(outcome) {
+  const likelihood = {B:0.4585, P:0.4460, T:0.0955};
+  const evidence = S.bayesianPrior[outcome];
+  const newPost = {};
+  let sum = 0;
+  for(let side of ['B','P','T']) {
+    newPost[side] = S.bayesianPrior[side] * likelihood[side] / evidence;
+    sum += newPost[side];
+  }
+  for(let side of ['B','P','T']) S.bayesianPosterior[side] = newPost[side] / sum;
+  Object.assign(S.bayesianPrior, S.bayesianPosterior);
+}
+
+// MARKOV CHAIN with ML smoothing
+function markovProb(outcomes) {
+  if(outcomes.length < 2) return 0.5;
+  const last = outcomes[outcomes.length-1];
+  let bAfter = 0, pAfter = 0, total = 0;
+  for(let i=1; i<outcomes.length; i++) {
+    if(outcomes[i-1] === last && outcomes[i] !== 'T') {
+      total++;
+      if(outcomes[i] === 'B') bAfter++;
+      else if(outcomes[i] === 'P') pAfter++;
+    }
+  }
+  if(total < 3) return 0.5;
+  const rawProb = bAfter / (bAfter + pAfter);
+  // Laplace smoothing
+  return (rawProb * total + 0.5) / (total + 1);
+}
+
+// STREAK ANALYSIS with ML
+function streakProb(outcomes) {
+  if(outcomes.length < 3) return 0.5;
+  const last = outcomes[outcomes.length-1];
+  if(last === 'T') return 0.5;
+  let streakLen = 1;
+  for(let i=outcomes.length-2; i>=0; i--) {
+    if(outcomes[i] === last) streakLen++;
+    else break;
+  }
+  // Longer streak increases continuation probability (up to 65%)
+  const contProb = Math.min(0.65, 0.5 + (streakLen-1) * 0.025);
+  return last === 'B' ? contProb : 1 - contProb;
+}
+
+// PATTERN RECOGNITION
+function patternProb(outcomes) {
+  if(outcomes.length < 4) return 0.5;
+  const patterns = {};
+  for(let len=3; len<=5; len++) {
+    for(let i=0; i<=outcomes.length-len-1; i++) {
+      const seq = outcomes.slice(i, i+len).join('');
+      if(!patterns[seq]) patterns[seq] = {B:0, P:0, total:0};
+      const next = outcomes[i+len];
+      if(next !== 'T') {
+        patterns[seq][next]++;
+        patterns[seq].total++;
+      }
+    }
+  }
+  const lastSeq = outcomes.slice(-4).join('');
+  const match = patterns[lastSeq];
+  if(match && match.total >= 2) {
+    const prob = match.B / (match.B + match.P);
+    return prob;
+  }
+  return 0.5;
+}
+
+// MOMENTUM (exponential weighting)
+function momentumProb(outcomes) {
+  if(outcomes.length < 5) return 0.5;
+  let weightedB = 0, weightedTotal = 0;
+  for(let i=0; i<Math.min(15, outcomes.length); i++) {
+    const idx = outcomes.length - 1 - i;
+    if(outcomes[idx] !== 'T') {
+      const weight = Math.exp(i * 0.15);
+      weightedTotal += weight;
+      if(outcomes[idx] === 'B') weightedB += weight;
+    }
+  }
+  return weightedB / weightedTotal;
+}
+
+// ENSEMBLE ML PREDICTION with adaptive weights
+function mlPredict(outcomes) {
+  if(outcomes.length < 8) {
+    return {side:'SKIP', confidence:0, winProb:0.5, edge:0, stake:0, reasoning:'Need more data (≥8 rounds)', modelVotes:{}};
+  }
+  
+  // Get individual model predictions
+  const markov = markovProb(outcomes);
+  const bayes = S.bayesianPosterior.B / (S.bayesianPosterior.B + S.bayesianPosterior.P);
+  const streak = streakProb(outcomes);
+  const pattern = patternProb(outcomes);
+  const momentum = momentumProb(outcomes);
+  
+  const predictions = {markov, bayes, streak, pattern, momentum};
+  
+  // Weighted ensemble
+  let weightedProb = 0, weightSum = 0;
+  for(const [model, prob] of Object.entries(predictions)) {
+    const weight = S.modelWeights[model];
+    weightedProb += prob * weight;
+    weightSum += weight;
+  }
+  const ensembleProb = weightedProb / weightSum; // Probability of BANKER winning
+  
+  // Calibrate: map 0.5→0.5, extremes→max 0.65
+  const distance = Math.abs(ensembleProb - 0.5);
+  const winProb = Math.min(0.65, 0.5 + distance * 0.3);
+  const side = ensembleProb >= 0.5 ? 'BANKER' : 'PLAYER';
+  const edge = (winProb * 2) - 1; // EV formula for ODDS 2.0
+  
+  // ML Confidence = average of model agreement + certainty
+  const modelAgreement = Math.abs(ensembleProb - 0.5) * 2;
+  const rawConfidence = Math.min(85, 30 + modelAgreement * 55);
+  const confidence = Math.max(0, Math.min(85, rawConfidence));
+  
+  // Dynamic threshold based on recent ML accuracy
+  const recentAcc = S.modelAccuracy.markov.slice(-20).reduce((a,b)=>a+b,0) / Math.max(1, S.modelAccuracy.markov.length);
+  const adaptiveMinConf = Math.max(CFG.minConfidence, 35 - (recentAcc * 20));
+  
+  // Stake calculation with Kelly
+  let stake = 0;
+  let stakeReason = '';
+  
+  if(confidence >= adaptiveMinConf && edge >= CFG.minEdge) {
+    const fullKelly = edge; // at ODDS=2, Kelly = edge
+    const kellyStakePct = fullKelly * CFG.kellyFrac;
+    let stakePct = Math.min(CFG.maxStakePct, Math.max(0.5, kellyStakePct * 100));
     
-    // Global state
-    let outcomes = [];            // 'B','P','T'
-    let bankroll = 1000;
-    let startBank = 1000;
-    let totalWon = 0, totalLost = 0, totalSkipped = 0;
-    let shiftLog = [];
-    let lastDominantSide = null;
-    let dominantStreakCounter = 0;
-    let sessionPhases = [];       // computed each render
+    // Loss protection
+    if(S.consecutiveLosses === 1) stakePct *= 0.7;
+    else if(S.consecutiveLosses === 2) stakePct *= 0.4;
+    else if(S.consecutiveLosses >= 3) stakePct *= 0.2;
     
-    // charts
-    let domChart, momChart;
+    stake = CFG.bankroll * (stakePct / 100);
+    stakeReason = `${stakePct.toFixed(1)}% of bankroll`;
+  } else {
+    stakeReason = `Confidence ${confidence}% < ${adaptiveMinConf}% or edge ${(edge*100).toFixed(1)}% < ${(CFG.minEdge*100).toFixed(0)}%`;
+  }
+  
+  stake = Math.max(0.5, Math.min(CFG.bankroll * (CFG.maxStakePct/100), stake));
+  
+  const reasoning = `ML Ensemble: ${side} @ ${(winProb*100).toFixed(1)}% win prob (${(edge*100).toFixed(1)}% edge) · ${stakeReason}`;
+  
+  return {
+    side: confidence >= adaptiveMinConf && edge >= CFG.minEdge ? side : 'SKIP',
+    confidence: Math.round(confidence),
+    winProb,
+    edge,
+    stake: stake.toFixed(2),
+    reasoning,
+    modelVotes: predictions,
+    adaptiveThreshold: adaptiveMinConf
+  };
+}
+
+// Update model weights based on performance (online learning)
+function updateModelWeights(actual, prediction) {
+  const actualSide = actual === 'B' ? 'BANKER' : actual === 'P' ? 'PLAYER' : null;
+  if(!actualSide || !prediction || prediction.side === 'SKIP') return;
+  
+  const wasCorrect = prediction.side === actualSide;
+  const models = ['markov', 'bayes', 'streak', 'pattern', 'momentum'];
+  
+  for(const model of models) {
+    let modelPred = 0.5;
+    if(model === 'markov') modelPred = markovProb(S.outcomes.slice(0, -1));
+    else if(model === 'bayes') modelPred = S.bayesianPosterior.B / (S.bayesianPosterior.B + S.bayesianPosterior.P);
+    else if(model === 'streak') modelPred = streakProb(S.outcomes.slice(0, -1));
+    else if(model === 'pattern') modelPred = patternProb(S.outcomes.slice(0, -1));
+    else if(model === 'momentum') modelPred = momentumProb(S.outcomes.slice(0, -1));
     
-    // Helper: dominance from array (exclude ties for B/P %)
-    function computeDominance(arr) {
-        if (!arr.length) return { side: null, pct: 0, B: 0, P: 0, T: 0, rawB:0, rawP:0 };
-        const nonTie = arr.filter(o => o !== 'T');
-        if (nonTie.length === 0) return { side: null, pct: 0, B: 0, P: 0, T: 1 };
-        const B = nonTie.filter(o => o === 'B').length;
-        const P = nonTie.length - B;
-        const T = arr.length - nonTie.length;
-        const side = B >= P ? 'B' : 'P';
-        const pct = Math.max(B / nonTie.length, P / nonTie.length);
-        return { side, pct, B: B/nonTie.length, P: P/nonTie.length, T: T/arr.length, rawB: B, rawP: P, total: arr.length };
+    const modelSide = modelPred >= 0.5 ? 'BANKER' : 'PLAYER';
+    const correct = modelSide === actualSide ? 1 : 0;
+    S.modelAccuracy[model].push(correct);
+    if(S.modelAccuracy[model].length > 50) S.modelAccuracy[model].shift();
+    
+    // Update weights based on recent accuracy (last 20)
+    const recentAcc = S.modelAccuracy[model].slice(-20).reduce((a,b)=>a+b,0) / Math.min(20, S.modelAccuracy[model].length);
+    S.modelWeights[model] = Math.max(0.3, Math.min(2.0, recentAcc * 2));
+  }
+}
+
+// RECORD OUTCOME with REAL P&L (Tie = Loss when betting)
+function recordOutcome(outcome) {
+  const round = S.outcomes.length + 1;
+  
+  // Update Bayesian
+  updateBayesian(outcome);
+  
+  // Get ML prediction BEFORE recording outcome
+  const prediction = mlPredict(S.outcomes);
+  S.lastMLDecision = prediction;
+  
+  // Store prediction for accuracy tracking
+  S.mlPredictions.push({
+    round, side: prediction.side, confidence: prediction.confidence,
+    actual: outcome, correct: prediction.side !== 'SKIP' && prediction.side === (outcome === 'B' ? 'BANKER' : outcome === 'P' ? 'PLAYER' : null)
+  });
+  S.mlConfidenceHistory.push(prediction.confidence);
+  
+  // Process bet result
+  let pnl = 0;
+  let result = 'skip';
+  const betPlaced = prediction.side !== 'SKIP';
+  
+  if(betPlaced) {
+    const stake = parseFloat(prediction.stake);
+    const betSide = prediction.side === 'BANKER' ? 'B' : 'P';
+    
+    if(outcome === betSide) {
+      // WIN: profit = stake
+      pnl = stake;
+      result = 'win';
+      S.won++;
+      S.consecutiveLosses = 0;
+      alert2(`✓ WIN +$${pnl.toFixed(2)} (R${round} ${outcome}) | ML ${prediction.confidence}%`, 'ok');
+    } else {
+      // LOSS (including ties when betting Player/Banker)
+      pnl = -stake;
+      result = 'loss';
+      S.lost++;
+      S.consecutiveLosses++;
+      if(outcome === 'T') {
+        alert2(`✗ TIE counts as LOSS -$${Math.abs(pnl).toFixed(2)} (R${round}) | Bet ${prediction.side} vs TIE`, 'bad');
+      } else {
+        alert2(`✗ LOSS -$${Math.abs(pnl).toFixed(2)} (R${round} ${outcome}) | ML ${prediction.confidence}%`, 'bad');
+      }
     }
     
-    // Rolling dominance (20-round window)
-    function rollingDominance20() {
-        let res = [];
-        for (let i=0; i<outcomes.length; i++) {
-            const start = Math.max(0, i-19);
-            const slice = outcomes.slice(start, i+1);
-            res.push(computeDominance(slice));
-        }
-        return res;
+    S.bankroll += pnl;
+    S.equityHistory.push(S.bankroll);
+    CFG.bankroll = S.bankroll;
+    
+    // Stop loss check
+    const dd = (S.startBank - S.bankroll) / S.startBank * 100;
+    if(dd >= CFG.stopLoss) {
+      alert2(`🛑 STOP-LOSS triggered! ${dd.toFixed(1)}% drawdown`, 'warn');
     }
+  } else {
+    S.skipped++;
+    alert2(`⏭ SKIP R${round} - ${prediction.reasoning.substring(0, 60)}`, 'info');
+    S.equityHistory.push(S.bankroll);
+  }
+  
+  // Update model weights based on prediction accuracy
+  updateModelWeights(outcome, prediction);
+  
+  // Record bet
+  S.bets.push({round, side: prediction.side, stake: betPlaced ? parseFloat(prediction.stake) : 0, result, pnl, confidence: prediction.confidence});
+  
+  // Add outcome to history
+  S.outcomes.push(outcome);
+  
+  // Render history item
+  renderHistItem(round, outcome, prediction.side, pnl, prediction.confidence, result);
+  
+  // Full render
+  render();
+}
+
+function renderHistItem(round, outcome, betSide, pnl, confidence, result) {
+  const list = document.getElementById('hist-list');
+  const item = document.createElement('div');
+  item.className = 'hi';
+  const pnlClass = pnl > 0 ? 'pos' : pnl < 0 ? 'neg' : result === 'win' ? 'pos' : 'sk';
+  const pnlText = pnl > 0 ? `+$${pnl.toFixed(2)}` : pnl < 0 ? `-$${Math.abs(pnl).toFixed(2)}` : 'skip';
+  const resultText = betSide === 'SKIP' ? '—' : result === 'win' ? '✓ WIN' : '✗ LOSS';
+  item.innerHTML = `
+    <span class="hn">#${round}</span>
+    <div class="hbg h${outcome}">${outcome}</div>
+    <span class="hr">${resultText}</span>
+    <span class="hc">${betSide !== 'SKIP' ? confidence+'%' : ''}</span>
+    <span class="hp ${pnlClass}">${pnlText}</span>
+  `;
+  list.insertBefore(item, list.firstChild);
+}
+
+// RENDER UI
+function render() {
+  const n = S.outcomes.length;
+  const counts = {B:0, P:0, T:0};
+  for(const o of S.outcomes) counts[o]++;
+  const total = n || 1;
+  
+  // Top bar
+  document.getElementById('t-wp').textContent = S.lastMLDecision?.winProb ? (S.lastMLDecision.winProb*100).toFixed(1)+'%' : '—';
+  const pnl = S.bankroll - S.startBank;
+  document.getElementById('t-pnl').textContent = (pnl >= 0 ? '+' : '') + `$${pnl.toFixed(2)}`;
+  document.getElementById('t-pnl').style.color = pnl > 0 ? 'var(--Gl)' : pnl < 0 ? 'var(--Rl)' : 'var(--t2)';
+  const wr = (S.won + S.lost) > 0 ? (S.won/(S.won+S.lost)*100).toFixed(1) : '—';
+  document.getElementById('t-wr').textContent = wr + '%';
+  document.getElementById('t-rounds').textContent = n;
+  document.getElementById('t-mlconf').textContent = S.lastMLDecision?.confidence || '—';
+  
+  // Live stats
+  document.getElementById('s-b').textContent = ((counts.B/total)*100).toFixed(1)+'%';
+  document.getElementById('s-p').textContent = ((counts.P/total)*100).toFixed(1)+'%';
+  document.getElementById('s-t').textContent = ((counts.T/total)*100).toFixed(1)+'%';
+  const last = S.outcomes[n-1];
+  let streak = 1;
+  for(let i=n-2; i>=0 && S.outcomes[i] === last; i--) streak++;
+  document.getElementById('s-streak').textContent = last ? `${last}×${streak}` : '—';
+  const mlAcc = S.mlPredictions.filter(p => p.correct).length / Math.max(1, S.mlPredictions.filter(p => p.side !== 'SKIP').length);
+  document.getElementById('s-mlacc').textContent = mlAcc ? (mlAcc*100).toFixed(0)+'%' : '—';
+  document.getElementById('s-bets').textContent = S.won + S.lost;
+  
+  // Prediction panel
+  if(S.lastMLDecision) {
+    const d = S.lastMLDecision;
+    const badge = document.getElementById('pred-badge');
+    badge.className = `pred-badge ${d.side}`;
+    document.getElementById('pred-side-text').textContent = d.side;
+    document.getElementById('pred-conf-val').textContent = d.confidence + '%';
+    document.getElementById('pred-conf-val').style.color = d.confidence >= CFG.minConfidence ? 'var(--Gl)' : 'var(--Wl)';
+    document.getElementById('pred-wp-text').textContent = `Win prob: ${(d.winProb*100).toFixed(1)}% · Edge: ${(d.edge*100).toFixed(1)}%`;
+    document.getElementById('pred-reason').textContent = d.reasoning;
+    document.getElementById('pred-stake').textContent = d.stake !== '0.00' ? `$${d.stake}` : '—';
+    document.getElementById('pred-ev').textContent = d.edge > 0 ? `EV: +${(d.edge*100).toFixed(1)}%` : '';
+    document.getElementById('pred-ev').style.color = d.edge > 0.03 ? 'var(--Gl)' : d.edge > 0 ? 'var(--Wl)' : 'var(--Rl)';
     
-    // Exponential momentum (weighted recent)
-    function computeMomentumScore() {
-        if (outcomes.length < 6) return 0;
-        const recent = outcomes.slice(-18);
-        let weightSum = 0, weightedB = 0;
-        for (let i=0; i<recent.length; i++) {
-            const weight = Math.exp(i * 0.18);
-            if (recent[i] !== 'T') {
-                weightedB += recent[i] === 'B' ? weight : 0;
-                weightSum += weight;
-            }
-        }
-        const pB = weightSum > 0 ? weightedB / weightSum : 0.5;
-        return (pB - 0.5) * 200; // -100 to +100
+    // Loss protection
+    const mult = S.consecutiveLosses === 0 ? 1 : S.consecutiveLosses === 1 ? 0.7 : S.consecutiveLosses === 2 ? 0.4 : 0.2;
+    document.getElementById('pred-protect').textContent = mult < 0.95 ? `⚠️ Loss protection: ${(mult*100).toFixed(0)}% stake` : '';
+    
+    // Confidence bar
+    const confPct = (d.confidence / 85) * 100;
+    document.getElementById('conf-inner').style.width = `${Math.min(100, confPct)}%`;
+    document.getElementById('conf-inner').style.background = d.confidence >= CFG.minConfidence ? '#10B981' : '#F59E0B';
+    document.getElementById('conf-pct').textContent = d.confidence + '%';
+    const threshPos = (CFG.minConfidence / 85) * 100;
+    document.getElementById('conf-thresh-line').style.left = `${threshPos}%`;
+    document.getElementById('conf-thresh-lbl').textContent = `MIN ${CFG.minConfidence}%`;
+    
+    // DB Box
+    document.getElementById('db-side').textContent = d.side === 'SKIP' ? 'WAIT' : d.side;
+    document.getElementById('db-side-pct').textContent = d.side !== 'SKIP' ? `${(d.winProb*100).toFixed(1)}%` : '—';
+    document.getElementById('db-headline').textContent = d.side !== 'SKIP' ? `ML recommends ${d.side} with ${d.confidence}% confidence` : 'ML recommends skipping - insufficient edge';
+    document.getElementById('db-mlconf').textContent = d.confidence + '%';
+    document.getElementById('db-mlconf').style.color = d.confidence >= CFG.minConfidence ? 'var(--Gl)' : 'var(--Wl)';
+  }
+  
+  // Loss strip
+  document.getElementById('lp-streak').textContent = S.consecutiveLosses;
+  const mult = S.consecutiveLosses === 0 ? 1 : S.consecutiveLosses === 1 ? 0.7 : S.consecutiveLosses === 2 ? 0.4 : 0.2;
+  document.getElementById('lp-mult').textContent = mult.toFixed(2)+'×';
+  const barW = Math.min(100, (S.consecutiveLosses / 4) * 100);
+  document.getElementById('lp-bar').style.width = barW + '%';
+  document.getElementById('lp-bar').style.background = S.consecutiveLosses >= 2 ? 'var(--R)' : S.consecutiveLosses === 1 ? 'var(--W)' : 'var(--G)';
+  const dd = (S.startBank - S.bankroll) / S.startBank * 100;
+  document.getElementById('lp-dd').textContent = dd.toFixed(1) + '%';
+  document.getElementById('lp-dd').style.color = dd >= 10 ? 'var(--Rl)' : dd >= 5 ? 'var(--Wl)' : 'var(--Gl)';
+  
+  // ML weights display
+  const weightsDiv = document.getElementById('ml-weights');
+  weightsDiv.innerHTML = Object.entries(S.modelWeights).map(([k,v]) => 
+    `<div class="mw-r"><span class="mw-n">${k.toUpperCase()}</span><div class="mw-b"><div class="mw-f" style="width:${(v/2)*100}%;background:${k==='markov'?'#3B82F6':k==='bayes'?'#F59E0B':k==='streak'?'#EC4899':k==='pattern'?'#8B5CF6':'#10B981'}"></div></div><span class="mw-v">${(v*100).toFixed(0)}%</span></div>`
+  ).join('');
+  
+  // Bayesian posterior
+  const bp = S.bayesianPosterior;
+  document.getElementById('bayes-posterior').innerHTML = `B: ${(bp.B*100).toFixed(1)}% | P: ${(bp.P*100).toFixed(1)}% | T: ${(bp.T*100).toFixed(1)}%`;
+  
+  // ML Prediction Log
+  const logDiv = document.getElementById('ml-pred-log');
+  logDiv.innerHTML = S.mlPredictions.slice(-20).reverse().map(p => 
+    `<div style="padding:3px 0;border-bottom:1px solid var(--bd);display:flex;justify-content:space-between">
+      <span style="color:var(--t3)">R${p.round}</span>
+      <span style="color:${p.side==='BANKER'?'var(--Bl)':'var(--Pl)'}">${p.side}</span>
+      <span>${p.confidence}%</span>
+      <span style="color:${p.correct?'var(--Gl)':'var(--Rl)'}">${p.correct?'✓':'✗'}</span>
+    </div>`
+  ).join('');
+  
+  // Model performance
+  const perfDiv = document.getElementById('model-perf');
+  perfDiv.innerHTML = Object.entries(S.modelAccuracy).map(([k,arr]) => {
+    const acc = arr.slice(-30).reduce((a,b)=>a+b,0) / Math.min(30, arr.length);
+    return `<div class="mw-r"><span class="mw-n">${k}</span><div class="mw-b"><div class="mw-f" style="width:${(acc||0)*100}%;background:#F59E0B"></div></div><span class="mw-v">${acc ? (acc*100).toFixed(0)+'%' : '—'}</span></div>`;
+  }).join('');
+  
+  // Patterns
+  if(n >= 10) {
+    const patterns = {};
+    for(let i=0; i<=n-4; i++) {
+      const seq = S.outcomes.slice(i, i+3).join('');
+      const next = S.outcomes[i+3];
+      if(!patterns[seq]) patterns[seq] = {B:0, P:0, T:0};
+      patterns[seq][next]++;
     }
-    
-    // Streak/Chop Index: >0 means streak bias, <0 means chop tendency
-    function streakChopIndex() {
-        if (outcomes.length < 10) return 0;
-        let streakScore = 0;
-        for (let i=1; i<outcomes.length; i++) {
-            if (outcomes[i] !== 'T' && outcomes[i-1] !== 'T') {
-                if (outcomes[i] === outcomes[i-1]) streakScore += 1;
-                else streakScore -= 1.2;
-            }
-        }
-        return Math.min(50, Math.max(-50, streakScore / 3));
+    const patternHtml = Object.entries(patterns).slice(0,8).map(([seq, counts]) => {
+      const total = counts.B + counts.P + counts.T;
+      const most = counts.B > counts.P ? 'B' : 'P';
+      const pct = (Math.max(counts.B, counts.P)/total*100).toFixed(0);
+      return `<div style="padding:2px 0;font-size:9px;font-family:monospace">${seq.split('').map(c=>`<span style="color:${c==='B'?'var(--Bl)':c==='P'?'var(--Pl)':'var(--Tl)'}">${c}</span>`).join('')} → ${most} (${pct}%)</div>`;
+    }).join('');
+    document.getElementById('seq-patterns').innerHTML = patternHtml || '<div style="color:var(--t3)">Need more data</div>';
+  }
+  
+  // Streak analysis
+  if(n >= 5) {
+    let maxStreak = 1, curStreak = 1;
+    for(let i=1; i<n; i++) {
+      if(S.outcomes[i] === S.outcomes[i-1]) curStreak++;
+      else { maxStreak = Math.max(maxStreak, curStreak); curStreak = 1; }
     }
-    
-    // Phase extraction (20 rounds)
-    function extractPhases() {
-        const phases = [];
-        const phaseSize = 20;
-        const count = Math.ceil(outcomes.length / phaseSize);
-        for (let i=0; i<count; i++) {
-            const slice = outcomes.slice(i*phaseSize, (i+1)*phaseSize);
-            const dom = computeDominance(slice);
-            phases.push({ idx:i, start:i*phaseSize+1, end:Math.min((i+1)*phaseSize, outcomes.length), ...dom, isCurrent: i === count-1 });
-        }
-        return phases;
+    maxStreak = Math.max(maxStreak, curStreak);
+    document.getElementById('streak-analysis').innerHTML = `<div style="font-size:9px">Max streak: ${maxStreak}<br>Current: ${last ? last+'×'+streak : '—'}<br>Chop index: ${streak <= 2 ? 'High chop' : streak >= 4 ? 'Streak bias' : 'Neutral'}</div>`;
+  }
+}
+
+// ML Backtest
+function runMLBacktest() {
+  if(S.outcomes.length < 20) { alert2('Need ≥20 outcomes for backtest', 'warn'); return; }
+  showTab('ml');
+  
+  let bank = S.startBank;
+  let wins = 0, losses = 0, bets = 0;
+  const predictions = [];
+  
+  for(let i=8; i<S.outcomes.length; i++) {
+    const hist = S.outcomes.slice(0, i);
+    const pred = mlPredict(hist);
+    if(pred.side !== 'SKIP') {
+      bets++;
+      const stake = parseFloat(pred.stake);
+      const actual = S.outcomes[i];
+      const betSide = pred.side === 'BANKER' ? 'B' : 'P';
+      if(actual === betSide) { bank += stake; wins++; }
+      else if(actual !== 'T') { bank -= stake; losses++; }
+      predictions.push({correct: actual === betSide, conf: pred.confidence});
     }
-    
-    // Shift detection: robust regime change with confirmation
-    function detectRegimeShifts() {
-        if (outcomes.length < 24) return [];
-        const rolling = rollingDominance20();
-        let shifts = [];
-        let lastRegime = rolling[14]?.side;
-        for (let i=18; i<rolling.length; i++) {
-            const cur = rolling[i];
-            if (cur.side && lastRegime && cur.side !== lastRegime && cur.pct > 0.57) {
-                const confirmWindow = outcomes.slice(Math.max(0,i-5), i+1);
-                const confirmDom = computeDominance(confirmWindow);
-                if (confirmDom.side === cur.side && confirmDom.pct > 0.56) {
-                    shifts.push({ round: i+1, from: lastRegime, to: cur.side, pct: cur.pct });
-                    lastRegime = cur.side;
-                }
-            }
-        }
-        return shifts;
-    }
-    
-    // PREDICTION ENGINE: commission-aware + Kelly + streak/chop adaptation
-    function computePrediction() {
-        if (outcomes.length < 12) return { side: 'SKIP', confidence: 0, stake: 0, reason: `Need 12 rounds (have ${outcomes.length})`, edge: 0 };
-        
-        const recent20 = computeDominance(outcomes.slice(-20));
-        const recent10 = computeDominance(outcomes.slice(-10));
-        const momentum = computeMomentumScore();
-        const phases = extractPhases();
-        const phaseLead = phases.filter(p => p.side).reduce((acc,p) => { if(p.side === 'B') acc.B++; else if(p.side === 'P') acc.P++; return acc; }, {B:0,P:0});
-        const phaseScore = (phaseLead.B > phaseLead.P ? 'B' : (phaseLead.P > phaseLead.B ? 'P' : null));
-        const streakIdx = streakChopIndex();
-        const shiftRisk = detectRegimeShifts();
-        const recentShift = shiftRisk.length ? shiftRisk[shiftRisk.length-1] : null;
-        
-        let bankerScore = 0, playerScore = 0, totalWeight = 0;
-        
-        // 1) Recent dominance (weight 3.2)
-        if (recent20.side === 'B') bankerScore += recent20.pct * 3.2;
-        else if (recent20.side === 'P') playerScore += recent20.pct * 3.2;
-        
-        // 2) Short term trend (weight 2.6)
-        if (recent10.side === 'B') bankerScore += recent10.pct * 2.6;
-        else if (recent10.side === 'P') playerScore += recent10.pct * 2.6;
-        
-        // 3) Momentum (weight 2.2)
-        if (momentum > 12) bankerScore += Math.min(0.75, momentum/100) * 2.2;
-        else if (momentum < -12) playerScore += Math.min(0.75, Math.abs(momentum)/100) * 2.2;
-        
-        // 4) Phase leadership (weight 1.5)
-        if (phaseScore === 'B') bankerScore += 1.5;
-        else if (phaseScore === 'P') playerScore += 1.5;
-        
-        // 5) Streak/Chop adaptation (weight 1.8)
-        if (streakIdx > 8 && recent20.side === 'B') bankerScore += 1.6;
-        else if (streakIdx < -8 && recent20.side === 'P') playerScore += 1.6;
-        else if (streakIdx > 12) playerScore += 1.2;  // reversal expectation
-        else if (streakIdx < -12) bankerScore += 1.2;
-        
-        // 6) Recent shift reversal signal
-        if (recentShift && (outcomes.length - recentShift.round) < 30) {
-            if (recentShift.to === 'B') bankerScore += 1.4;
-            else playerScore += 1.4;
-        }
-        
-        const probBankerRaw = bankerScore / (bankerScore + playerScore + 0.001);
-        const finalProb = Math.min(0.85, Math.max(0.15, probBankerRaw));
-        const winProb = finalProb;
-        
-        // Determine side & edge calculation with commission
-        const predictedSide = winProb >= 0.5 ? 'B' : 'P';
-        const payout = predictedSide === 'B' ? PAYOUT.B : PAYOUT.P;
-        const edge = (winProb * payout) - (1 - winProb);
-        
-        // confidence percentage (based on distance from 0.5)
-        let rawConf = Math.abs(winProb - 0.5) * 200;
-        rawConf = Math.min(92, Math.max(20, rawConf));
-        
-        // Kelly stake (full Kelly adjusted)
-        let stake = 0;
-        let reason = "";
-        if (edge >= MIN_EDGE_REQUIRED && winProb >= CONFIDENCE_THRESH) {
-            const kellyFrac = (edge / payout) * KELLY_FRACTION;
-            const maxRisk = bankroll * 0.055;
-            stake = Math.min(maxRisk, bankroll * Math.min(0.045, kellyFrac));
-            stake = Math.max(0.5, stake);
-            reason = `Edge ${(edge*100).toFixed(2)}% · Kelly fraction ${(kellyFrac*100).toFixed(1)}% · StreakIdx ${streakIdx.toFixed(0)}`;
-        } else {
-            stake = 0;
-            reason = `Edge ${(edge*100).toFixed(2)}% below ${(MIN_EDGE_REQUIRED*100).toFixed(1)}% threshold or winProb ${(winProb*100).toFixed(1)}% < 53.5%`;
-        }
-        
-        return {
-            side: predictedSide === 'B' ? 'BANKER' : 'PLAYER',
-            confidence: Math.round(rawConf),
-            stake: parseFloat(stake.toFixed(2)),
-            reason,
-            edge: edge,
-            winProb,
-            momentum
-        };
-    }
-    
-    function recordOutcome(outcome) {
-        const pred = computePrediction();
-        let result = "skip";
-        let pnl = 0;
-        if (pred.stake > 0 && pred.side !== "SKIP") {
-            const betSideCode = pred.side === "BANKER" ? "B" : "P";
-            if (outcome === betSideCode) {
-                const multiplier = (betSideCode === 'B') ? COMMISSION : 1.0;
-                pnl = pred.stake * multiplier;
-                result = "win";
-                totalWon++;
-            } else if (outcome === 'T') {
-                pnl = 0;
-                result = "push";
-            } else {
-                pnl = -pred.stake;
-                result = "loss";
-                totalLost++;
-            }
-            bankroll = parseFloat((bankroll + pnl).toFixed(2));
-            if (bankroll < 5) bankroll = 5;
-        } else {
-            totalSkipped++;
-        }
-        
-        outcomes.push(outcome);
-        
-        // update dominance streak
-        const currentDom = computeDominance(outcomes.slice(-20));
-        if (currentDom.side && currentDom.side === lastDominantSide) dominantStreakCounter++;
-        else { lastDominantSide = currentDom.side; dominantStreakCounter = 1; }
-        
-        // detect new shifts
-        const freshShifts = detectRegimeShifts();
-        if (freshShifts.length > shiftLog.length) {
-            const newShift = freshShifts[freshShifts.length-1];
-            shiftLog.push(newShift);
-            flashNotif(`⚡ REGIME SHIFT: ${newShift.from} → ${newShift.to} at R${newShift.round} (${(newShift.pct*100).toFixed(0)}% dom)`, "warning");
-        }
-        
-        renderAll();
-        if (result === "win") flashNotif(`✓ WIN +$${pnl.toFixed(2)} on ${pred.side}`, "success");
-        else if (result === "loss") flashNotif(`✗ LOSS -$${Math.abs(pnl).toFixed(2)}`, "danger");
-    }
-    
-    function batchImport() {
-        const raw = document.getElementById('batchInput').value.toUpperCase().replace(/[^BPT]/g, '');
-        if (!raw) return;
-        for (let ch of raw) outcomes.push(ch);
-        document.getElementById('batchInput').value = '';
-        renderAll();
-        flashNotif(`Imported ${raw.length} hands · engine analyzing`, "info");
-    }
-    
-    function resetSession() {
-        outcomes = [];
-        bankroll = startBank;
-        totalWon = totalLost = totalSkipped = 0;
-        shiftLog = [];
-        lastDominantSide = null;
-        dominantStreakCounter = 0;
-        renderAll();
-        flashNotif("Session reset · bankroll restored", "info");
-    }
-    
-    function renderAll() {
-        const phases = extractPhases();
-        const recentDom = computeDominance(outcomes.slice(-24));
-        const momentum = computeMomentumScore();
-        const pred = computePrediction();
-        const streakIdx = streakChopIndex();
-        const edgeRaw = pred.edge || 0;
-        
-        // top bar
-        document.getElementById('topDom').innerHTML = recentDom.side || "—";
-        document.getElementById('topDomPct').innerHTML = recentDom.side ? (recentDom.pct*100).toFixed(1)+"%" : "—";
-        document.getElementById('topMomentum').innerHTML = momentum > 0 ? `+${momentum.toFixed(0)}` : momentum.toFixed(0);
-        document.getElementById('topRounds').innerHTML = outcomes.length;
-        document.getElementById('domIconSide').innerHTML = recentDom.side === 'B' ? "🏦 BANKER DOM" : (recentDom.side === 'P' ? "👤 PLAYER DOM" : "⚖️ NEUTRAL");
-        document.getElementById('domPctValue').innerHTML = recentDom.side ? (recentDom.pct*100).toFixed(1)+"%" : "0%";
-        document.getElementById('domStreak').innerHTML = dominantStreakCounter;
-        const riskLabel = edgeRaw > 0.035 ? "HIGH" : (edgeRaw > 0.018 ? "MED" : "LOW");
-        document.getElementById('riskLevel').innerHTML = riskLabel;
-        document.getElementById('shiftDesc').innerHTML = `Kelly edge: ${(edgeRaw*100).toFixed(2)}% · streakIdx ${streakIdx.toFixed(0)}`;
-        
-        // prediction box
-        document.getElementById('predSideText').innerHTML = pred.side === "SKIP" ? "⛔ SKIP" : (pred.side === "BANKER" ? "🏦 BANKER" : "👤 PLAYER");
-        document.getElementById('predConf').innerHTML = `Confidence ${pred.confidence}% · ${(pred.winProb*100).toFixed(1)}% win prob`;
-        document.getElementById('predReason').innerHTML = pred.reason;
-        document.getElementById('predStake').innerHTML = pred.stake > 0 ? `$${pred.stake.toFixed(2)}` : "$0";
-        
-        // stats
-        const globalDom = computeDominance(outcomes);
-        document.getElementById('statB').innerHTML = globalDom.B ? (globalDom.B*100).toFixed(1)+"%" : "0%";
-        document.getElementById('statP').innerHTML = globalDom.P ? (globalDom.P*100).toFixed(1)+"%" : "0%";
-        document.getElementById('statT').innerHTML = globalDom.T ? (globalDom.T*100).toFixed(1)+"%" : "0%";
-        const phaseLeadVal = phases.filter(p=>p.side).reduce((a,b)=>b.side==='B'?a+1:a,0);
-        document.getElementById('phaseLead').innerHTML = phaseLeadVal > (phases.length/2) ? "BANKER phases" : (phaseLeadVal < phases.length/2 ? "PLAYER phases" : "balanced");
-        document.getElementById('streakIndex').innerHTML = streakIdx.toFixed(1);
-        document.getElementById('edgeValue').innerHTML = (edgeRaw*100).toFixed(2)+"%";
-        document.getElementById('bankrollDisplay').innerHTML = `$${bankroll.toFixed(2)}`;
-        document.getElementById('statWon').innerHTML = totalWon;
-        document.getElementById('statLost').innerHTML = totalLost;
-        const winRate = (totalWon+totalLost) ? ((totalWon/(totalWon+totalLost))*100).toFixed(1) : 0;
-        document.getElementById('statWR').innerHTML = `${winRate}%`;
-        
-        // gauge
-        const gaugePos = 50 + (momentum * 0.35);
-        const clamped = Math.min(92, Math.max(8, gaugePos));
-        document.getElementById('gaugeFill').style.width = `${clamped}%`;
-        
-        // phase strip rendering
-        const stripDiv = document.getElementById('phaseStrip');
-        stripDiv.innerHTML = phases.slice(-8).map(p => `<div class="phase-card ${p.isCurrent ? 'active-phase' : ''}"><div class="phase-name">P${p.idx+1}</div><div class="phase-side" style="color:${p.side==='B'?'#f39c12':p.side==='P'?'#38bdf8':'#94a3b8'}">${p.side||'?'}</div><div style="font-size:9px;">${p.pct?(p.pct*100).toFixed(0)+'%':''}</div></div>`).join('');
-        
-        // heatmap (10-block)
-        const hmDiv = document.getElementById('heatmapContainer');
-        const blockCount = Math.ceil(outcomes.length / 10) || 1;
-        let hmHtml = '<div class="heatmap-block">';
-        for(let i=0; i<Math.min(20, blockCount+6); i++) {
-            const slice = outcomes.slice(i*10, (i+1)*10);
-            const dom = computeDominance(slice);
-            const sideChar = dom.side || '—';
-            const colorStyle = sideChar === 'B' ? '#e67e22' : (sideChar === 'P' ? '#0ea5e9' : '#475569');
-            hmHtml += `<div class="hm-cell" style="background:${dom.side? (dom.side==='B'?'rgba(230,126,34,0.25)':'rgba(14,165,233,0.25)'):'#0a1119'}; border:1px solid ${colorStyle}30">${sideChar}</div>`;
-        }
-        hmHtml += '</div>';
-        hmDiv.innerHTML = hmHtml;
-        
-        // block list (10-round blocks)
-        const blockDiv = document.getElementById('blockList');
-        let blockHtml = '';
-        for(let i=Math.max(0, Math.floor(outcomes.length/10)-6); i<Math.ceil(outcomes.length/10); i++) {
-            const slice = outcomes.slice(i*10, (i+1)*10);
-            const dom = computeDominance(slice);
-            const seq = slice.map(s=>`<span style="color:${s==='B'?'#f39c12':s==='P'?'#38bdf8':'#c084fc'}">${s}</span>`).join('');
-            blockHtml += `<div style="border-bottom:1px solid #1e2a36; padding:4px 0;"><strong>B${i+1}</strong> ${seq} → <span style="color:${dom.side==='B'?'#f39c12':'#0ea5e9'}">${dom.side||'?'} ${dom.pct?(dom.pct*100).toFixed(0)+'%':''}</span></div>`;
-        }
-        blockDiv.innerHTML = blockHtml || '<div style="color:#475569;">—</div>';
-        
-        // shift log
-        const logDiv = document.getElementById('shiftLogPanel');
-        if(shiftLog.length===0) logDiv.innerHTML = '<div style="color:#475569;">no regime shifts yet</div>';
-        else logDiv.innerHTML = shiftLog.slice().reverse().map(s => `<div class="shift-entry">🔁 R${s.round} · ${s.from} → ${s.to} (${(s.pct*100).toFixed(0)}% dom)</div>`).join('');
-        
-        // update charts
-        updateCharts();
-    }
-    
-    function updateCharts() {
-        if(!domChart) {
-            const ctxDom = document.getElementById('domChartCanvas').getContext('2d');
-            const ctxMom = document.getElementById('momChartCanvas').getContext('2d');
-            domChart = new Chart(ctxDom, { type:'line', data:{ labels:[], datasets:[{label:'Banker %', borderColor:'#e67e22', data:[], tension:0.3, fill:false, pointRadius:0}] }, options:{ responsive:true, maintainAspectRatio:true, plugins:{ legend:{ labels:{ color:'#94a3b8' } } } } });
-            momChart = new Chart(ctxMom, { type:'bar', data:{ labels:[], datasets:[{ label:'Momentum', data:[], backgroundColor:'#f59e0b' }] }, options:{ responsive:true, scales:{ y:{ min:-100, max:100 } } } });
-        }
-        const roll = rollingDominance20();
-        domChart.data.labels = roll.map((_,i)=>i+1);
-        domChart.data.datasets[0].data = roll.map(d=>d.B || 0.5);
-        domChart.update('none');
-        
-        const momHist = outcomes.map((_,i)=> { const slice=outcomes.slice(0,i+1); let wB=0, wSum=0; for(let j=0;j<slice.length;j++){ const w=Math.exp(j*0.12); if(slice[j]!=='T'){ wB += slice[j]==='B'?w:0; wSum+=w; } } const pB=wSum>0?wB/wSum:0.5; return (pB-0.5)*200; });
-        momChart.data.labels = momHist.map((_,i)=>i+1);
-        momChart.data.datasets[0].data = momHist;
-        momChart.update('none');
-    }
-    
-    function flashNotif(msg, type) {
-        const div = document.createElement('div');
-        div.className = 'flash-message';
-        div.innerHTML = msg;
-        document.body.appendChild(div);
-        setTimeout(()=>div.remove(), 3000);
-    }
-    
-    // keyboard shortcuts
-    document.addEventListener('keydown', (e) => {
-        if(document.activeElement.tagName === 'INPUT') return;
-        if(e.key === 'b' || e.key === 'B') recordOutcome('B');
-        if(e.key === 'p' || e.key === 'P') recordOutcome('P');
-        if(e.key === 't' || e.key === 'T') recordOutcome('T');
-    });
-    
-    // init with demo realistic pattern (60 rounds mixed)
-    const demoSeq = "BPBPBBBPBBPPPBBBPBBBBPPPBPBPBBBPBPTPBBPBPBBBBPBPBBPPBBBPBBP".split('');
-    for(let d of demoSeq) if('BPT'.includes(d)) outcomes.push(d);
-    startBank = 1000; bankroll = 1000;
-    renderAll();
-    flashNotif("✅ BaccaratIQ active | Banker commission 5% | Kelly fraction 0.28 | Min edge 2.2%", "info");
+  }
+  
+  const roi = ((bank - S.startBank) / S.startBank * 100).toFixed(1);
+  const winRate = bets > 0 ? (wins/bets*100).toFixed(1) : 0;
+  alert2(`ML Backtest: ${bets} bets, WR ${winRate}%, ROI ${roi}%`, roi > 0 ? 'ok' : 'warn');
+}
+
+// Batch import
+function batchImport() {
+  const raw = document.getElementById('batch').value.toUpperCase().replace(/[^BPT]/g, '');
+  if(!raw) { alert2('No valid B/P/T found', 'warn'); return; }
+  for(const c of raw) recordOutcome(c);
+  document.getElementById('batch').value = '';
+  alert2(`Imported ${raw.length} outcomes`, 'ok');
+}
+
+function resetAll() {
+  S.outcomes = [];
+  S.bets = [];
+  S.bankroll = S.startBank;
+  S.equityHistory = [S.startBank];
+  S.consecutiveLosses = 0;
+  S.won = 0; S.lost = 0; S.skipped = 0;
+  S.mlConfidenceHistory = [];
+  S.mlPredictions = [];
+  S.modelWeights = {markov:1.0, bayes:1.0, streak:1.0, pattern:1.0, momentum:1.0};
+  S.modelAccuracy = {markov:[], bayes:[], streak:[], pattern:[], momentum:[]};
+  S.bayesianPrior = {B:0.4585, P:0.4460, T:0.0955};
+  S.bayesianPosterior = {B:0.4585, P:0.4460, T:0.0955};
+  document.getElementById('hist-list').innerHTML = '';
+  alert2('Session reset. ML models reinitialized.', 'info');
+  render();
+}
+
+function clearHist() { document.getElementById('hist-list').innerHTML = ''; }
+function showTab(tab) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
+  document.querySelectorAll('.tabp').forEach(t => t.classList.remove('on'));
+  document.querySelector(`[onclick="showTab('${tab}')"]`).classList.add('on');
+  document.getElementById(`tab-${tab}`).classList.add('on');
+}
+
+// Chart initialization (simplified)
+let eqChart, confChart, wpChart, weightChart;
+function initCharts() {
+  const ctx = document.getElementById('eq-chart').getContext('2d');
+  eqChart = new Chart(ctx, {type:'line', data:{labels:[], datasets:[{data:[], borderColor:'#10B981', borderWidth:2, fill:false, tension:0.3}]}, options:{responsive:true, maintainAspectRatio:false}});
+  const ctx2 = document.getElementById('conf-chart').getContext('2d');
+  confChart = new Chart(ctx2, {type:'line', data:{labels:[], datasets:[{data:[], borderColor:'#F59E0B', borderWidth:2, fill:false}]}, options:{responsive:true, maintainAspectRatio:false}});
+  const ctx3 = document.getElementById('wp-chart').getContext('2d');
+  wpChart = new Chart(ctx3, {type:'line', data:{labels:[], datasets:[{data:[], borderColor:'#8B5CF6', borderWidth:2, fill:false}]}, options:{responsive:true, maintainAspectRatio:false}});
+  const ctx4 = document.getElementById('weight-chart').getContext('2d');
+  weightChart = new Chart(ctx4, {type:'line', data:{labels:[], datasets:[]}, options:{responsive:true, maintainAspectRatio:false}});
+}
+
+function updateCharts() {
+  eqChart.data.labels = S.equityHistory.map((_,i)=>i);
+  eqChart.data.datasets[0].data = S.equityHistory;
+  eqChart.update();
+  
+  confChart.data.labels = S.mlConfidenceHistory.map((_,i)=>i+1);
+  confChart.data.datasets[0].data = S.mlConfidenceHistory;
+  confChart.update();
+  
+  if(S.lastMLDecision) {
+    wpChart.data.labels = [S.mlConfidenceHistory.length];
+    wpChart.data.datasets[0].data = [S.lastMLDecision.winProb * 100];
+    wpChart.update();
+  }
+}
+
+// Keyboard shortcuts
+document.addEventListener('keydown', e => {
+  if(document.activeElement.tagName === 'INPUT') return;
+  if(e.key === 'p' || e.key === 'P') recordOutcome('P');
+  else if(e.key === 'b' || e.key === 'B') recordOutcome('B');
+  else if(e.key === 't' || e.key === 'T') recordOutcome('T');
+});
+
+// Initialize
+window.addEventListener('load', () => {
+  // Add event listeners to sliders
+  ['sl-bank', 'sl-maxstake', 'sl-kelly', 'sl-edge', 'sl-minconf', 'sl-stop'].forEach(id => {
+    document.getElementById(id).addEventListener('input', updateConfig);
+  });
+  updateConfig();
+  initCharts();
+  
+  // Load sample history
+  const sample = 'BBBBPPPPBBBBPPPPBBBBPPPBBBPBBBPBBBP';
+  for(const c of sample) {
+    if('BPT'.includes(c)) S.outcomes.push(c);
+  }
+  render();
+  setInterval(() => { if(S.outcomes.length > 0) updateCharts(); }, 1000);
+  alert2('BaccaratML v6 ready · Real P&L (Tie = Loss) · ML adaptive weights active', 'ok');
+});
 </script>
 </body>
 </html>
