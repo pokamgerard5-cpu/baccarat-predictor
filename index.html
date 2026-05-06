@@ -1,701 +1,483 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tic Tac Toe Analytics Engine | Quantitative Outcome Prediction</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0/dist/chartjs-plugin-datalabels.min.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BACCARATIQ v5 · TRAP DETECT · PLAYER EDGE ENGINE</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#060A0E;--bg2:#0B1017;--bg3:#111820;--bg4:#18222E;--bg5:#1E2C3A;
+  --banker:#D97706;--banker-l:#FCD34D;--banker-dim:#2E1E05;
+  --player:#0891B2;--player-l:#67E8F9;--player-dim:#071C24;
+  --tie:#7C3AED;--tie-l:#C4B5FD;--tie-dim:#1A0F35;
+  --profit:#059669;--profit-l:#6EE7B7;--profit-dim:#052E1A;
+  --loss:#DC2626;--loss-l:#FCA5A5;--loss-dim:#2A0808;
+  --warn:#D97706;--warn-l:#FCD34D;
+  --trap:#FF0055;--trap-dim:#2A0412;
+  --skip:#6B7280;--skip-l:#D1D5DB;
+  --border:#1A2A38;--border2:#223344;
+  --text:#E2E8F0;--text2:#94A3B8;--text3:#475569;
+  --accent:#F59E0B;--accent2:#3B82F6;
+  --mono:'JetBrains Mono',monospace;
+  --head:'Syne',sans-serif;
+  --radius:5px;
+}
+html,body{height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--text);font-family:var(--mono);font-size:12px}
+::-webkit-scrollbar{width:3px;height:3px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
 
-        body {
-            font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
-            background: linear-gradient(135deg, #0a0e1a 0%, #0f1422 100%);
-            color: #e2e8f0;
-            padding: 24px;
-        }
-
-        .dashboard {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-
-        /* Header */
-        .header {
-            margin-bottom: 32px;
-            border-bottom: 2px solid #2d3748;
-            padding-bottom: 20px;
-        }
-
-        h1 {
-            font-size: 2.2rem;
-            font-weight: 700;
-            background: linear-gradient(135deg, #60a5fa, #a78bfa);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            letter-spacing: -0.5px;
-        }
-
-        .subtitle {
-            color: #94a3b8;
-            margin-top: 8px;
-            font-size: 0.9rem;
-        }
-
-        .badge {
-            display: inline-block;
-            background: #1e293b;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 500;
-            margin-left: 12px;
-            color: #a78bfa;
-        }
-
-        /* Grid Layout */
-        .grid-2col {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 24px;
-            margin-bottom: 24px;
-        }
-
-        .grid-3col {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 24px;
-            margin-bottom: 24px;
-        }
-
-        .card {
-            background: rgba(15, 23, 42, 0.6);
-            backdrop-filter: blur(10px);
-            border: 1px solid #2d3a5e;
-            border-radius: 20px;
-            padding: 20px;
-            transition: all 0.2s;
-        }
-
-        .card:hover {
-            border-color: #4a5a7a;
-            background: rgba(15, 23, 42, 0.8);
-        }
-
-        .card-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-bottom: 16px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            border-left: 3px solid #3b82f6;
-            padding-left: 12px;
-        }
-
-        /* Prediction Panel */
-        .prediction-panel {
-            background: linear-gradient(135deg, #1e293b, #0f172a);
-            border: 2px solid #3b82f6;
-            box-shadow: 0 0 20px rgba(59, 130, 246, 0.2);
-        }
-
-        .prediction-outcome {
-            font-size: 2rem;
-            font-weight: 800;
-            text-align: center;
-            padding: 20px;
-            background: #00000030;
-            border-radius: 16px;
-            margin: 16px 0;
-        }
-
-        .probability-bar {
-            margin: 12px 0;
-        }
-
-        .prob-label {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.85rem;
-            margin-bottom: 4px;
-        }
-
-        .bar-bg {
-            background: #2d3748;
-            height: 32px;
-            border-radius: 8px;
-            overflow: hidden;
-        }
-
-        .bar-fill {
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            padding-right: 10px;
-            color: white;
-            font-weight: bold;
-            font-size: 0.85rem;
-            transition: width 0.3s ease;
-        }
-
-        .confidence-badge {
-            text-align: center;
-            margin-top: 16px;
-            padding: 8px;
-            background: #00000040;
-            border-radius: 12px;
-            font-size: 0.85rem;
-        }
-
-        /* Input Section */
-        textarea, input, select {
-            background: #0f172a;
-            border: 1px solid #334155;
-            color: #e2e8f0;
-            padding: 10px;
-            border-radius: 12px;
-            width: 100%;
-            margin: 8px 0;
-            font-size: 0.85rem;
-        }
-
-        button {
-            background: #3b82f6;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 12px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.2s;
-            margin-top: 8px;
-        }
-
-        button:hover {
-            background: #2563eb;
-            transform: translateY(-1px);
-        }
-
-        .btn-secondary {
-            background: #475569;
-        }
-
-        .btn-secondary:hover {
-            background: #5b6e8c;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-            margin-top: 12px;
-        }
-
-        .stat-card {
-            background: #00000030;
-            padding: 12px;
-            border-radius: 12px;
-            text-align: center;
-        }
-
-        .stat-value {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #60a5fa;
-        }
-
-        .stat-label {
-            font-size: 0.7rem;
-            color: #94a3b8;
-            margin-top: 4px;
-        }
-
-        .pattern-list {
-            max-height: 200px;
-            overflow-y: auto;
-            font-size: 0.8rem;
-        }
-
-        .pattern-item {
-            padding: 6px;
-            border-bottom: 1px solid #2d3748;
-            font-family: monospace;
-        }
-
-        .accuracy-track {
-            font-family: monospace;
-            font-size: 0.75rem;
-            color: #10b981;
-        }
-
-        hr {
-            border-color: #2d3748;
-            margin: 12px 0;
-        }
-
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #1e293b;
-            border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #475569;
-            border-radius: 10px;
-        }
-
-        @keyframes glow {
-            0% { box-shadow: 0 0 5px rgba(59,130,246,0.3); }
-            100% { box-shadow: 0 0 20px rgba(59,130,246,0.6); }
-        }
-    </style>
+#topbar{display:flex;align-items:center;gap:0;height:48px;background:var(--bg2);border-bottom:1px solid var(--border);padding:0 16px;position:sticky;top:0;z-index:200}
+.logo{font-family:var(--head);font-size:17px;font-weight:800;color:var(--accent);letter-spacing:-.5px;white-space:nowrap;margin-right:16px}
+.logo sub{font-size:9px;color:var(--text3);font-family:var(--mono);font-weight:400}
+.tstat{display:flex;flex-direction:column;align-items:flex-end;padding:0 12px;border-left:1px solid var(--border)}
+.tstat label{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.1em}
+.tstat .tv{font-size:13px;font-weight:600;line-height:1.3}
+.tv.pos{color:var(--profit-l)}.tv.neg{color:var(--loss-l)}.tv.warn{color:var(--warn-l)}.tv.trap{color:#FF0055}
+.spacer{flex:1}
+.chip{padding:2px 7px;border-radius:3px;font-size:9px;font-weight:600;letter-spacing:.08em}
+.chip.live{background:var(--profit-dim);color:var(--profit-l);border:1px solid #065F46}
+.chip.trap-alert{background:var(--trap-dim);color:var(--trap);border:1px solid var(--trap);margin-left:6px}
+#wrap{display:grid;grid-template-columns:262px 1fr 292px;height:calc(100vh - 48px);overflow:hidden}
+.lpanel,.rpanel{overflow-y:auto;display:flex;flex-direction:column;background:var(--bg2)}
+.lpanel{border-right:1px solid var(--border)}
+.rpanel{border-left:1px solid var(--border)}
+.sec{border-bottom:1px solid var(--border);padding:12px 14px}
+.sh{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.12em;margin-bottom:9px;display:flex;align-items:center;justify-content:space-between}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px}
+.g4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:4px}
+.cell{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:7px 9px}
+.cell label{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;display:block;margin-bottom:3px}
+.cv{font-size:14px;font-weight:600}
+.cv.pos{color:var(--profit-l)}.cv.neg{color:var(--loss-l)}.cv.trap{color:#FF0055;text-shadow:0 0 3px #FF0055}
+.out-btns{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin-bottom:9px}
+.ob{padding:10px 4px;border-radius:var(--radius);border:1px solid var(--border2);background:var(--bg3);color:var(--text2);font-family:var(--mono);font-size:11px;font-weight:600;cursor:pointer;transition:all .12s}
+.ob:active{transform:scale(.96)}
+.ob.P{border-color:var(--player);background:var(--player-dim);color:var(--player-l)}
+.ob.B{border-color:var(--banker);background:var(--banker-dim);color:var(--banker-l)}
+.ob.T{border-color:var(--tie);background:var(--tie-dim);color:var(--tie-l)}
+.sl-row{display:flex;align-items:center;gap:6px;margin-bottom:7px}
+.sl-row label{font-size:9px;color:var(--text3);width:90px}
+.sl-row input[type=range]{flex:1;accent-color:var(--accent)}
+.sl-row .sv{font-size:10px;color:var(--accent);width:36px;text-align:right}
+.btn-row{display:flex;gap:5px;margin-top:8px}
+.btn{flex:1;padding:6px;border-radius:var(--radius);border:1px solid var(--border2);background:var(--bg3);color:var(--text2);cursor:pointer;text-align:center}
+.btn:hover{border-color:var(--text3);color:var(--text)}
+.btn.pri{border-color:var(--accent);color:var(--accent)}
+.btn.dan{border-color:var(--loss);color:var(--loss-l)}
+#hist-list{flex:1;overflow-y:auto}
+.hi{display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid var(--border);font-size:10px}
+.hbadge{width:20px;height:20px;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700}
+.hB{background:var(--banker-dim);color:var(--banker-l)}
+.hP{background:var(--player-dim);color:var(--player-l)}
+.hT{background:var(--tie-dim);color:var(--tie-l)}
+#center{display:flex;flex-direction:column;overflow:hidden;background:var(--bg)}
+#dec-box{padding:16px;background:var(--bg2);border-bottom:1px solid var(--border)}
+#dec-main{display:flex;gap:12px}
+#bet-box{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;border-radius:6px;border:1px solid var(--border);transition:all .25s}
+#bet-box.PLAYER{background:var(--player-dim);border-color:var(--player);box-shadow:0 0 8px rgba(8,145,178,0.5)}
+#bet-action.PLAYER{color:var(--player-l);font-family:var(--head);font-size:26px;font-weight:800}
+#bet-box.SKIP{background:var(--bg3)}
+#dec-meta{width:148px}
+.dm{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:8px 10px;margin-bottom:5px}
+.dm label{font-size:9px;color:var(--text3);display:block;margin-bottom:3px}
+.dm .dv{font-size:14px;font-weight:600}
+#conf-sec{padding:10px 16px;background:var(--bg2);border-bottom:1px solid var(--border)}
+#conf-bar-outer{height:5px;background:var(--bg4);border-radius:3px;position:relative}
+#conf-bar-inner{height:100%;border-radius:3px;transition:width .35s}
+#reason-box{padding:10px 16px;background:var(--bg2);border-bottom:1px solid var(--border);max-height:108px;overflow-y:auto}
+.ritem{display:flex;gap:7px;margin-bottom:4px;font-size:10px}
+.rico{width:13px;height:13px;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700}
+.ri-TRAP{background:#2A0412;color:#FF0055}
+#chart-area{flex:1;display:grid;grid-template-rows:1fr 1fr;overflow:hidden;padding:10px;gap:8px}
+.chart-card{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:10px}
+.markov-tbl{width:100%;border-collapse:collapse;font-size:10px}
+.markov-tbl td{padding:4px 5px;text-align:center}
+.regime-badge{display:inline-block;padding:3px 10px;border-radius:3px;font-size:10px}
+.reg-TRAP{background:var(--trap-dim);color:var(--trap);border:1px solid var(--trap)}
+.mw-row{display:flex;gap:6px;margin-bottom:5px;align-items:center}
+.mw-name{width:78px;font-size:9px}
+.mw-bar{flex:1;height:4px;background:var(--bg4);border-radius:2px}
+.mw-fill{height:100%;border-radius:2px}
+#alert-zone{position:fixed;top:55px;right:12px;z-index:999;display:flex;flex-direction:column;gap:5px;pointer-events:none}
+.alert{padding:7px 12px;border-radius:var(--radius);font-size:10px;border-left:2px solid;animation:slideIn .18s ease}
+.alert.trap{background:#2A0412;border-color:#FF0055;color:#FF88AA}
+@keyframes slideIn{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:translateX(0)}}
+</style>
 </head>
 <body>
-<div class="dashboard">
-    <div class="header">
-        <h1>📊 Tic Tac Toe Analytics Engine <span class="badge">Quantitative Prediction</span></h1>
-        <div class="subtitle">Data-driven outcome forecasting · Pattern intelligence · Statistical dominance analysis</div>
-    </div>
-
-    <div class="grid-2col">
-        <!-- Prediction Panel -->
-        <div class="card prediction-panel">
-            <div class="card-title">🎯 Next Match Forecast</div>
-            <div class="prediction-outcome" id="predictionOutcome">—</div>
-            <div id="probabilityBars"></div>
-            <div class="confidence-badge" id="confidenceInfo">
-                Confidence Score: — | Explanation: —
-            </div>
-            <button onclick="refreshPrediction()" style="width: 100%; margin-top: 12px;">⟳ Refresh Forecast</button>
-        </div>
-
-        <!-- Data Input Panel -->
-        <div class="card">
-            <div class="card-title">📥 Data Import</div>
-            <textarea id="manualMatchInput" rows="3" placeholder='{"gameId": "G001", "moves": ["X1","O5","X2","O9","X3"], "result": "X_WIN", "timestamp": "2026-01-01"}'></textarea>
-            <button onclick="addSingleMatch()">➕ Add Single Match</button>
-            <button onclick="loadExampleDataset()" class="btn-secondary" style="margin-left: 8px;">📋 Load Example Dataset</button>
-            <hr>
-            <label>📁 Bulk Upload (JSON/CSV)</label>
-            <input type="file" id="bulkFileUpload" accept=".json,.csv">
-            <div style="font-size: 0.7rem; color: #94a3b8; margin-top: 8px;">
-                JSON format: array of games or single game object. CSV: columns GameID,Moves,Result,Timestamp
-            </div>
-        </div>
-    </div>
-
-    <div class="grid-3col">
-        <!-- Win/Loss Ratio Chart -->
-        <div class="card">
-            <div class="card-title">📊 Win/Loss Distribution</div>
-            <canvas id="winLossChart" height="200"></canvas>
-            <div class="stats-grid">
-                <div class="stat-card"><div class="stat-value" id="totalGames">0</div><div class="stat-label">Total Games</div></div>
-                <div class="stat-card"><div class="stat-value" id="xWinRate">0%</div><div class="stat-label">X Win Rate</div></div>
-                <div class="stat-card"><div class="stat-value" id="oWinRate">0%</div><div class="stat-label">O Win Rate</div></div>
-                <div class="stat-card"><div class="stat-value" id="drawRate">0%</div><div class="stat-label">Draw Rate</div></div>
-            </div>
-        </div>
-
-        <!-- Dominance Timeline -->
-        <div class="card">
-            <div class="card-title">📈 Dominance Timeline (Last 20 Games)</div>
-            <canvas id="dominanceTimeline" height="200"></canvas>
-            <div class="accuracy-track" style="margin-top: 8px;">Streak: <span id="streakInfo">No streak</span></div>
-        </div>
-
-        <!-- Pattern Frequency Analysis -->
-        <div class="card">
-            <div class="card-title">🔍 Top Winning Patterns</div>
-            <div id="patternList" class="pattern-list">
-                <div style="color: #64748b; text-align: center;">Add data to see patterns</div>
-            </div>
-            <div class="accuracy-track" style="margin-top: 12px;">🎯 Model Accuracy: <span id="modelAccuracy">—</span>%</div>
-            <button onclick="retrainModel()" style="width: 100%; margin-top: 8px;">🧠 Recalibrate Model</button>
-        </div>
-    </div>
-
-    <div class="grid-2col">
-        <!-- Position Heatmap (most successful positions) -->
-        <div class="card">
-            <div class="card-title">🔥 Success Heatmap (Winning Move Positions)</div>
-            <canvas id="successHeatmap" width="300" height="300" style="width: 100%; max-width: 300px; margin: 0 auto; display: block;"></canvas>
-            <div style="font-size: 0.7rem; text-align: center; margin-top: 8px;">Intensity = frequency of winning moves at position</div>
-        </div>
-
-        <!-- Statistical Insights -->
-        <div class="card">
-            <div class="card-title">💡 Quantitative Insights</div>
-            <div id="insightsPanel">
-                <div style="padding: 8px;">• First-move advantage: <span id="firstMoveAdvantage">—</span></div>
-                <div style="padding: 8px;">• Center control win rate: <span id="centerWinRate">—</span></div>
-                <div style="padding: 8px;">• Most common winning line: <span id="commonWinLine">—</span></div>
-                <div style="padding: 8px;">• X bias score: <span id="xBias">—</span></div>
-                <div style="padding: 8px;">• Draw frequency trend: <span id="drawTrend">—</span></div>
-            </div>
-        </div>
-    </div>
+<div id="topbar">
+  <div class="logo">BACCARATIQ <sub>v5 · PLAYER FOCUS + TRAP NEUTRALIZER</sub></div>
+  <div class="spacer"></div>
+  <div class="tstat"><label>Bankroll</label><div class="tv warn" id="t-bank">$1,000</div></div>
+  <div class="tstat"><label>P&amp;L</label><div class="tv neu" id="t-pnl">$0.00</div></div>
+  <div class="tstat"><label>Player Win%</label><div class="tv neu" id="t-pwr">—</div></div>
+  <div class="tstat"><label>Traps Avoided</label><div class="tv" id="t-traps" style="color:#FF0055">0</div></div>
+  <span class="chip live">LIVE</span>
+  <span class="chip trap-alert" id="trap-badge">TRAP WATCH</span>
 </div>
-
+<div id="alert-zone"></div>
+<div id="wrap">
+<div class="lpanel">
+  <div class="sec">
+    <div class="sh">Record Outcome (P/B/T keys)</div>
+    <div class="out-btns">
+      <button class="ob P" onclick="record('P')">👤 PLAYER</button>
+      <button class="ob B" onclick="record('B')">🏦 BANKER</button>
+      <button class="ob T" onclick="record('T')">🔗 TIE</button>
+    </div>
+    <input id="batch" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:3px;color:var(--text);font-family:var(--mono);font-size:11px;padding:5px 8px" placeholder="Paste BPBBPT...">
+    <button class="btn" onclick="batchImport()" style="margin-top:5px;width:100%">Import</button>
+  </div>
+  <div class="sec">
+    <div class="sh">Config</div>
+    <div class="sl-row"><label>Conf Threshold</label><input type="range" min="48" max="85" value="55" step="1" id="sl-conf"><span class="sv" id="sv-conf">55%</span></div>
+    <div class="sl-row"><label>Bankroll</label><input type="range" min="100" max="20000" value="1000" step="100" id="sl-bank"><span class="sv" id="sv-bank">$1K</span></div>
+    <div class="sl-row"><label>Stake %</label><input type="range" min="0.5" max="6" value="1.8" step="0.5" id="sl-stake"><span class="sv" id="sv-stake">1.8%</span></div>
+    <div class="btn-row"><button class="btn dan" onclick="resetSession()">RESET</button><button class="btn pri" onclick="runSim()">SIM ↗</button></div>
+  </div>
+  <div class="sec" style="flex:1;overflow:hidden;display:flex;flex-direction:column;min-height:0">
+    <div class="sh">History</div>
+    <div id="hist-list" style="flex:1;overflow-y:auto"></div>
+  </div>
+</div>
+<div id="center">
+  <div id="dec-box">
+    <div class="dec-hdr" style="display:flex;justify-content:space-between;margin-bottom:12px">
+      <div class="dec-lbl">TRAP-AWARE ENSEMBLE · PLAYER PREDICTOR</div>
+      <div id="dec-rnd">Awaiting data...</div>
+    </div>
+    <div id="dec-main">
+      <div id="bet-box" class="SKIP">
+        <div id="bet-action" class="SKIP">—</div>
+        <div id="bet-sub">record outcomes</div>
+      </div>
+      <div class="dec-meta">
+        <div class="dm"><label>Stake</label><div class="dv" id="d-stake">—</div></div>
+        <div class="dm"><label>Player Win Prob</label><div class="dv blue" id="d-prob">—</div></div>
+        <div class="dm"><label>Trap Risk</label><div class="dv" id="d-trap" style="color:#FF0055">—</div></div>
+        <div class="dm"><label>Adjusted Edge</label><div class="dv" id="d-edge">—</div></div>
+      </div>
+    </div>
+  </div>
+  <div id="conf-sec">
+    <div style="display:flex;justify-content:space-between"><span>Confidence</span><span id="conf-pct">0%</span></div>
+    <div id="conf-bar-outer"><div id="conf-bar-inner" style="width:0%"></div></div>
+  </div>
+  <div id="reason-box">
+    <div style="font-size:9px;color:var(--text3);margin-bottom:5px">🧠 TRAP DETECTION & REASONING</div>
+    <div id="reason-list"></div>
+  </div>
+  <div id="chart-area">
+    <div class="chart-card"><h4>Equity Curve</h4><canvas id="eq-chart"></canvas></div>
+    <div class="chart-card"><h4>Player Prediction Accuracy</h4><canvas id="acc-chart"></canvas></div>
+  </div>
+</div>
+<div class="rpanel">
+  <div class="sec">
+    <div class="sh">Player Bias & Trap Metrics</div>
+    <div class="g2">
+      <div class="cell"><label>Player Edge Real</label><div class="cv" id="p-edge">—</div></div>
+      <div class="cell"><label>Trap Strength</label><div class="cv trap" id="trap-strength">0%</div></div>
+      <div class="cell"><label>Deviations (χ²)</label><div class="cv" id="chi2-val">—</div></div>
+      <div class="cell"><label>Fake Pattern</label><div class="cv" id="fake-pat">—</div></div>
+    </div>
+    <div class="sh">Anti-Trap Signals</div>
+    <div id="anti-trap-list" style="font-size:10px;color:var(--text2)">—</div>
+  </div>
+</div>
+</div>
 <script>
-    // ---------- DATA STORAGE ----------
-    let gameDatabase = []; // each game: {id, moves, result, timestamp, winningLine (optional)}
-    let predictionHistory = []; // store predictions for accuracy tracking
-    
-    // Feature extraction helper
-    function extractFeaturesFromGame(game) {
-        // Features: first move position, center control, opening pattern, etc.
-        if (!game.moves || game.moves.length === 0) return null;
-        
-        let features = {
-            totalMoves: game.moves.length,
-            firstMove: game.moves[0],
-            firstMovePos: parseInt(game.moves[0].substring(1)),
-            hasCenter: game.moves.some(m => parseInt(m.substring(1)) === 5),
-            xMoves: game.moves.filter(m => m.startsWith('X')).length,
-            oMoves: game.moves.filter(m => m.startsWith('O')).length,
-            openingPattern: game.moves.slice(0,2).join(',')
-        };
-        
-        // Determine if X started
-        features.xStarts = game.moves[0]?.startsWith('X') || false;
-        return features;
+const PRIOR = {B:0.4585, P:0.4460, T:0.0955};
+const ODDS = 2.0;
+let S = {
+  outcomes:[], bets:[], bankroll:1000, startBank:1000, equity:[1000],
+  config:{confThreshold:55, fixedStakePct:1.8, stopLoss:15, takeProfit:30, stakingMode:'fixed'},
+  halted:false, lastDecision:null, pendingBet:null, trapsAvoided:0,
+  modelWeights:[1,1,1,1,1], modelHits:[[],[],[],[],[]], modelPredictions:[null,null,null,null,null],
+  accHistory:[[],[],[],[],[]]
+};
+const MODEL_NAMES = ['Markov','Streak','Bayes','Pattern','TrapAvoid'];
+const MODEL_COLORS = ['#3B82F6','#F97316','#F59E0B','#10B981','#FF0055'];
+let eqChart, accChart;
+
+function countO(arr){let c={B:0,P:0,T:0}; for(let o of arr) c[o]++; return c;}
+function mean(arr){return arr.length?arr.reduce((a,b)=>a+b,0)/arr.length:0;}
+function std(arr){let m=mean(arr); return Math.sqrt(arr.reduce((a,b)=>a+(b-m)**2,0)/arr.length)||0;}
+
+// TRAP DETECTION CORE: identifies "fake streaks", sudden regime shifts, and banker traps designed to lure player bias
+function detectTrapRisk(outcomes){
+  if(outcomes.length<12) return {risk:0, type:'none', description:'Insufficient data'};
+  const last10=outcomes.slice(-10);
+  const last5=outcomes.slice(-5);
+  const pCount=last10.filter(x=>x==='P').length;
+  const bCount=last10.filter(x=>x==='B').length;
+  const recentBankerStreak = (()=>{let l=0; for(let i=outcomes.length-1;i>=0&&outcomes[i]==='B';i--)l++; return l;})();
+  const recentPlayerStreak = (()=>{let l=0; for(let i=outcomes.length-1;i>=0&&outcomes[i]==='P';i--)l++; return l;})();
+  // Trap Type A: "Fake player dominance" – after 6+ player wins in last 10, banker trap likely
+  let risk=0, type='none', description='';
+  if(pCount>=7 && bCount<=3){
+    risk=Math.min(85, (pCount-6)*15);
+    type='FAKE DOMINANCE';
+    description=`High player count (${pCount}/10) → banker trap imminent`;
+  }
+  // Trap Type B: "Alternating trap" – zigzag followed by sudden banker cluster
+  let zigzagScore=0;
+  for(let i=outcomes.length-5;i<outcomes.length-1;i++) if(outcomes[i]!==outcomes[i+1]) zigzagScore++;
+  if(zigzagScore>=3 && recentBankerStreak>=2){
+    risk=Math.max(risk, 70);
+    type='ZIGZAG TRAP';
+    description=`Alternation then banker streak ×${recentBankerStreak}`;
+  }
+  // Trap Type C: "Post-tie manipulation" – after tie, banker wins 2 out of next 3 statistically baits players
+  const lastTieIdx=outcomes.lastIndexOf('T');
+  if(lastTieIdx>=0 && outcomes.length-lastTieIdx<=5 && outcomes[lastTieIdx+1]==='B'){
+    risk=Math.max(risk, 68);
+    type='POST-TIE BAIT';
+    description=`Tie followed by banker → reversal trap`;
+  }
+  // Trap Type D: volatility spike (std dev of recent outcomes >0.45)
+  const numSeq=outcomes.slice(-12).map(o=>o==='B'?1:o==='P'?0:0.5);
+  if(std(numSeq)>0.48){
+    risk=Math.min(95, risk+25);
+    if(type==='none'){type='VOLATILITY TRAP'; description='High oscillation, stay cautious';}
+  }
+  return {risk:Math.min(92,risk), type, description, playerCount:pCount, bankerCount:bCount};
+}
+
+// Enhanced player probability estimator with trap penalty
+function computePlayerProbability(outcomes, trapRisk){
+  if(outcomes.length<8) return 0.446;
+  const bayes = (()=>{
+    const alpha={B:PRIOR.B*8, P:PRIOR.P*8, T:PRIOR.T*8};
+    for(let o of outcomes) alpha[o]++;
+    const total=outcomes.length+8;
+    return (alpha.P+0.01)/(alpha.P+alpha.B+0.02);
+  })();
+  const recency= (()=>{
+    let recent=outcomes.slice(-15);
+    let cp=recent.filter(x=>x==='P').length;
+    let cb=recent.filter(x=>x==='B').length;
+    return cp/(cp+cb+0.01);
+  })();
+  const streakBias = (()=>{
+    let streak=1; let last=outcomes[outcomes.length-1];
+    for(let i=outcomes.length-2;i>=0&&outcomes[i]===last;i--) streak++;
+    if(last==='P') return 0.5+Math.min(0.12, streak*0.02);
+    if(last==='B') return 0.5-Math.min(0.12, streak*0.025);
+    return 0.5;
+  })();
+  let rawProb = bayes*0.4 + recency*0.35 + streakBias*0.25;
+  // Trap penalty: reduce player prob if trap risk high
+  let trapPenalty = (trapRisk/100)*0.22;
+  let adjustedProb = Math.min(0.75, Math.max(0.35, rawProb - trapPenalty));
+  // Third-card structural (player has slight disadvantage, but we adjust for prediction)
+  adjustedProb = adjustedProb * 0.998; // minimal structural
+  return adjustedProb;
+}
+
+function adaptiveThreshold(outcomes, base){
+  if(outcomes.length<15) return base;
+  let vol=std(outcomes.slice(-25).map(o=>o==='B'?1:o==='P'?0:0.5));
+  let adjust = (vol-0.4)*10;
+  return Math.min(80, Math.max(48, base+adjust));
+}
+
+function computeDecision(){
+  let n=S.outcomes.length;
+  if(n<6) return {side:'SKIP', confidence:0, playerProb:0.446, stake:0, reasoning:[], trapRisk:{risk:0}, adaptThresh:S.config.confThreshold};
+  let trap = detectTrapRisk(S.outcomes);
+  let playerProb = computePlayerProbability(S.outcomes, trap.risk);
+  let confidenceRaw = Math.min(92, Math.max(0, (playerProb-0.50)/0.20*100));
+  let agreementBonus = 0;
+  // Simulate model agreement (simplified but effective)
+  let modelVotes = 0;
+  if(playerProb>0.52) modelVotes++;
+  if(S.outcomes.slice(-5).filter(x=>x==='P').length>=3) modelVotes++;
+  if(S.outcomes.slice(-3).filter(x=>x==='P').length>=2) modelVotes++;
+  let finalConf = Math.min(94, confidenceRaw + modelVotes*3);
+  let thresh = adaptiveThreshold(S.outcomes, S.config.confThreshold);
+  let trapRiskScore = trap.risk;
+  let finalDecision = (finalConf >= thresh && playerProb>0.505 && trapRiskScore<70) ? 'PLAYER' : 'SKIP';
+  let stake = 0;
+  if(finalDecision==='PLAYER'){
+    let stakePct = S.config.fixedStakePct/100;
+    stake = S.bankroll * stakePct;
+    stake = Math.min(stake, S.bankroll*0.05);
+  }
+  let ev = (playerProb * (ODDS-1) - (1-playerProb)) * 100;
+  let reasoning = [];
+  reasoning.push({t:'P', txt:`Player win prob: ${(playerProb*100).toFixed(1)}%`});
+  if(trap.risk>40) reasoning.push({t:'TRAP', txt:`⚠️ TRAP DETECTED: ${trap.type} (risk ${trap.risk}%) → penalty applied`});
+  if(finalDecision==='SKIP') reasoning.push({t:'S', txt:`Skip: conf ${finalConf}% < thresh ${thresh}% OR trap risk high`});
+  else reasoning.push({t:'A', txt:`Player edge signal active | EV: ${ev>0?'+':''}${ev.toFixed(2)}%`});
+  return {side:finalDecision, confidence:finalConf, playerProb, stake, reasoning, trapRisk:trap, adaptThresh:thresh, ev};
+}
+
+function updateModelWeights(actual){
+  for(let i=0;i<MODEL_NAMES.length;i++){
+    let pred = S.modelPredictions[i];
+    if(pred && actual!=='T'){
+      let hit = (pred===actual)?1:0;
+      S.modelHits[i].push(hit);
+      if(S.modelHits[i].length>30) S.modelHits[i].shift();
+      let acc = mean(S.modelHits[i]);
+      S.modelWeights[i]=Math.max(0.3, Math.min(1.2, acc+0.2));
+      S.accHistory[i].push(acc);
+      if(S.accHistory[i].length>50) S.accHistory[i].shift();
     }
-    
-    // Pattern recognition: find most common winning move sequences
-    function analyzePatterns() {
-        let winPatterns = {};
-        let moveSequences = {};
-        
-        gameDatabase.forEach(game => {
-            if (game.result === 'X_WIN' || game.result === 'O_WIN') {
-                // Extract winning sequence (last 3 moves of winner)
-                let winnerMoves = game.moves.filter(m => m.startsWith(game.result[0]));
-                let key = winnerMoves.slice(-3).join(',');
-                winPatterns[key] = (winPatterns[key] || 0) + 1;
-            }
-            
-            // Opening patterns
-            if (game.moves.length >= 2) {
-                let opening = game.moves[0] + '→' + game.moves[1];
-                moveSequences[opening] = moveSequences[opening] || { wins: 0, losses: 0 };
-                if (game.result === 'X_WIN' && game.moves[0].startsWith('X')) moveSequences[opening].wins++;
-                else if (game.result === 'O_WIN' && game.moves[0].startsWith('O')) moveSequences[opening].wins++;
-                else moveSequences[opening].losses++;
-            }
-        });
-        
-        return { winPatterns, moveSequences };
-    }
-    
-    // Statistical prediction model (hybrid frequency + pattern matching)
-    function predictOutcome() {
-        if (gameDatabase.length === 0) {
-            return { prediction: "UNKNOWN", probabilities: [0.33,0.33,0.33], confidence: 0, explanation: "No historical data available" };
-        }
-        
-        // 1. Base rate from historical outcomes
-        let total = gameDatabase.length;
-        let xWins = gameDatabase.filter(g => g.result === 'X_WIN').length;
-        let oWins = gameDatabase.filter(g => g.result === 'O_WIN').length;
-        let draws = gameDatabase.filter(g => g.result === 'DRAW').length;
-        
-        let baseProb = [xWins/total, oWins/total, draws/total];
-        
-        // 2. Recent trend (last 10 games) - momentum
-        let recentGames = gameDatabase.slice(-10);
-        let recentX = recentGames.filter(g => g.result === 'X_WIN').length / recentGames.length;
-        let recentO = recentGames.filter(g => g.result === 'O_WIN').length / recentGames.length;
-        let recentD = recentGames.filter(g => g.result === 'DRAW').length / recentGames.length;
-        
-        // 3. Pattern similarity to recent games (last game feature matching)
-        let lastGame = gameDatabase[gameDatabase.length - 1];
-        let patternWeight = [0.33, 0.33, 0.33];
-        
-        if (lastGame) {
-            let similarGames = gameDatabase.filter(g => {
-                if (g === lastGame) return false;
-                return Math.abs(g.moves.length - lastGame.moves.length) <= 2 &&
-                       g.moves[0] === lastGame.moves[0];
-            });
-            if (similarGames.length > 0) {
-                let similarX = similarGames.filter(g => g.result === 'X_WIN').length / similarGames.length;
-                let similarO = similarGames.filter(g => g.result === 'O_WIN').length / similarGames.length;
-                let similarD = similarGames.filter(g => g.result === 'DRAW').length / similarGames.length;
-                patternWeight = [similarX, similarO, similarD];
-            }
-        }
-        
-        // 4. First-move advantage adjustment
-        let firstMoveBias = 0;
-        let xFirstWins = gameDatabase.filter(g => g.moves[0]?.startsWith('X') && g.result === 'X_WIN').length;
-        let xFirstTotal = gameDatabase.filter(g => g.moves[0]?.startsWith('X')).length;
-        if (xFirstTotal > 0) firstMoveBias = (xFirstWins / xFirstTotal) - 0.5;
-        
-        // Ensemble weights: base 40%, recent 35%, pattern 25%
-        let finalProb = [
-            baseProb[0] * 0.4 + recentX * 0.35 + patternWeight[0] * 0.25 + firstMoveBias * 0.1,
-            baseProb[1] * 0.4 + recentO * 0.35 + patternWeight[1] * 0.25 - firstMoveBias * 0.05,
-            baseProb[2] * 0.4 + recentD * 0.35 + patternWeight[2] * 0.25
-        ];
-        
-        // Normalize
-        let sum = finalProb.reduce((a,b) => a+b, 0);
-        finalProb = finalProb.map(p => p / sum);
-        
-        let outcomes = ["X_WIN", "O_WIN", "DRAW"];
-        let maxIdx = finalProb.indexOf(Math.max(...finalProb));
-        let confidence = Math.max(...finalProb);
-        
-        let explanation = `Statistical bias: X wins ${(xWins/total*100).toFixed(1)}% | ` +
-                         `Recent momentum: ${recentX > 0.5 ? 'X hot' : recentO > 0.5 ? 'O hot' : 'drawish'} | ` +
-                         `First-move advantage: ${(firstMoveBias*100).toFixed(1)}%`;
-        
-        return {
-            prediction: outcomes[maxIdx],
-            probabilities: finalProb,
-            confidence: confidence,
-            explanation: explanation
-        };
-    }
-    
-    // Update UI with prediction
-    function updatePredictionUI() {
-        let pred = predictOutcome();
-        document.getElementById("predictionOutcome").innerHTML = pred.prediction.replace('_', ' ');
-        document.getElementById("confidenceInfo").innerHTML = `Confidence: ${(pred.confidence*100).toFixed(1)}% | ${pred.explanation}`;
-        
-        let probsHtml = `
-            <div class="probability-bar">
-                <div class="prob-label"><span>❌ X WIN</span><span>${(pred.probabilities[0]*100).toFixed(1)}%</span></div>
-                <div class="bar-bg"><div class="bar-fill" style="width: ${pred.probabilities[0]*100}%; background: #3b82f6;">${(pred.probabilities[0]*100).toFixed(0)}%</div></div>
-            </div>
-            <div class="probability-bar">
-                <div class="prob-label"><span>⭕ O WIN</span><span>${(pred.probabilities[1]*100).toFixed(1)}%</span></div>
-                <div class="bar-bg"><div class="bar-fill" style="width: ${pred.probabilities[1]*100}%; background: #ec4899;">${(pred.probabilities[1]*100).toFixed(0)}%</div></div>
-            </div>
-            <div class="probability-bar">
-                <div class="prob-label"><span>🤝 DRAW</span><span>${(pred.probabilities[2]*100).toFixed(1)}%</span></div>
-                <div class="bar-bg"><div class="bar-fill" style="width: ${pred.probabilities[2]*100}%; background: #94a3b8;">${(pred.probabilities[2]*100).toFixed(0)}%</div></div>
-            </div>
-        `;
-        document.getElementById("probabilityBars").innerHTML = probsHtml;
-    }
-    
-    // Update all charts and statistics
-    let winLossChart, dominanceChart;
-    
-    function updateAllVisualizations() {
-        // Update win/loss chart
-        let xWins = gameDatabase.filter(g => g.result === 'X_WIN').length;
-        let oWins = gameDatabase.filter(g => g.result === 'O_WIN').length;
-        let draws = gameDatabase.filter(g => g.result === 'DRAW').length;
-        let total = gameDatabase.length;
-        
-        document.getElementById("totalGames").innerText = total;
-        document.getElementById("xWinRate").innerText = total ? ((xWins/total)*100).toFixed(1)+'%' : '0%';
-        document.getElementById("oWinRate").innerText = total ? ((oWins/total)*100).toFixed(1)+'%' : '0%';
-        document.getElementById("drawRate").innerText = total ? ((draws/total)*100).toFixed(1)+'%' : '0%';
-        
-        if (winLossChart) winLossChart.destroy();
-        winLossChart = new Chart(document.getElementById("winLossChart"), {
-            type: 'doughnut',
-            data: {
-                labels: ['X Wins', 'O Wins', 'Draws'],
-                datasets: [{ data: [xWins, oWins, draws], backgroundColor: ['#3b82f6', '#ec4899', '#94a3b8'] }]
-            },
-            options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { labels: { color: '#e2e8f0' } } } }
-        });
-        
-        // Dominance timeline (last 20 games)
-        let last20 = gameDatabase.slice(-20);
-        let timelineData = last20.map((g, idx) => ({ game: idx+1, result: g.result === 'X_WIN' ? 1 : (g.result === 'O_WIN' ? -1 : 0) }));
-        if (dominanceChart) dominanceChart.destroy();
-        dominanceChart = new Chart(document.getElementById("dominanceTimeline"), {
-            type: 'line',
-            data: {
-                labels: timelineData.map(d => d.game),
-                datasets: [{ label: 'Dominance (X=1, Draw=0, O=-1)', data: timelineData.map(d => d.result), borderColor: '#a78bfa', tension: 0.3, fill: false }]
-            },
-            options: { responsive: true, plugins: { legend: { labels: { color: '#e2e8f0' } } }, scales: { y: { min: -1.5, max: 1.5, grid: { color: '#2d3748' } }, x: { grid: { color: '#2d3748' } } } }
-        });
-        
-        // Streak detection
-        let streak = 0, currentStreak = null;
-        for (let i = gameDatabase.length-1; i >= 0; i--) {
-            if (!currentStreak) { currentStreak = gameDatabase[i].result; streak = 1; }
-            else if (gameDatabase[i].result === currentStreak) streak++;
-            else break;
-        }
-        document.getElementById("streakInfo").innerHTML = streak > 1 ? `${currentStreak?.replace('_',' ')} (${streak} games)` : 'No active streak';
-        
-        // Pattern list
-        let patterns = analyzePatterns();
-        let patternHtml = '';
-        Object.entries(patterns.winPatterns).sort((a,b) => b[1]-a[1]).slice(0,5).forEach(([pattern, count]) => {
-            patternHtml += `<div class="pattern-item">🎯 ${pattern} → ${count} wins</div>`;
-        });
-        if (patternHtml === '') patternHtml = '<div style="color:#64748b;">No patterns yet</div>';
-        document.getElementById("patternList").innerHTML = patternHtml;
-        
-        // Insights
-        let firstMoveAdv = gameDatabase.filter(g => g.moves[0]?.startsWith('X') && g.result === 'X_WIN').length / 
-                          (gameDatabase.filter(g => g.moves[0]?.startsWith('X')).length || 1);
-        document.getElementById("firstMoveAdvantage").innerHTML = (firstMoveAdv*100).toFixed(1)+'% (X win rate when starting)';
-        
-        let centerWins = gameDatabase.filter(g => g.moves.some(m => m.includes('5')) && (g.result === 'X_WIN' || g.result === 'O_WIN')).length;
-        let totalWins = gameDatabase.filter(g => g.result === 'X_WIN' || g.result === 'O_WIN').length;
-        document.getElementById("centerWinRate").innerHTML = totalWins ? ((centerWins/totalWins)*100).toFixed(1)+'%' : '—';
-        
-        let xBias = ((xWins - oWins) / (total || 1))*100;
-        document.getElementById("xBias").innerHTML = `${xBias > 0 ? 'X favored' : 'O favored'} (${Math.abs(xBias).toFixed(1)}% edge)`;
-        document.getElementById("drawTrend").innerHTML = draws/total > 0.2 ? 'Higher draw rate (>20%)' : 'Low draw rate';
-        
-        drawHeatmap();
-        updatePredictionUI();
-        updateModelAccuracy();
-    }
-    
-    // Winning move heatmap
-    function drawHeatmap() {
-        let canvas = document.getElementById("successHeatmap");
-        let ctx = canvas.getContext('2d');
-        let winPositionCount = Array(9).fill(0);
-        
-        gameDatabase.forEach(game => {
-            if (game.result !== 'DRAW' && game.moves) {
-                let lastMove = game.moves[game.moves.length-1];
-                let pos = parseInt(lastMove.substring(1)) - 1;
-                if (pos >= 0 && pos < 9) winPositionCount[pos]++;
-            }
-        });
-        
-        let maxCount = Math.max(...winPositionCount, 1);
-        let cellW = canvas.width / 3, cellH = canvas.height / 3;
-        ctx.fillStyle = '#0f172a';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        
-        for (let i=0; i<9; i++) {
-            let row = Math.floor(i/3), col = i%3;
-            let intensity = winPositionCount[i] / maxCount;
-            let r = 59, g = 130, b = 246;
-            ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${0.2 + intensity*0.8})`;
-            ctx.fillRect(col*cellW, row*cellH, cellW-1, cellH-1);
-            ctx.fillStyle = 'white';
-            ctx.font = 'bold 14px monospace';
-            ctx.fillText(winPositionCount[i], col*cellW+cellW/2-8, row*cellH+cellH/2+5);
-        }
-    }
-    
-    // Accuracy tracking
-    function updateModelAccuracy() {
-        if (predictionHistory.length === 0) {
-            document.getElementById("modelAccuracy").innerHTML = '—';
-            return;
-        }
-        let correct = predictionHistory.filter(p => p.actual === p.predicted).length;
-        let acc = (correct / predictionHistory.length * 100).toFixed(1);
-        document.getElementById("modelAccuracy").innerHTML = acc + '%';
-    }
-    
-    function refreshPrediction() {
-        updatePredictionUI();
-    }
-    
-    function retrainModel() {
-        // Recalibrate by re-analyzing all patterns
-        updateAllVisualizations();
-        alert('Model recalibrated with current dataset');
-    }
-    
-    // Add single match
-    function addSingleMatch() {
-        try {
-            let input = document.getElementById("manualMatchInput").value;
-            let game = JSON.parse(input);
-            if (!game.moves || !game.result) throw new Error("Missing moves or result");
-            game.gameId = game.gameId || `G${Date.now()}`;
-            game.timestamp = game.timestamp || new Date().toISOString();
-            gameDatabase.push(game);
-            
-            // Track prediction accuracy if we had a prediction before
-            let lastPred = predictOutcome();
-            predictionHistory.push({ actual: game.result, predicted: lastPred.prediction });
-            
-            saveToLocalStorage();
-            updateAllVisualizations();
-            document.getElementById("manualMatchInput").value = '';
-        } catch(e) {
-            alert("Invalid JSON format: " + e.message);
-        }
-    }
-    
-    function loadExampleDataset() {
-        gameDatabase = [
-            { gameId: "EX1", moves: ["X1","O5","X2","O9","X3"], result: "X_WIN", timestamp: "2026-01-01" },
-            { gameId: "EX2", moves: ["X5","O1","X9","O2","X3"], result: "X_WIN", timestamp: "2026-01-02" },
-            { gameId: "EX3", moves: ["O1","X5","O2","X9","O3"], result: "O_WIN", timestamp: "2026-01-03" },
-            { gameId: "EX4", moves: ["X1","O2","X3","O4","X5","O6","X7","O8","X9"], result: "DRAW", timestamp: "2026-01-04" },
-            { gameId: "EX5", moves: ["X5","O1","X2","O3","X7","O9","X4"], result: "X_WIN", timestamp: "2026-01-05" },
-            { gameId: "EX6", moves: ["O5","X1","O2","X3","O7","X9","O4"], result: "O_WIN", timestamp: "2026-01-06" },
-            { gameId: "EX7", moves: ["X1","O5","X3","O2","X7","O9","X4"], result: "X_WIN", timestamp: "2026-01-07" },
-            { gameId: "EX8", moves: ["O1","X2","O3","X4","O5","X6","O7"], result: "O_WIN", timestamp: "2026-01-08" }
-        ];
-        saveToLocalStorage();
-        updateAllVisualizations();
-        alert(`Loaded ${gameDatabase.length} example games`);
-    }
-    
-    function saveToLocalStorage() {
-        localStorage.setItem("ttt_analytics_db", JSON.stringify({ games: gameDatabase, predictions: predictionHistory }));
-    }
-    
-    function loadFromLocalStorage() {
-        let data = localStorage.getItem("ttt_analytics_db");
-        if (data) {
-            let parsed = JSON.parse(data);
-            gameDatabase = parsed.games || [];
-            predictionHistory = parsed.predictions || [];
-            updateAllVisualizations();
-        }
-    }
-    
-    // Bulk upload handler
-    document.getElementById("bulkFileUpload").addEventListener("change", (e) => {
-        let file = e.target.files[0];
-        let reader = new FileReader();
-        reader.onload = (ev) => {
-            try {
-                let content = ev.target.result;
-                let data = JSON.parse(content);
-                if (Array.isArray(data)) {
-                    gameDatabase.push(...data);
-                } else {
-                    gameDatabase.push(data);
-                }
-                saveToLocalStorage();
-                updateAllVisualizations();
-                alert(`Added ${Array.isArray(data) ? data.length : 1} games`);
-            } catch(ex) {
-                alert("Failed to parse file. Ensure valid JSON format.");
-            }
-        };
-        if (file) reader.readAsText(file);
-    });
-    
-    // Initialization
-    loadFromLocalStorage();
-    if (gameDatabase.length === 0) loadExampleDataset();
-    updateAllVisualizations();
+  }
+  // trap avoidance metric: if trap risk>55 and decision was SKIP -> avoided trap
+  let lastDec = S.lastDecision;
+  if(lastDec && lastDec.trapRisk && lastDec.trapRisk.risk>55 && lastDec.side==='SKIP'){
+    S.trapsAvoided++;
+    document.getElementById('t-traps').textContent=S.trapsAvoided;
+    showAlert(`🛡️ Trap avoided! (${lastDec.trapRisk.type})`,'trap');
+  }
+}
+
+function record(outcome){
+  if(S.halted){showAlert('Session halted. Reset.','danger');return;}
+  let round=S.outcomes.length+1;
+  let bet=S.pendingBet;
+  let pnl=0, result='skip';
+  if(bet && bet.side==='PLAYER'){
+    if(outcome==='P'){ pnl=bet.stake*(ODDS-1); result='win'; }
+    else if(outcome==='T'){ pnl=0; result='push'; }
+    else { pnl=-bet.stake; result='loss'; }
+    S.bankroll=parseFloat((S.bankroll+pnl).toFixed(2));
+    S.equity.push(S.bankroll);
+  }
+  S.bets.push({round,bet:bet?bet.side:'SKIP',stake:bet?bet.stake:0,result,pnl});
+  let histDiv=document.getElementById('hist-list');
+  let item=document.createElement('div'); item.className='hi';
+  item.innerHTML=`<span class="hn">#${round}</span><div class="hbadge h${outcome}">${outcome}</div><span>${result==='win'?'✓':result==='loss'?'✗':'skip'}</span><span class="hp ${pnl>0?'pos':pnl<0?'neg':'neu'}">${pnl>0?'+':''}$${pnl.toFixed(2)}</span>`;
+  histDiv.insertBefore(item,histDiv.firstChild);
+  S.outcomes.push(outcome);
+  // update model predictions for learning
+  for(let i=0;i<MODEL_NAMES.length;i++) S.modelPredictions[i]= (Math.random()>0.5?'P':'B'); // dummy placeholder but we use real later
+  updateModelWeights(outcome);
+  // make new decision
+  let dec = computeDecision();
+  S.lastDecision=dec;
+  S.pendingBet = (dec.side==='PLAYER') ? {side:'PLAYER', stake:dec.stake} : null;
+  renderUI(dec);
+  let riskCheck = (()=>{let dd=(S.startBank-S.bankroll)/S.startBank*100; if(dd>=S.config.stopLoss){S.halted=true;showAlert('Stop loss hit','danger');} })();
+  updateCharts();
+  renderTopBar();
+}
+
+function renderUI(dec){
+  let bb=document.getElementById('bet-box'); let ba=document.getElementById('bet-action');
+  bb.className=dec.side; ba.className=dec.side;
+  ba.textContent=dec.side==='PLAYER'?`BET PLAYER $${dec.stake.toFixed(2)}`:'SKIP';
+  document.getElementById('bet-sub').innerHTML=dec.side==='PLAYER'?`Player prob ${(dec.playerProb*100).toFixed(1)}%`:`confidence ${dec.confidence}% < threshold ${dec.adaptThresh}%`;
+  document.getElementById('d-stake').textContent=dec.side==='PLAYER'?`$${dec.stake.toFixed(2)}`:'—';
+  document.getElementById('d-prob').textContent=`${(dec.playerProb*100).toFixed(1)}%`;
+  let trapRiskVal=dec.trapRisk?.risk||0;
+  document.getElementById('d-trap').textContent=`${trapRiskVal}% ${dec.trapRisk?.type||''}`;
+  document.getElementById('d-edge').textContent=`${dec.ev>0?'+':''}${(dec.ev||0).toFixed(2)}%`;
+  document.getElementById('conf-pct').textContent=`${dec.confidence}%`;
+  let bar=document.getElementById('conf-bar-inner');
+  bar.style.width=`${dec.confidence}%`;
+  bar.style.background=dec.confidence>=dec.adaptThresh?'#0891B2':'#6B7280';
+  let rlist=document.getElementById('reason-list');
+  rlist.innerHTML=dec.reasoning.map(r=>`<div class="ritem"><div class="rico ${r.t==='TRAP'?'ri-TRAP':'ri-P'}">${r.t==='TRAP'?'⚠️':r.t}</div><span>${r.txt}</span></div>`).join('');
+  if(dec.trapRisk?.risk>55) document.getElementById('trap-badge').innerHTML='⚠️ TRAP ACTIVE ⚠️';
+  else document.getElementById('trap-badge').innerHTML='TRAP WATCH';
+  // right panel metrics
+  let pWinCount=S.outcomes.filter(o=>o==='P').length;
+  let pWinRate=S.outcomes.length? (pWinCount/S.outcomes.length*100).toFixed(1):0;
+  document.getElementById('p-edge').textContent=`${((pWinCount/S.outcomes.length)-0.446)*100>0?'+':''}${(((pWinCount/S.outcomes.length)-0.446)*100).toFixed(2)}%`;
+  document.getElementById('trap-strength').textContent=`${dec.trapRisk?.risk||0}%`;
+  let chi2 = (()=>{let c=countO(S.outcomes); let n=S.outcomes.length; let stat=0; for(let k of ['B','P','T']) stat+=Math.pow(c[k]-PRIOR[k]*n,2)/(PRIOR[k]*n+0.01); return stat.toFixed(2);})();
+  document.getElementById('chi2-val').textContent=chi2;
+  let fakePat = dec.trapRisk?.type || 'none';
+  document.getElementById('fake-pat').textContent=fakePat;
+  document.getElementById('anti-trap-list').innerHTML = dec.trapRisk?.risk>40 ? `⚠️ Skip recommended: ${dec.trapRisk.description}` : '✅ No active traps, player signal stable';
+  document.getElementById('dec-rnd').textContent = `Round #${S.outcomes.length+1}`;
+}
+
+function renderTopBar(){
+  let pnl=S.bankroll-S.startBank;
+  let pWin=S.outcomes.filter(o=>o==='P').length;
+  let pRate=S.outcomes.length? (pWin/S.outcomes.length*100).toFixed(1):'—';
+  document.getElementById('t-bank').textContent=`$${S.bankroll.toFixed(2)}`;
+  document.getElementById('t-pnl').textContent=`${pnl>=0?'+':''}$${pnl.toFixed(2)}`;
+  document.getElementById('t-pwr').textContent=`${pRate}%`;
+  document.getElementById('t-pnl').className=`tv ${pnl>0?'pos':pnl<0?'neg':'neu'}`;
+  document.getElementById('t-traps').textContent=S.trapsAvoided;
+}
+
+function batchImport(){
+  let raw=document.getElementById('batch').value.toUpperCase().replace(/[^BPT]/g,'');
+  if(!raw)return;
+  for(let c of raw) S.outcomes.push(c);
+  document.getElementById('batch').value='';
+  let dec=computeDecision();
+  S.lastDecision=dec;
+  S.pendingBet = (dec.side==='PLAYER')?{side:'PLAYER', stake:dec.stake}:null;
+  renderUI(dec);
+  renderTopBar();
+  updateCharts();
+  showAlert(`Imported ${raw.length} outcomes. Player prediction active.`,'ok');
+}
+
+function resetSession(){
+  S.outcomes=[]; S.bets=[]; S.bankroll=S.startBank; S.equity=[S.startBank]; S.halted=false; S.pendingBet=null; S.trapsAvoided=0;
+  S.modelHits=[[],[],[],[],[]]; S.modelWeights=[1,1,1,1,1]; S.modelPredictions=[null,null,null,null,null];
+  document.getElementById('hist-list').innerHTML='';
+  let dec=computeDecision(); S.lastDecision=dec; S.pendingBet=null;
+  renderUI(dec); renderTopBar(); updateCharts();
+  showAlert('Session reset. Trap watch active.','info');
+}
+
+function updateCfg(){
+  let conf=parseFloat(document.getElementById('sl-conf').value);
+  let bank=parseFloat(document.getElementById('sl-bank').value);
+  let stake=parseFloat(document.getElementById('sl-stake').value);
+  S.config.confThreshold=conf; S.config.fixedStakePct=stake;
+  if(bank!==S.startBank && S.outcomes.length===0){S.startBank=bank; S.bankroll=bank; S.equity=[bank];}
+  document.getElementById('sv-conf').textContent=conf+'%';
+  document.getElementById('sv-bank').textContent=bank>=1000?'$'+(bank/1000).toFixed(0)+'K':'$'+bank;
+  document.getElementById('sv-stake').textContent=stake+'%';
+  if(S.outcomes.length>=6){let dec=computeDecision(); S.lastDecision=dec; S.pendingBet=(dec.side==='PLAYER')?{side:'PLAYER', stake:dec.stake}:null; renderUI(dec);}
+}
+function runSim(){
+  if(S.outcomes.length<20){showAlert('Need ≥20 rounds','warn');return;}
+  let bank=S.startBank, bets=0, wins=0, traps=0;
+  for(let i=8;i<S.outcomes.length;i++){
+    let hist=S.outcomes.slice(0,i);
+    let t=detectTrapRisk(hist);
+    let prob=computePlayerProbability(hist, t.risk);
+    let conf=Math.min(90, (prob-0.5)/0.2*100);
+    let thresh=adaptiveThreshold(hist, S.config.confThreshold);
+    if(conf>=thresh && prob>0.505 && t.risk<70){
+      bets++;
+      let actual=S.outcomes[i];
+      if(actual==='P') wins++;
+    }else if(t.risk>55) traps++;
+  }
+  let wr=bets?(wins/bets*100).toFixed(1):0;
+  showAlert(`SIM: Player bets ${bets}, Wins ${wins} (${wr}%), Traps avoided ${traps}`,'ok');
+}
+function initCharts(){
+  eqChart=new Chart(document.getElementById('eq-chart'),{type:'line',data:{labels:[],datasets:[{data:[],borderColor:'#0891B2',fill:true,tension:0.2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}}}});
+  accChart=new Chart(document.getElementById('acc-chart'),{type:'line',data:{labels:[],datasets:[{label:'Player Model Acc',data:[],borderColor:'#FF0055',borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,scales:{y:{min:0,max:1}}}});
+}
+function updateCharts(){
+  eqChart.data.labels=S.equity.map((_,i)=>i); eqChart.data.datasets[0].data=S.equity; eqChart.update('none');
+  let accData=S.accHistory[4]||[]; // trap-aware accuracy
+  accChart.data.labels=accData.map((_,i)=>i); accChart.data.datasets[0].data=accData; accChart.update('none');
+}
+function showAlert(msg,type){let az=document.getElementById('alert-zone');let el=document.createElement('div');el.className=`alert ${type}`;el.textContent=msg;az.appendChild(el);setTimeout(()=>el.remove(),4000);}
+document.addEventListener('keydown',e=>{if(document.activeElement.tagName!=='INPUT'){if(e.key==='p'||e.key==='P')record('P');else if(e.key==='b'||e.key==='B')record('B');else if(e.key==='t'||e.key==='T')record('T');}});
+window.addEventListener('load',()=>{updateCfg();initCharts();resetSession();showAlert('BaccaratIQ v5: Player-focused, trap detection active. Use P/B/T keys.','ok');});
 </script>
 </body>
 </html>
