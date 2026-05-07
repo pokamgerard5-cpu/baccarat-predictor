@@ -2,482 +2,301 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BACCARATIQ v5 · TRAP DETECT · PLAYER EDGE ENGINE</title>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>BACCARATIQ v7 · DUAL SECURE ENGINE</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Bebas+Neue&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#060A0E;--bg2:#0B1017;--bg3:#111820;--bg4:#18222E;--bg5:#1E2C3A;
-  --banker:#D97706;--banker-l:#FCD34D;--banker-dim:#2E1E05;
-  --player:#0891B2;--player-l:#67E8F9;--player-dim:#071C24;
-  --tie:#7C3AED;--tie-l:#C4B5FD;--tie-dim:#1A0F35;
-  --profit:#059669;--profit-l:#6EE7B7;--profit-dim:#052E1A;
-  --loss:#DC2626;--loss-l:#FCA5A5;--loss-dim:#2A0808;
-  --warn:#D97706;--warn-l:#FCD34D;
-  --trap:#FF0055;--trap-dim:#2A0412;
-  --skip:#6B7280;--skip-l:#D1D5DB;
-  --border:#1A2A38;--border2:#223344;
-  --text:#E2E8F0;--text2:#94A3B8;--text3:#475569;
-  --accent:#F59E0B;--accent2:#3B82F6;
+  --bg:#040810;--bg2:#080F1A;--bg3:#0D1724;--bg4:#131F30;--bg5:#19273C;
+  --player:#00C6FF;--player-l:#7EE8FF;--player-dim:#001F30;--player-glow:rgba(0,198,255,0.3);
+  --banker:#FF7A00;--banker-l:#FFBA80;--banker-dim:#271400;--banker-glow:rgba(255,122,0,0.3);
+  --tie:#9B59B6;--tie-l:#D7B8F3;--tie-dim:#180D25;
+  --secure:#00FF9D;--secure-l:#80FFD0;--secure-dim:#001F14;--secure-glow:rgba(0,255,157,0.25);
+  --warn:#FFB800;--warn-l:#FFD980;
+  --trap:#FF2D55;--trap-l:#FF8FAA;--trap-dim:#25040D;
+  --loss:#FF4466;--profit:#00E676;
+  --border:#0F2035;--border2:#1A3050;--border3:#243D58;
+  --text:#C8DCED;--text2:#6E8FAD;--text3:#3A5570;
   --mono:'JetBrains Mono',monospace;
-  --head:'Syne',sans-serif;
-  --radius:5px;
+  --head:'Bebas Neue',sans-serif;
+  --body:'Outfit',sans-serif;
+  --r:4px;
 }
 html,body{height:100%;overflow:hidden}
-body{background:var(--bg);color:var(--text);font-family:var(--mono);font-size:12px}
-::-webkit-scrollbar{width:3px;height:3px}
-::-webkit-scrollbar-track{background:transparent}
-::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
-
-#topbar{display:flex;align-items:center;gap:0;height:48px;background:var(--bg2);border-bottom:1px solid var(--border);padding:0 16px;position:sticky;top:0;z-index:200}
-.logo{font-family:var(--head);font-size:17px;font-weight:800;color:var(--accent);letter-spacing:-.5px;white-space:nowrap;margin-right:16px}
-.logo sub{font-size:9px;color:var(--text3);font-family:var(--mono);font-weight:400}
-.tstat{display:flex;flex-direction:column;align-items:flex-end;padding:0 12px;border-left:1px solid var(--border)}
-.tstat label{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.1em}
-.tstat .tv{font-size:13px;font-weight:600;line-height:1.3}
-.tv.pos{color:var(--profit-l)}.tv.neg{color:var(--loss-l)}.tv.warn{color:var(--warn-l)}.tv.trap{color:#FF0055}
+body{background:var(--bg);color:var(--text);font-family:var(--mono);font-size:11px;background-image:radial-gradient(ellipse at 20% 0%,rgba(0,198,255,0.04) 0%,transparent 50%),radial-gradient(ellipse at 80% 100%,rgba(255,122,0,0.03) 0%,transparent 50%)}
+::-webkit-scrollbar{width:2px;height:2px}
+::-webkit-scrollbar-thumb{background:var(--border3)}
+#topbar{height:50px;background:var(--bg2);border-bottom:1px solid var(--border2);display:flex;align-items:center;padding:0 14px;gap:0;position:relative;z-index:100}
+#topbar::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--player),var(--secure),var(--banker),transparent);opacity:.4}
+.logo{font-family:var(--head);font-size:22px;color:#fff;letter-spacing:1px;margin-right:6px}
+.logo-ver{font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:.1em;margin-right:20px;padding-top:4px}
+.tstat{display:flex;flex-direction:column;padding:0 12px;border-left:1px solid var(--border2)}
+.tstat lbl{font-size:8px;color:var(--text3);text-transform:uppercase;letter-spacing:.12em}
+.tv{font-size:12px;font-weight:600;line-height:1.4}
+.tv.pos{color:var(--profit)}.tv.neg{color:var(--loss)}.tv.warn{color:var(--warn-l)}.tv.sec{color:var(--secure)}.tv.banker{color:var(--banker-l)}.tv.player{color:var(--player-l)}
 .spacer{flex:1}
-.chip{padding:2px 7px;border-radius:3px;font-size:9px;font-weight:600;letter-spacing:.08em}
-.chip.live{background:var(--profit-dim);color:var(--profit-l);border:1px solid #065F46}
-.chip.trap-alert{background:var(--trap-dim);color:var(--trap);border:1px solid var(--trap);margin-left:6px}
-#wrap{display:grid;grid-template-columns:262px 1fr 292px;height:calc(100vh - 48px);overflow:hidden}
-.lpanel,.rpanel{overflow-y:auto;display:flex;flex-direction:column;background:var(--bg2)}
-.lpanel{border-right:1px solid var(--border)}
-.rpanel{border-left:1px solid var(--border)}
-.sec{border-bottom:1px solid var(--border);padding:12px 14px}
-.sh{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.12em;margin-bottom:9px;display:flex;align-items:center;justify-content:space-between}
-.g2{display:grid;grid-template-columns:1fr 1fr;gap:5px}
-.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px}
-.g4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:4px}
-.cell{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:7px 9px}
-.cell label{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.07em;display:block;margin-bottom:3px}
-.cv{font-size:14px;font-weight:600}
-.cv.pos{color:var(--profit-l)}.cv.neg{color:var(--loss-l)}.cv.trap{color:#FF0055;text-shadow:0 0 3px #FF0055}
-.out-btns{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin-bottom:9px}
-.ob{padding:10px 4px;border-radius:var(--radius);border:1px solid var(--border2);background:var(--bg3);color:var(--text2);font-family:var(--mono);font-size:11px;font-weight:600;cursor:pointer;transition:all .12s}
-.ob:active{transform:scale(.96)}
-.ob.P{border-color:var(--player);background:var(--player-dim);color:var(--player-l)}
-.ob.B{border-color:var(--banker);background:var(--banker-dim);color:var(--banker-l)}
-.ob.T{border-color:var(--tie);background:var(--tie-dim);color:var(--tie-l)}
-.sl-row{display:flex;align-items:center;gap:6px;margin-bottom:7px}
-.sl-row label{font-size:9px;color:var(--text3);width:90px}
-.sl-row input[type=range]{flex:1;accent-color:var(--accent)}
-.sl-row .sv{font-size:10px;color:var(--accent);width:36px;text-align:right}
-.btn-row{display:flex;gap:5px;margin-top:8px}
-.btn{flex:1;padding:6px;border-radius:var(--radius);border:1px solid var(--border2);background:var(--bg3);color:var(--text2);cursor:pointer;text-align:center}
-.btn:hover{border-color:var(--text3);color:var(--text)}
-.btn.pri{border-color:var(--accent);color:var(--accent)}
-.btn.dan{border-color:var(--loss);color:var(--loss-l)}
-#hist-list{flex:1;overflow-y:auto}
-.hi{display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid var(--border);font-size:10px}
-.hbadge{width:20px;height:20px;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700}
-.hB{background:var(--banker-dim);color:var(--banker-l)}
-.hP{background:var(--player-dim);color:var(--player-l)}
-.hT{background:var(--tie-dim);color:var(--tie-l)}
+.badge{padding:2px 8px;border-radius:2px;font-size:8px;font-weight:700;letter-spacing:.1em;font-family:var(--mono)}
+.b-live{background:rgba(0,230,118,.12);color:var(--profit);border:1px solid rgba(0,230,118,.3)}
+.b-trap{background:var(--trap-dim);color:var(--trap-l);border:1px solid var(--trap);animation:pulse 2s infinite}
+.b-secure{background:var(--secure-dim);color:var(--secure);border:1px solid var(--secure)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+#wrap{display:grid;grid-template-columns:250px 1fr 280px;height:calc(100vh - 50px);overflow:hidden}
+.lpanel,.rpanel{overflow-y:auto;background:var(--bg2);display:flex;flex-direction:column}
+.lpanel{border-right:1px solid var(--border2)}
+.rpanel{border-left:1px solid var(--border2)}
+.sec{border-bottom:1px solid var(--border);padding:11px 13px}
+.sh{font-size:8px;color:var(--text3);text-transform:uppercase;letter-spacing:.15em;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between}
+.entry-btns{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin-bottom:8px}
+.eb{padding:12px 4px;border-radius:var(--r);border:1px solid var(--border3);background:var(--bg3);font-family:var(--head);font-size:16px;letter-spacing:1px;cursor:pointer;transition:all .12s;position:relative}
+.eb:active{transform:scale(.94)}
+.eb.P{color:var(--player-l);border-color:rgba(0,198,255,.4)}.eb.P:hover,.eb.P.active-flash{background:var(--player-dim);border-color:var(--player);box-shadow:0 0 12px var(--player-glow)}
+.eb.B{color:var(--banker-l);border-color:rgba(255,122,0,.3)}.eb.B:hover,.eb.B.active-flash{background:var(--banker-dim);border-color:var(--banker)}
+.eb.T{color:var(--tie-l);border-color:rgba(155,89,182,.3)}.eb.T:hover,.eb.T.active-flash{background:var(--tie-dim);border-color:var(--tie)}
+.batch-row{display:flex;gap:4px;margin-top:6px}
+.batch-row input{flex:1;background:var(--bg3);border:1px solid var(--border3);border-radius:var(--r);color:var(--text);font-family:var(--mono);font-size:10px;padding:5px 8px}
+.batch-row button{padding:5px 10px;background:var(--bg4);border:1px solid var(--border3);border-radius:var(--r);color:var(--text2);cursor:pointer}
+.sl-row{display:flex;align-items:center;gap:6px;margin-bottom:6px}
+.sl-row label{font-size:8px;color:var(--text3);width:80px}
+.sl-row input{flex:1;accent-color:var(--secure);height:2px}
+.sl-row .sv{font-size:9px;color:var(--secure);width:32px;text-align:right}
+.toggle-row{display:flex;justify-content:space-between;margin-bottom:6px;padding:5px 8px;background:var(--bg3);border-radius:var(--r);border:1px solid var(--border)}
+.tog{position:relative;width:30px;height:16px;cursor:pointer}
+.tog input{opacity:0;width:0;height:0}
+.tog-slider{position:absolute;inset:0;background:var(--bg4);border-radius:8px;transition:.2s}
+.tog-slider::before{content:'';position:absolute;height:12px;width:12px;left:2px;bottom:2px;background:var(--text3);border-radius:50%;transition:.2s}
+.tog input:checked+.tog-slider{background:var(--secure-dim);border:1px solid var(--secure)}
+.tog input:checked+.tog-slider::before{transform:translateX(14px);background:var(--secure)}
+.btn-row{display:flex;gap:4px;margin-top:7px}
+.btn{flex:1;padding:6px;border-radius:var(--r);border:1px solid var(--border3);background:var(--bg3);color:var(--text3);cursor:pointer;font-family:var(--mono);font-size:9px}
+.btn.pri{border-color:rgba(0,255,157,.4);color:var(--secure)}
+.btn.dan{border-color:rgba(255,44,85,.3);color:var(--trap-l)}
+#hist-list{flex:1;overflow-y:auto;padding:0 2px}
+.hi{display:flex;align-items:center;gap:5px;padding:3px 2px;border-bottom:1px solid rgba(15,32,53,.8);font-size:9px}
+.hbadge{width:18px;height:18px;border-radius:2px;display:flex;align-items:center;justify-content:center;font-weight:700}
+.hB{background:var(--banker-dim);color:var(--banker-l)}.hP{background:var(--player-dim);color:var(--player-l)}.hT{background:var(--tie-dim);color:var(--tie-l)}
+.hbetbadge{padding:1px 5px;border-radius:2px;font-size:8px;font-weight:600}
+.hbet-P{background:var(--player-dim);color:var(--player-l)}.hbet-B{background:var(--banker-dim);color:var(--banker-l)}.hbet-S{background:var(--bg4);color:var(--text3)}
+.hp{margin-left:auto;font-weight:600;color:var(--profit)}.hp.neg{color:var(--loss)}
 #center{display:flex;flex-direction:column;overflow:hidden;background:var(--bg)}
-#dec-box{padding:16px;background:var(--bg2);border-bottom:1px solid var(--border)}
-#dec-main{display:flex;gap:12px}
-#bet-box{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;border-radius:6px;border:1px solid var(--border);transition:all .25s}
-#bet-box.PLAYER{background:var(--player-dim);border-color:var(--player);box-shadow:0 0 8px rgba(8,145,178,0.5)}
-#bet-action.PLAYER{color:var(--player-l);font-family:var(--head);font-size:26px;font-weight:800}
-#bet-box.SKIP{background:var(--bg3)}
-#dec-meta{width:148px}
-.dm{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:8px 10px;margin-bottom:5px}
-.dm label{font-size:9px;color:var(--text3);display:block;margin-bottom:3px}
-.dm .dv{font-size:14px;font-weight:600}
-#conf-sec{padding:10px 16px;background:var(--bg2);border-bottom:1px solid var(--border)}
-#conf-bar-outer{height:5px;background:var(--bg4);border-radius:3px;position:relative}
-#conf-bar-inner{height:100%;border-radius:3px;transition:width .35s}
-#reason-box{padding:10px 16px;background:var(--bg2);border-bottom:1px solid var(--border);max-height:108px;overflow-y:auto}
-.ritem{display:flex;gap:7px;margin-bottom:4px;font-size:10px}
-.rico{width:13px;height:13px;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700}
-.ri-TRAP{background:#2A0412;color:#FF0055}
-#chart-area{flex:1;display:grid;grid-template-rows:1fr 1fr;overflow:hidden;padding:10px;gap:8px}
-.chart-card{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:10px}
-.markov-tbl{width:100%;border-collapse:collapse;font-size:10px}
-.markov-tbl td{padding:4px 5px;text-align:center}
-.regime-badge{display:inline-block;padding:3px 10px;border-radius:3px;font-size:10px}
-.reg-TRAP{background:var(--trap-dim);color:var(--trap);border:1px solid var(--trap)}
-.mw-row{display:flex;gap:6px;margin-bottom:5px;align-items:center}
-.mw-name{width:78px;font-size:9px}
-.mw-bar{flex:1;height:4px;background:var(--bg4);border-radius:2px}
-.mw-fill{height:100%;border-radius:2px}
-#alert-zone{position:fixed;top:55px;right:12px;z-index:999;display:flex;flex-direction:column;gap:5px;pointer-events:none}
-.alert{padding:7px 12px;border-radius:var(--radius);font-size:10px;border-left:2px solid;animation:slideIn .18s ease}
-.alert.trap{background:#2A0412;border-color:#FF0055;color:#FF88AA}
-@keyframes slideIn{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:translateX(0)}}
+#dec-box{padding:14px;background:var(--bg2);border-bottom:1px solid var(--border2)}
+#dec-main{display:flex;gap:12px;margin-top:8px}
+.bet-card{flex:1;border-radius:var(--r);border:1px solid var(--border2);background:var(--bg3);padding:12px;transition:all .2s;position:relative}
+.bet-card.active-player{border-color:var(--player);background:var(--player-dim);box-shadow:0 0 15px var(--player-glow)}
+.bet-card.active-banker{border-color:var(--banker);background:var(--banker-dim);box-shadow:0 0 15px var(--banker-glow)}
+.bet-header{font-family:var(--head);font-size:18px;letter-spacing:1px}
+.bet-card.active-player .bet-header{color:var(--player-l)}
+.bet-card.active-banker .bet-header{color:var(--banker-l)}
+.bet-stake{font-size:10px;margin-top:6px;padding:2px 6px;border-radius:2px;display:inline-block}
+.stake-active{background:rgba(0,255,157,.15);color:var(--secure);border:1px solid var(--secure)}
+.bet-prob{font-size:10px;color:var(--text2);margin-top:4px}
+.conf-row{display:flex;justify-content:space-between;margin-bottom:4px;font-size:9px}
+#conf-bar-outer{height:3px;background:var(--bg4);border-radius:2px;position:relative;margin-top:6px}
+#conf-bar-inner{height:100%;border-radius:2px;transition:width .4s}
+.thresh-mark{position:absolute;top:-3px;width:1px;height:9px;background:rgba(255,255,255,.3)}
+#reason-box{background:var(--bg2);border-bottom:1px solid var(--border);padding:8px 14px;max-height:100px;overflow-y:auto}
+.ritem{display:flex;gap:6px;margin-bottom:3px;font-size:9px}
+.rico{width:14px;height:14px;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:700}
+.ri-P{background:var(--player-dim);color:var(--player-l)}.ri-B{background:var(--banker-dim);color:var(--banker-l)}.ri-G{background:var(--secure-dim);color:var(--secure)}.ri-TRAP{background:var(--trap-dim);color:var(--trap)}
+#chart-area{flex:1;padding:8px}
+.chart-card{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:8px;height:100%}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.stat-cell{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:8px;position:relative}
+.stat-cell::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.sc-bets::before{background:var(--player)}.sc-won::before{background:var(--profit)}.sc-pnl::before{background:var(--warn-l)}
+.stat-cell lbl{font-size:8px;color:var(--text3);display:block;margin-bottom:3px}
+.stat-cell .sv2{font-size:18px;font-family:var(--head);line-height:1}
+.sv2.pos{color:var(--profit)}.sv2.neg{color:var(--loss)}.sv2.sec{color:var(--secure)}.sv2.blue{color:var(--player-l)}.sv2.orange{color:var(--banker-l)}
+.win-bar-wrap{margin-top:8px}
+.win-bar-outer{height:6px;background:var(--bg4);border-radius:3px;overflow:hidden;display:flex}
+.win-bar-won{background:linear-gradient(90deg,var(--profit),rgba(0,230,118,.6))}
+.signal-row{display:flex;gap:6px;margin-bottom:5px;align-items:center}
+.signal-name{width:80px;font-size:9px;color:var(--text2)}
+.signal-bar{flex:1;height:3px;background:var(--bg4);border-radius:2px}
+.signal-fill{height:100%;border-radius:2px}
+#alert-zone{position:fixed;top:56px;right:10px;z-index:999;display:flex;flex-direction:column;gap:4px;width:280px}
+.alert{padding:6px 10px;border-radius:var(--r);font-size:9px;border-left:2px solid;animation:slideIn .15s}
+@keyframes slideIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
 </style>
 </head>
 <body>
 <div id="topbar">
-  <div class="logo">BACCARATIQ <sub>v5 · PLAYER FOCUS + TRAP NEUTRALIZER</sub></div>
+  <div class="logo">BACCARATIQ</div>
+  <div class="logo-ver">v7 · DUAL SECURE ENGINE</div>
+  <div class="tstat"><lbl>Bankroll</lbl><div class="tv warn" id="t-bank">$1,000</div></div>
+  <div class="tstat"><lbl>P&L</lbl><div class="tv" id="t-pnl">$0.00</div></div>
+  <div class="tstat"><lbl>Win Rate</lbl><div class="tv" id="t-wr">—</div></div>
+  <div class="tstat"><lbl>Bets</lbl><div class="tv sec" id="t-bets">0</div></div>
   <div class="spacer"></div>
-  <div class="tstat"><label>Bankroll</label><div class="tv warn" id="t-bank">$1,000</div></div>
-  <div class="tstat"><label>P&amp;L</label><div class="tv neu" id="t-pnl">$0.00</div></div>
-  <div class="tstat"><label>Player Win%</label><div class="tv neu" id="t-pwr">—</div></div>
-  <div class="tstat"><label>Traps Avoided</label><div class="tv" id="t-traps" style="color:#FF0055">0</div></div>
-  <span class="chip live">LIVE</span>
-  <span class="chip trap-alert" id="trap-badge">TRAP WATCH</span>
+  <span class="badge b-live">DUAL PREDICT</span>
+  <span class="badge b-secure" id="dualmode">⚡ PLAYER/BANKER</span>
 </div>
 <div id="alert-zone"></div>
 <div id="wrap">
 <div class="lpanel">
   <div class="sec">
-    <div class="sh">Record Outcome (P/B/T keys)</div>
-    <div class="out-btns">
-      <button class="ob P" onclick="record('P')">👤 PLAYER</button>
-      <button class="ob B" onclick="record('B')">🏦 BANKER</button>
-      <button class="ob T" onclick="record('T')">🔗 TIE</button>
-    </div>
-    <input id="batch" style="width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:3px;color:var(--text);font-family:var(--mono);font-size:11px;padding:5px 8px" placeholder="Paste BPBBPT...">
-    <button class="btn" onclick="batchImport()" style="margin-top:5px;width:100%">Import</button>
+    <div class="sh">Record Outcome</div>
+    <div class="entry-btns"><button class="eb P" id="btn-P">PLAYER</button><button class="eb B" id="btn-B">BANKER</button><button class="eb T" id="btn-T">TIE</button></div>
+    <div class="batch-row"><input id="batch" placeholder="Paste: BPBBPT..."><button onclick="batchImport()">IMPORT</button></div>
+    <div class="kb-hint" style="font-size:8px;margin-top:5px">⌨ P / B / T keys</div>
   </div>
   <div class="sec">
     <div class="sh">Config</div>
-    <div class="sl-row"><label>Conf Threshold</label><input type="range" min="48" max="85" value="55" step="1" id="sl-conf"><span class="sv" id="sv-conf">55%</span></div>
-    <div class="sl-row"><label>Bankroll</label><input type="range" min="100" max="20000" value="1000" step="100" id="sl-bank"><span class="sv" id="sv-bank">$1K</span></div>
-    <div class="sl-row"><label>Stake %</label><input type="range" min="0.5" max="6" value="1.8" step="0.5" id="sl-stake"><span class="sv" id="sv-stake">1.8%</span></div>
-    <div class="btn-row"><button class="btn dan" onclick="resetSession()">RESET</button><button class="btn pri" onclick="runSim()">SIM ↗</button></div>
+    <div class="sl-row"><label>Conf Thresh</label><input type="range" min="55" max="88" value="64" step="1" id="sl-conf"><span id="sv-conf">64%</span></div>
+    <div class="sl-row"><label>Bankroll $</label><input type="range" min="100" max="20000" value="1000" step="100" id="sl-bank"><span id="sv-bank">1K</span></div>
+    <div class="sl-row"><label>Stake %</label><input type="range" min="0.5" max="5" value="1.8" step="0.5" id="sl-stake"><span id="sv-stake">1.8%</span></div>
+    <div class="toggle-row"><label>🔒 DUAL SECURE (P/B independent)</label><label class="tog"><input type="checkbox" id="tog-secure" checked><div class="tog-slider"></div></label></div>
+    <div class="btn-row"><button class="btn dan" onclick="resetSession()">RESET</button><button class="btn pri" onclick="runBacktest()">BACKTEST</button></div>
   </div>
-  <div class="sec" style="flex:1;overflow:hidden;display:flex;flex-direction:column;min-height:0">
-    <div class="sh">History</div>
-    <div id="hist-list" style="flex:1;overflow-y:auto"></div>
-  </div>
+  <div class="sec" style="flex:1;overflow:hidden"><div class="sh">History <span id="hist-count">0 rounds</span></div><div id="hist-list" style="overflow-y:auto;max-height:100%"></div></div>
 </div>
 <div id="center">
   <div id="dec-box">
-    <div class="dec-hdr" style="display:flex;justify-content:space-between;margin-bottom:12px">
-      <div class="dec-lbl">TRAP-AWARE ENSEMBLE · PLAYER PREDICTOR</div>
-      <div id="dec-rnd">Awaiting data...</div>
-    </div>
+    <div style="font-size:9px;color:var(--text3);display:flex;justify-content:space-between"><span>🔮 DUAL PREDICTION ENGINE</span><span id="dec-rnd">Awaiting data</span></div>
     <div id="dec-main">
-      <div id="bet-box" class="SKIP">
-        <div id="bet-action" class="SKIP">—</div>
-        <div id="bet-sub">record outcomes</div>
-      </div>
-      <div class="dec-meta">
-        <div class="dm"><label>Stake</label><div class="dv" id="d-stake">—</div></div>
-        <div class="dm"><label>Player Win Prob</label><div class="dv blue" id="d-prob">—</div></div>
-        <div class="dm"><label>Trap Risk</label><div class="dv" id="d-trap" style="color:#FF0055">—</div></div>
-        <div class="dm"><label>Adjusted Edge</label><div class="dv" id="d-edge">—</div></div>
-      </div>
+      <div class="bet-card" id="player-card"><div class="bet-header">🎲 PLAYER</div><div class="bet-prob" id="player-prob">Prob —</div><div id="player-stake" class="bet-stake">—</div><div id="player-conf" style="font-size:8px;color:var(--text3);margin-top:3px">Conf —</div></div>
+      <div class="bet-card" id="banker-card"><div class="bet-header">🏦 BANKER</div><div class="bet-prob" id="banker-prob">Prob —</div><div id="banker-stake" class="bet-stake">—</div><div id="banker-conf" style="font-size:8px;color:var(--text3);margin-top:3px">Conf —</div></div>
     </div>
   </div>
-  <div id="conf-sec">
-    <div style="display:flex;justify-content:space-between"><span>Confidence</span><span id="conf-pct">0%</span></div>
-    <div id="conf-bar-outer"><div id="conf-bar-inner" style="width:0%"></div></div>
-  </div>
-  <div id="reason-box">
-    <div style="font-size:9px;color:var(--text3);margin-bottom:5px">🧠 TRAP DETECTION & REASONING</div>
-    <div id="reason-list"></div>
-  </div>
-  <div id="chart-area">
-    <div class="chart-card"><h4>Equity Curve</h4><canvas id="eq-chart"></canvas></div>
-    <div class="chart-card"><h4>Player Prediction Accuracy</h4><canvas id="acc-chart"></canvas></div>
-  </div>
+  <div id="conf-sec" style="padding:6px 14px;background:var(--bg2)"><div class="conf-row"><span>HIGHEST CONFIDENCE</span><span id="best-suggestion">—</span></div><div id="conf-bar-outer"><div id="conf-bar-inner" style="width:0%"></div><div class="thresh-mark" id="thresh-mark" style="left:64%"></div></div></div>
+  <div id="reason-box"><div class="reason-title">🧠 SIGNAL REASONING</div><div id="reason-list"></div></div>
+  <div id="chart-area"><div class="chart-card"><canvas id="eq-chart"></canvas></div></div>
 </div>
 <div class="rpanel">
-  <div class="sec">
-    <div class="sh">Player Bias & Trap Metrics</div>
-    <div class="g2">
-      <div class="cell"><label>Player Edge Real</label><div class="cv" id="p-edge">—</div></div>
-      <div class="cell"><label>Trap Strength</label><div class="cv trap" id="trap-strength">0%</div></div>
-      <div class="cell"><label>Deviations (χ²)</label><div class="cv" id="chi2-val">—</div></div>
-      <div class="cell"><label>Fake Pattern</label><div class="cv" id="fake-pat">—</div></div>
-    </div>
-    <div class="sh">Anti-Trap Signals</div>
-    <div id="anti-trap-list" style="font-size:10px;color:var(--text2)">—</div>
-  </div>
+  <div class="sec"><div class="sh">Performance</div><div class="stat-grid"><div class="stat-cell sc-bets"><lbl>Bets Total</lbl><div class="sv2 blue" id="s-bets">0</div><div class="sv2-sub" style="font-size:7px">P/B combined</div></div><div class="stat-cell sc-won"><lbl>Won / Lost</lbl><div class="sv2 pos" id="s-won">0</div><div class="sv2 neg" id="s-lost" style="font-size:12px">/0</div></div><div class="stat-cell sc-pnl"><lbl>Total P&L</lbl><div class="sv2" id="s-pnl">$0</div><div class="sv2-sub">ROI <span id="s-roi">0%</span></div></div></div><div class="win-bar-wrap"><div class="win-bar-outer"><div class="win-bar-won" id="wb-won" style="width:0%;height:100%"></div></div></div></div>
+  <div class="sec"><div class="sh">Side Stats</div><div class="stat-grid"><div class="stat-cell"><lbl>Player Bets</lbl><div class="sv2 blue" id="stat-pbets">0</div><div class="sv2-sub">WR <span id="stat-pwr">—</span></div></div><div class="stat-cell"><lbl>Banker Bets</lbl><div class="sv2 orange" id="stat-bbets">0</div><div class="sv2-sub">WR <span id="stat-bwr">—</span></div></div><div class="stat-cell"><lbl>Traps Avoided</lbl><div class="sv2 sec" id="stat-traps">0</div></div><div class="stat-cell"><lbl>Skipped</lbl><div class="sv2" id="stat-skip">0</div></div></div></div>
+  <div class="sec"><div class="sh">Market Signals</div><div class="signal-row"><span class="signal-name">Player Edge</span><div class="signal-bar"><div class="signal-fill" id="sig-pedge" style="background:var(--player);width:50%"></div></div><span id="sig-pedge-v">—</span></div><div class="signal-row"><span class="signal-name">Banker Edge</span><div class="signal-bar"><div class="signal-fill" id="sig-bedge" style="background:var(--banker);width:50%"></div></div><span id="sig-bedge-v">—</span></div><div class="signal-row"><span class="signal-name">Trap Risk</span><div class="signal-bar"><div class="signal-fill" id="sig-trap" style="background:var(--trap);width:0%"></div></div><span id="sig-trap-v">0%</span></div><div class="signal-row"><span class="signal-name">Chi² Dev</span><div class="signal-bar"><div class="signal-fill" id="sig-chi" style="background:var(--warn-l);width:0%"></div></div><span id="sig-chi-v">—</span></div><div style="margin-top:6px;padding:5px;background:var(--bg3);border-radius:var(--r);font-size:9px" id="trap-msg">⚡ Filter active</div></div>
+  <div class="sec"><div class="sh">Last 10</div><div id="last10" style="display:flex;gap:3px;flex-wrap:wrap"></div><div style="display:flex;justify-content:space-between;margin-top:5px"><span id="last10-p">P:—</span><span id="last10-b">B:—</span><span id="last10-t">T:—</span></div></div>
 </div>
 </div>
 <script>
-const PRIOR = {B:0.4585, P:0.4460, T:0.0955};
-const ODDS = 2.0;
-let S = {
-  outcomes:[], bets:[], bankroll:1000, startBank:1000, equity:[1000],
-  config:{confThreshold:55, fixedStakePct:1.8, stopLoss:15, takeProfit:30, stakingMode:'fixed'},
-  halted:false, lastDecision:null, pendingBet:null, trapsAvoided:0,
-  modelWeights:[1,1,1,1,1], modelHits:[[],[],[],[],[]], modelPredictions:[null,null,null,null,null],
-  accHistory:[[],[],[],[],[]]
-};
-const MODEL_NAMES = ['Markov','Streak','Bayes','Pattern','TrapAvoid'];
-const MODEL_COLORS = ['#3B82F6','#F97316','#F59E0B','#10B981','#FF0055'];
-let eqChart, accChart;
-
-function countO(arr){let c={B:0,P:0,T:0}; for(let o of arr) c[o]++; return c;}
-function mean(arr){return arr.length?arr.reduce((a,b)=>a+b,0)/arr.length:0;}
-function std(arr){let m=mean(arr); return Math.sqrt(arr.reduce((a,b)=>a+(b-m)**2,0)/arr.length)||0;}
-
-// TRAP DETECTION CORE: identifies "fake streaks", sudden regime shifts, and banker traps designed to lure player bias
-function detectTrapRisk(outcomes){
-  if(outcomes.length<12) return {risk:0, type:'none', description:'Insufficient data'};
-  const last10=outcomes.slice(-10);
-  const last5=outcomes.slice(-5);
-  const pCount=last10.filter(x=>x==='P').length;
-  const bCount=last10.filter(x=>x==='B').length;
-  const recentBankerStreak = (()=>{let l=0; for(let i=outcomes.length-1;i>=0&&outcomes[i]==='B';i--)l++; return l;})();
-  const recentPlayerStreak = (()=>{let l=0; for(let i=outcomes.length-1;i>=0&&outcomes[i]==='P';i--)l++; return l;})();
-  // Trap Type A: "Fake player dominance" – after 6+ player wins in last 10, banker trap likely
-  let risk=0, type='none', description='';
-  if(pCount>=7 && bCount<=3){
-    risk=Math.min(85, (pCount-6)*15);
-    type='FAKE DOMINANCE';
-    description=`High player count (${pCount}/10) → banker trap imminent`;
-  }
-  // Trap Type B: "Alternating trap" – zigzag followed by sudden banker cluster
-  let zigzagScore=0;
-  for(let i=outcomes.length-5;i<outcomes.length-1;i++) if(outcomes[i]!==outcomes[i+1]) zigzagScore++;
-  if(zigzagScore>=3 && recentBankerStreak>=2){
-    risk=Math.max(risk, 70);
-    type='ZIGZAG TRAP';
-    description=`Alternation then banker streak ×${recentBankerStreak}`;
-  }
-  // Trap Type C: "Post-tie manipulation" – after tie, banker wins 2 out of next 3 statistically baits players
-  const lastTieIdx=outcomes.lastIndexOf('T');
-  if(lastTieIdx>=0 && outcomes.length-lastTieIdx<=5 && outcomes[lastTieIdx+1]==='B'){
-    risk=Math.max(risk, 68);
-    type='POST-TIE BAIT';
-    description=`Tie followed by banker → reversal trap`;
-  }
-  // Trap Type D: volatility spike (std dev of recent outcomes >0.45)
-  const numSeq=outcomes.slice(-12).map(o=>o==='B'?1:o==='P'?0:0.5);
-  if(std(numSeq)>0.48){
-    risk=Math.min(95, risk+25);
-    if(type==='none'){type='VOLATILITY TRAP'; description='High oscillation, stay cautious';}
-  }
-  return {risk:Math.min(92,risk), type, description, playerCount:pCount, bankerCount:bCount};
+const PRIOR={B:0.4585,P:0.4460,T:0.0955}, ODDS=2.0;
+let S={outcomes:[],bets:[],bankroll:1000,startBank:1000,equity:[1000],config:{confThreshold:64,stakePct:1.8,secureMode:true},halted:false,
+  stats:{bets:0,won:0,lost:0,skipped:0,trapsAvoided:0,totalStaked:0,totalPnl:0,pBets:0,pWon:0,bBets:0,bWon:0}};
+let lastDecision=null, eqChart;
+function w10(arr){return arr.slice(-10);}
+function countO(arr){let c={B:0,P:0,T:0};arr.forEach(o=>c[o]++);return c;}
+function analyseShoe(outcomes){
+  const w=w10(outcomes); if(w.length<4) return {weightedP:0.446,weightedB:0.4585,momentum:0,chopScore:0,type:'WAIT'};
+  let wp=0,wb=0,wt=0,wts=[1,1,1.5,1.5,2,2,2.5,3,3.5,4];
+  w.forEach((o,i)=>{let wt=wts[Math.min(9,i+(10-w.length))]; if(o==='P')wp+=wt;else if(o==='B')wb+=wt;else wt+=wt;});
+  let tot=wp+wb+wt||1; let pProb=wp/tot,bProb=wb/tot;
+  let nt=w.filter(x=>x!=='T'),sw=0; for(let i=1;i<nt.length;i++) if(nt[i]!==nt[i-1])sw++;
+  let chop=nt.length>1?sw/(nt.length-1):0;
+  let f5=w.slice(0,5),l5=w.slice(-5); let mom=(l5.filter(x=>x==='P').length/5)-(f5.filter(x=>x==='P').length/5);
+  return {weightedP:pProb,weightedB:bProb,momentum:mom,chopScore:chop,type:pProb>0.52?'P_BIAS':bProb>0.54?'B_BIAS':'BALANCED'};
 }
-
-// Enhanced player probability estimator with trap penalty
-function computePlayerProbability(outcomes, trapRisk){
-  if(outcomes.length<8) return 0.446;
-  const bayes = (()=>{
-    const alpha={B:PRIOR.B*8, P:PRIOR.P*8, T:PRIOR.T*8};
-    for(let o of outcomes) alpha[o]++;
-    const total=outcomes.length+8;
-    return (alpha.P+0.01)/(alpha.P+alpha.B+0.02);
-  })();
-  const recency= (()=>{
-    let recent=outcomes.slice(-15);
-    let cp=recent.filter(x=>x==='P').length;
-    let cb=recent.filter(x=>x==='B').length;
-    return cp/(cp+cb+0.01);
-  })();
-  const streakBias = (()=>{
-    let streak=1; let last=outcomes[outcomes.length-1];
-    for(let i=outcomes.length-2;i>=0&&outcomes[i]===last;i--) streak++;
-    if(last==='P') return 0.5+Math.min(0.12, streak*0.02);
-    if(last==='B') return 0.5-Math.min(0.12, streak*0.025);
-    return 0.5;
-  })();
-  let rawProb = bayes*0.4 + recency*0.35 + streakBias*0.25;
-  // Trap penalty: reduce player prob if trap risk high
-  let trapPenalty = (trapRisk/100)*0.22;
-  let adjustedProb = Math.min(0.75, Math.max(0.35, rawProb - trapPenalty));
-  // Third-card structural (player has slight disadvantage, but we adjust for prediction)
-  adjustedProb = adjustedProb * 0.998; // minimal structural
-  return adjustedProb;
+function detectTrap(outcomes){
+  if(outcomes.length<8) return {risk:0,type:'none'};
+  let w=w10(outcomes), pC=w.filter(x=>x==='P').length, bC=w.filter(x=>x==='B').length;
+  let risk=0,type=''; if(pC>=7){risk=70;type='FAKE P DOMINANCE';} else if(bC>=7){risk=72;type='BANKER OVERLOAD';}
+  let last3=w.slice(-3).filter(x=>x!=='T'); if(last3.length===3 && last3[0]===last3[1] && last3[1]===last3[2]) risk=Math.max(risk,60);
+  let chi=Math.abs(pC-4.46)*1.2; if(chi>5) risk=Math.min(85,risk+25);
+  return {risk:Math.min(92,risk),type:type||'VOLATILE'};
 }
-
-function adaptiveThreshold(outcomes, base){
-  if(outcomes.length<15) return base;
-  let vol=std(outcomes.slice(-25).map(o=>o==='B'?1:o==='P'?0:0.5));
-  let adjust = (vol-0.4)*10;
-  return Math.min(80, Math.max(48, base+adjust));
+function computeDualDecision(){
+  if(S.outcomes.length<6) return {player:{active:false,conf:0,prob:0,stake:0},banker:{active:false,conf:0,prob:0,stake:0},topSide:null,reasoning:[],trapRisk:{risk:0}};
+  let shoe=analyseShoe(S.outcomes), trap=detectTrap(S.outcomes);
+  let w=w10(S.outcomes), l5P=w.slice(-5).filter(x=>x==='P').length, l5B=w.slice(-5).filter(x=>x==='B').length;
+  let l10P=w.filter(x=>x==='P').length, l10B=w.filter(x=>x==='B').length;
+  let basePProb=shoe.weightedP*0.55+(l5P/5)*0.25+(l10P/10)*0.2; basePProb=Math.min(0.72,Math.max(0.35,basePProb-(trap.risk/100)*0.18));
+  let baseBProb=shoe.weightedB*0.55+(l5B/5)*0.25+(l10B/10)*0.2; baseBProb=Math.min(0.74,Math.max(0.38,baseBProb-(trap.risk/100)*0.15));
+  let momAdj=shoe.momentum*0.08; basePProb+=momAdj; baseBProb-=momAdj;
+  let pSignals=0,bSignals=0,reason=[];
+  if(basePProb>0.52)pSignals++; if(l5P>=3)pSignals++; if(l10P>=6)pSignals++; if(shoe.type==='P_BIAS')pSignals++;
+  if(baseBProb>0.535)bSignals++; if(l5B>=3)bSignals++; if(l10B>=6)bSignals++; if(shoe.type==='B_BIAS')bSignals++;
+  let pConf=Math.min(92,Math.max(0,(basePProb-0.5)/0.18*100+(pSignals*8))); let bConf=Math.min(92,Math.max(0,(baseBProb-0.5)/0.18*100+(bSignals*8)));
+  let thresh=S.config.confThreshold+(S.config.secureMode?4:0); let trapLimit=S.config.secureMode?58:70;
+  let pActive=(pConf>=thresh && basePProb>0.51 && trap.risk<trapLimit); let bActive=(bConf>=thresh && baseBProb>0.53 && trap.risk<trapLimit);
+  let stakePct=S.config.stakePct/100; let stake=0;
+  let pStake=0,bStake=0,topSide=null;
+  if(pActive && bActive){ if(pConf>bConf){ pStake=Math.min(S.bankroll*stakePct,S.bankroll*0.045); topSide='PLAYER'; } else { bStake=Math.min(S.bankroll*stakePct,S.bankroll*0.045); topSide='BANKER'; } }
+  else if(pActive){ pStake=Math.min(S.bankroll*stakePct,S.bankroll*0.045); topSide='PLAYER'; }
+  else if(bActive){ bStake=Math.min(S.bankroll*stakePct,S.bankroll*0.045); topSide='BANKER'; }
+  reason.push({t:topSide?'G':'S',txt:topSide?`${topSide} triggers: ${pActive?'P✓ ':''}${bActive?'B✓ ':''}Conf ${Math.max(pConf,bConf).toFixed(0)}%`:`No side above ${thresh}%`});
+  reason.push({t:'P',txt:`P:${(basePProb*100).toFixed(1)}% (sig:${pSignals}) B:${(baseBProb*100).toFixed(1)}% (sig:${bSignals})`});
+  if(trap.risk>45) reason.push({t:'TRAP',txt:`⚠️ Trap ${trap.risk}% - ${trap.type}`});
+  return {player:{active:pActive,conf:pConf,prob:basePProb,stake:pStake},banker:{active:bActive,conf:bConf,prob:baseBProb,stake:bStake},topSide,reasoning:reason,trapRisk:trap,shoeType:shoe.type};
 }
-
-function computeDecision(){
-  let n=S.outcomes.length;
-  if(n<6) return {side:'SKIP', confidence:0, playerProb:0.446, stake:0, reasoning:[], trapRisk:{risk:0}, adaptThresh:S.config.confThreshold};
-  let trap = detectTrapRisk(S.outcomes);
-  let playerProb = computePlayerProbability(S.outcomes, trap.risk);
-  let confidenceRaw = Math.min(92, Math.max(0, (playerProb-0.50)/0.20*100));
-  let agreementBonus = 0;
-  // Simulate model agreement (simplified but effective)
-  let modelVotes = 0;
-  if(playerProb>0.52) modelVotes++;
-  if(S.outcomes.slice(-5).filter(x=>x==='P').length>=3) modelVotes++;
-  if(S.outcomes.slice(-3).filter(x=>x==='P').length>=2) modelVotes++;
-  let finalConf = Math.min(94, confidenceRaw + modelVotes*3);
-  let thresh = adaptiveThreshold(S.outcomes, S.config.confThreshold);
-  let trapRiskScore = trap.risk;
-  let finalDecision = (finalConf >= thresh && playerProb>0.505 && trapRiskScore<70) ? 'PLAYER' : 'SKIP';
-  let stake = 0;
-  if(finalDecision==='PLAYER'){
-    let stakePct = S.config.fixedStakePct/100;
-    stake = S.bankroll * stakePct;
-    stake = Math.min(stake, S.bankroll*0.05);
-  }
-  let ev = (playerProb * (ODDS-1) - (1-playerProb)) * 100;
-  let reasoning = [];
-  reasoning.push({t:'P', txt:`Player win prob: ${(playerProb*100).toFixed(1)}%`});
-  if(trap.risk>40) reasoning.push({t:'TRAP', txt:`⚠️ TRAP DETECTED: ${trap.type} (risk ${trap.risk}%) → penalty applied`});
-  if(finalDecision==='SKIP') reasoning.push({t:'S', txt:`Skip: conf ${finalConf}% < thresh ${thresh}% OR trap risk high`});
-  else reasoning.push({t:'A', txt:`Player edge signal active | EV: ${ev>0?'+':''}${ev.toFixed(2)}%`});
-  return {side:finalDecision, confidence:finalConf, playerProb, stake, reasoning, trapRisk:trap, adaptThresh:thresh, ev};
-}
-
-function updateModelWeights(actual){
-  for(let i=0;i<MODEL_NAMES.length;i++){
-    let pred = S.modelPredictions[i];
-    if(pred && actual!=='T'){
-      let hit = (pred===actual)?1:0;
-      S.modelHits[i].push(hit);
-      if(S.modelHits[i].length>30) S.modelHits[i].shift();
-      let acc = mean(S.modelHits[i]);
-      S.modelWeights[i]=Math.max(0.3, Math.min(1.2, acc+0.2));
-      S.accHistory[i].push(acc);
-      if(S.accHistory[i].length>50) S.accHistory[i].shift();
-    }
-  }
-  // trap avoidance metric: if trap risk>55 and decision was SKIP -> avoided trap
-  let lastDec = S.lastDecision;
-  if(lastDec && lastDec.trapRisk && lastDec.trapRisk.risk>55 && lastDec.side==='SKIP'){
-    S.trapsAvoided++;
-    document.getElementById('t-traps').textContent=S.trapsAvoided;
-    showAlert(`🛡️ Trap avoided! (${lastDec.trapRisk.type})`,'trap');
-  }
-}
-
 function record(outcome){
-  if(S.halted){showAlert('Session halted. Reset.','danger');return;}
-  let round=S.outcomes.length+1;
-  let bet=S.pendingBet;
-  let pnl=0, result='skip';
-  if(bet && bet.side==='PLAYER'){
-    if(outcome==='P'){ pnl=bet.stake*(ODDS-1); result='win'; }
-    else if(outcome==='T'){ pnl=0; result='push'; }
-    else { pnl=-bet.stake; result='loss'; }
-    S.bankroll=parseFloat((S.bankroll+pnl).toFixed(2));
-    S.equity.push(S.bankroll);
+  if(S.halted){showAlert('Halted','danger');return;}
+  let dec=S.outcomes.length>=6?computeDualDecision():null; let bet=null;
+  if(dec && dec.topSide){
+    let side=dec.topSide, stake=side==='PLAYER'?dec.player.stake:dec.banker.stake;
+    if(stake>0) bet={side,stake};
   }
-  S.bets.push({round,bet:bet?bet.side:'SKIP',stake:bet?bet.stake:0,result,pnl});
-  let histDiv=document.getElementById('hist-list');
-  let item=document.createElement('div'); item.className='hi';
-  item.innerHTML=`<span class="hn">#${round}</span><div class="hbadge h${outcome}">${outcome}</div><span>${result==='win'?'✓':result==='loss'?'✗':'skip'}</span><span class="hp ${pnl>0?'pos':pnl<0?'neg':'neu'}">${pnl>0?'+':''}$${pnl.toFixed(2)}</span>`;
-  histDiv.insertBefore(item,histDiv.firstChild);
-  S.outcomes.push(outcome);
-  // update model predictions for learning
-  for(let i=0;i<MODEL_NAMES.length;i++) S.modelPredictions[i]= (Math.random()>0.5?'P':'B'); // dummy placeholder but we use real later
-  updateModelWeights(outcome);
-  // make new decision
-  let dec = computeDecision();
-  S.lastDecision=dec;
-  S.pendingBet = (dec.side==='PLAYER') ? {side:'PLAYER', stake:dec.stake} : null;
-  renderUI(dec);
-  let riskCheck = (()=>{let dd=(S.startBank-S.bankroll)/S.startBank*100; if(dd>=S.config.stopLoss){S.halted=true;showAlert('Stop loss hit','danger');} })();
-  updateCharts();
-  renderTopBar();
+  let pnl=0,result='skip';
+  if(bet){
+    S.stats.totalStaked+=bet.stake; S.stats.bets++;
+    if(bet.side==='PLAYER'){S.stats.pBets++; if(outcome==='P'){pnl=bet.stake;S.stats.won++;S.stats.pWon++;result='win';}else{pnl=-bet.stake;S.stats.lost++;result='loss';}}
+    else if(bet.side==='BANKER'){S.stats.bBets++; if(outcome==='B'){pnl=bet.stake;S.stats.won++;S.stats.bWon++;result='win';}else{pnl=-bet.stake;S.stats.lost++;result='loss';}}
+    else if(outcome==='T') pnl=-bet.stake;
+    S.stats.totalPnl+=pnl; S.bankroll+=pnl; S.equity.push(S.bankroll);
+  } else { S.stats.skipped++; S.equity.push(S.bankroll); }
+  S.outcomes.push(outcome); S.bets.push({outcome,bet:bet?.side||'SKIP',pnl});
+  let histDiv=document.getElementById('hist-list'); let el=document.createElement('div'); el.className='hi';
+  let betLabel=bet?`<span class="hbetbadge hbet-${bet.side[0]}">${bet.side[0]}</span>`:`<span class="hbetbadge hbet-S">SKIP</span>`;
+  el.innerHTML=`<span style="width:22px">#${S.outcomes.length}</span><div class="hbadge h${outcome}">${outcome}</div>${betLabel}<span class="hp ${pnl>=0?'pos':'neg'}">${pnl>=0?'+':''}$${pnl.toFixed(2)}</span>`;
+  histDiv.insertBefore(el,histDiv.firstChild);
+  document.getElementById('hist-count').innerText=S.outcomes.length;
+  if((S.startBank-S.bankroll)/S.startBank>=0.2) {S.halted=true;showAlert('Stop loss 20%','danger');}
+  renderAll(dec);
+  updateStatsUI();
+  updateChart();
 }
-
-function renderUI(dec){
-  let bb=document.getElementById('bet-box'); let ba=document.getElementById('bet-action');
-  bb.className=dec.side; ba.className=dec.side;
-  ba.textContent=dec.side==='PLAYER'?`BET PLAYER $${dec.stake.toFixed(2)}`:'SKIP';
-  document.getElementById('bet-sub').innerHTML=dec.side==='PLAYER'?`Player prob ${(dec.playerProb*100).toFixed(1)}%`:`confidence ${dec.confidence}% < threshold ${dec.adaptThresh}%`;
-  document.getElementById('d-stake').textContent=dec.side==='PLAYER'?`$${dec.stake.toFixed(2)}`:'—';
-  document.getElementById('d-prob').textContent=`${(dec.playerProb*100).toFixed(1)}%`;
-  let trapRiskVal=dec.trapRisk?.risk||0;
-  document.getElementById('d-trap').textContent=`${trapRiskVal}% ${dec.trapRisk?.type||''}`;
-  document.getElementById('d-edge').textContent=`${dec.ev>0?'+':''}${(dec.ev||0).toFixed(2)}%`;
-  document.getElementById('conf-pct').textContent=`${dec.confidence}%`;
-  let bar=document.getElementById('conf-bar-inner');
-  bar.style.width=`${dec.confidence}%`;
-  bar.style.background=dec.confidence>=dec.adaptThresh?'#0891B2':'#6B7280';
-  let rlist=document.getElementById('reason-list');
-  rlist.innerHTML=dec.reasoning.map(r=>`<div class="ritem"><div class="rico ${r.t==='TRAP'?'ri-TRAP':'ri-P'}">${r.t==='TRAP'?'⚠️':r.t}</div><span>${r.txt}</span></div>`).join('');
-  if(dec.trapRisk?.risk>55) document.getElementById('trap-badge').innerHTML='⚠️ TRAP ACTIVE ⚠️';
-  else document.getElementById('trap-badge').innerHTML='TRAP WATCH';
-  // right panel metrics
-  let pWinCount=S.outcomes.filter(o=>o==='P').length;
-  let pWinRate=S.outcomes.length? (pWinCount/S.outcomes.length*100).toFixed(1):0;
-  document.getElementById('p-edge').textContent=`${((pWinCount/S.outcomes.length)-0.446)*100>0?'+':''}${(((pWinCount/S.outcomes.length)-0.446)*100).toFixed(2)}%`;
-  document.getElementById('trap-strength').textContent=`${dec.trapRisk?.risk||0}%`;
-  let chi2 = (()=>{let c=countO(S.outcomes); let n=S.outcomes.length; let stat=0; for(let k of ['B','P','T']) stat+=Math.pow(c[k]-PRIOR[k]*n,2)/(PRIOR[k]*n+0.01); return stat.toFixed(2);})();
-  document.getElementById('chi2-val').textContent=chi2;
-  let fakePat = dec.trapRisk?.type || 'none';
-  document.getElementById('fake-pat').textContent=fakePat;
-  document.getElementById('anti-trap-list').innerHTML = dec.trapRisk?.risk>40 ? `⚠️ Skip recommended: ${dec.trapRisk.description}` : '✅ No active traps, player signal stable';
-  document.getElementById('dec-rnd').textContent = `Round #${S.outcomes.length+1}`;
+function renderAll(dec){
+  if(!dec && S.outcomes.length<6){dec={player:{prob:0.446,conf:0,active:false,stake:0},banker:{prob:0.4585,conf:0,active:false,stake:0},topSide:null,reasoning:[{t:'S',txt:'Need ≥6 rounds'}],trapRisk:{risk:0}};}
+  let pCard=document.getElementById('player-card'),bCard=document.getElementById('banker-card');
+  pCard.classList.remove('active-player'); bCard.classList.remove('active-banker');
+  if(dec?.player?.active && dec.topSide==='PLAYER') pCard.classList.add('active-player');
+  if(dec?.banker?.active && dec.topSide==='BANKER') bCard.classList.add('active-banker');
+  document.getElementById('player-prob').innerHTML=`Prob ${dec?.player?.prob?(dec.player.prob*100).toFixed(1):'—'}%`;
+  document.getElementById('banker-prob').innerHTML=`Prob ${dec?.banker?.prob?(dec.banker.prob*100).toFixed(1):'—'}%`;
+  document.getElementById('player-stake').innerHTML=dec?.player?.stake?`STAKE $${dec.player.stake.toFixed(2)}`:'—';
+  document.getElementById('banker-stake').innerHTML=dec?.banker?.stake?`STAKE $${dec.banker.stake.toFixed(2)}`:'—';
+  document.getElementById('player-conf').innerHTML=`Conf ${dec?.player?.conf?dec.player.conf.toFixed(0):0}%`;
+  document.getElementById('banker-conf').innerHTML=`Conf ${dec?.banker?.conf?dec.banker.conf.toFixed(0):0}%`;
+  let bestConf=Math.max(dec?.player?.conf||0,dec?.banker?.conf||0);
+  document.getElementById('conf-bar-inner').style.width=`${bestConf}%`;
+  document.getElementById('conf-bar-inner').style.background=bestConf>=S.config.confThreshold?'linear-gradient(90deg,var(--player),var(--secure))':'#2A3B50';
+  document.getElementById('thresh-mark').style.left=`${S.config.confThreshold+(S.config.secureMode?4:0)}%`;
+  document.getElementById('best-suggestion').innerHTML=dec?.topSide?`🎯 BET ${dec.topSide} (${bestConf.toFixed(0)}%)`:'⏳ NO CLEAR EDGE';
+  let rlist=document.getElementById('reason-list'); rlist.innerHTML=(dec?.reasoning||[]).map(r=>`<div class="ritem"><div class="rico ${r.t==='TRAP'?'ri-TRAP':r.t==='G'?'ri-G':r.t==='P'?'ri-P':'ri-B'}">${r.t==='TRAP'?'!':r.t==='G'?'✓':r.t==='P'?'P':'B'}</div><span>${r.txt}</span></div>`).join('');
+  let trapRisk=dec?.trapRisk?.risk||0; document.getElementById('sig-trap').style.width=`${trapRisk}%`; document.getElementById('sig-trap-v').innerText=`${trapRisk}%`;
+  let pEdge=(dec?.player?.prob||0.446)-0.446; let bEdge=(dec?.banker?.prob||0.4585)-0.4585;
+  document.getElementById('sig-pedge').style.width=`${Math.min(100,(dec?.player?.prob||0.446)*100)}%`; document.getElementById('sig-pedge-v').innerText=`${(pEdge*100).toFixed(1)}%`;
+  document.getElementById('sig-bedge').style.width=`${Math.min(100,(dec?.banker?.prob||0.4585)*100)}%`; document.getElementById('sig-bedge-v').innerText=`${(bEdge*100).toFixed(1)}%`;
+  let tot=S.outcomes.length,c=countO(S.outcomes),chi=0; if(tot)chi=['B','P','T'].reduce((a,k)=>a+Math.pow(c[k]-PRIOR[k]*tot,2)/(PRIOR[k]*tot+0.01),0);
+  document.getElementById('sig-chi').style.width=`${Math.min(100,chi*8)}%`; document.getElementById('sig-chi-v').innerText=chi.toFixed(2);
+  document.getElementById('trap-msg').innerHTML=trapRisk>55?'⚠️ HIGH TRAP: REDUCE BET SIZE':trapRisk>35?'⚡ Trap watch active':'✅ Clear signal environment';
+  let l10=S.outcomes.slice(-10); let l10div=document.getElementById('last10'); l10div.innerHTML=l10.map(o=>`<div class="hbadge h${o}" style="width:22px;height:22px">${o}</div>`).join('');
+  let l10c=countO(l10); document.getElementById('last10-p').innerText=`P:${l10c.P}`; document.getElementById('last10-b').innerText=`B:${l10c.B}`; document.getElementById('last10-t').innerText=`T:${l10c.T}`;
+  document.getElementById('dec-rnd').innerHTML=`Round ${S.outcomes.length+1} · ${dec?.shoeType||'ANALYSING'}`;
 }
-
-function renderTopBar(){
-  let pnl=S.bankroll-S.startBank;
-  let pWin=S.outcomes.filter(o=>o==='P').length;
-  let pRate=S.outcomes.length? (pWin/S.outcomes.length*100).toFixed(1):'—';
-  document.getElementById('t-bank').textContent=`$${S.bankroll.toFixed(2)}`;
-  document.getElementById('t-pnl').textContent=`${pnl>=0?'+':''}$${pnl.toFixed(2)}`;
-  document.getElementById('t-pwr').textContent=`${pRate}%`;
-  document.getElementById('t-pnl').className=`tv ${pnl>0?'pos':pnl<0?'neg':'neu'}`;
-  document.getElementById('t-traps').textContent=S.trapsAvoided;
+function updateStatsUI(){
+  let st=S.stats; let wr=st.bets?(st.won/st.bets*100).toFixed(1):0;
+  document.getElementById('s-bets').innerText=st.bets; document.getElementById('s-won').innerText=st.won; document.getElementById('s-lost').innerText=st.lost;
+  let pnlSign=st.totalPnl>=0?'+':''; document.getElementById('s-pnl').innerHTML=`${pnlSign}$${st.totalPnl.toFixed(2)}`; document.getElementById('s-roi').innerText=st.totalStaked?((st.totalPnl/st.totalStaked)*100).toFixed(1)+'%':'0%';
+  document.getElementById('stat-pbets').innerText=st.pBets; document.getElementById('stat-bbets').innerText=st.bBets;
+  document.getElementById('stat-pwr').innerText=st.pBets?((st.pWon/st.pBets)*100).toFixed(0)+'%':'—';
+  document.getElementById('stat-bwr').innerText=st.bBets?((st.bWon/st.bBets)*100).toFixed(0)+'%':'—';
+  document.getElementById('stat-traps').innerText=st.trapsAvoided; document.getElementById('stat-skip').innerText=st.skipped;
+  document.getElementById('t-bank').innerHTML=`$${S.bankroll.toFixed(2)}`; document.getElementById('t-pnl').innerHTML=`${S.bankroll-S.startBank>=0?'+':''}$${(S.bankroll-S.startBank).toFixed(2)}`;
+  document.getElementById('t-wr').innerHTML=wr+'%'; document.getElementById('t-bets').innerHTML=st.bets;
+  if(st.bets){ let wonPct=(st.won/st.bets)*100; document.getElementById('wb-won').style.width=`${wonPct}%`; }
 }
-
-function batchImport(){
-  let raw=document.getElementById('batch').value.toUpperCase().replace(/[^BPT]/g,'');
-  if(!raw)return;
-  for(let c of raw) S.outcomes.push(c);
-  document.getElementById('batch').value='';
-  let dec=computeDecision();
-  S.lastDecision=dec;
-  S.pendingBet = (dec.side==='PLAYER')?{side:'PLAYER', stake:dec.stake}:null;
-  renderUI(dec);
-  renderTopBar();
-  updateCharts();
-  showAlert(`Imported ${raw.length} outcomes. Player prediction active.`,'ok');
-}
-
-function resetSession(){
-  S.outcomes=[]; S.bets=[]; S.bankroll=S.startBank; S.equity=[S.startBank]; S.halted=false; S.pendingBet=null; S.trapsAvoided=0;
-  S.modelHits=[[],[],[],[],[]]; S.modelWeights=[1,1,1,1,1]; S.modelPredictions=[null,null,null,null,null];
-  document.getElementById('hist-list').innerHTML='';
-  let dec=computeDecision(); S.lastDecision=dec; S.pendingBet=null;
-  renderUI(dec); renderTopBar(); updateCharts();
-  showAlert('Session reset. Trap watch active.','info');
-}
-
-function updateCfg(){
-  let conf=parseFloat(document.getElementById('sl-conf').value);
-  let bank=parseFloat(document.getElementById('sl-bank').value);
-  let stake=parseFloat(document.getElementById('sl-stake').value);
-  S.config.confThreshold=conf; S.config.fixedStakePct=stake;
-  if(bank!==S.startBank && S.outcomes.length===0){S.startBank=bank; S.bankroll=bank; S.equity=[bank];}
-  document.getElementById('sv-conf').textContent=conf+'%';
-  document.getElementById('sv-bank').textContent=bank>=1000?'$'+(bank/1000).toFixed(0)+'K':'$'+bank;
-  document.getElementById('sv-stake').textContent=stake+'%';
-  if(S.outcomes.length>=6){let dec=computeDecision(); S.lastDecision=dec; S.pendingBet=(dec.side==='PLAYER')?{side:'PLAYER', stake:dec.stake}:null; renderUI(dec);}
-}
-function runSim(){
-  if(S.outcomes.length<20){showAlert('Need ≥20 rounds','warn');return;}
-  let bank=S.startBank, bets=0, wins=0, traps=0;
-  for(let i=8;i<S.outcomes.length;i++){
-    let hist=S.outcomes.slice(0,i);
-    let t=detectTrapRisk(hist);
-    let prob=computePlayerProbability(hist, t.risk);
-    let conf=Math.min(90, (prob-0.5)/0.2*100);
-    let thresh=adaptiveThreshold(hist, S.config.confThreshold);
-    if(conf>=thresh && prob>0.505 && t.risk<70){
-      bets++;
-      let actual=S.outcomes[i];
-      if(actual==='P') wins++;
-    }else if(t.risk>55) traps++;
-  }
-  let wr=bets?(wins/bets*100).toFixed(1):0;
-  showAlert(`SIM: Player bets ${bets}, Wins ${wins} (${wr}%), Traps avoided ${traps}`,'ok');
-}
-function initCharts(){
-  eqChart=new Chart(document.getElementById('eq-chart'),{type:'line',data:{labels:[],datasets:[{data:[],borderColor:'#0891B2',fill:true,tension:0.2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}}}});
-  accChart=new Chart(document.getElementById('acc-chart'),{type:'line',data:{labels:[],datasets:[{label:'Player Model Acc',data:[],borderColor:'#FF0055',borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,scales:{y:{min:0,max:1}}}});
-}
-function updateCharts(){
-  eqChart.data.labels=S.equity.map((_,i)=>i); eqChart.data.datasets[0].data=S.equity; eqChart.update('none');
-  let accData=S.accHistory[4]||[]; // trap-aware accuracy
-  accChart.data.labels=accData.map((_,i)=>i); accChart.data.datasets[0].data=accData; accChart.update('none');
-}
-function showAlert(msg,type){let az=document.getElementById('alert-zone');let el=document.createElement('div');el.className=`alert ${type}`;el.textContent=msg;az.appendChild(el);setTimeout(()=>el.remove(),4000);}
-document.addEventListener('keydown',e=>{if(document.activeElement.tagName!=='INPUT'){if(e.key==='p'||e.key==='P')record('P');else if(e.key==='b'||e.key==='B')record('B');else if(e.key==='t'||e.key==='T')record('T');}});
-window.addEventListener('load',()=>{updateCfg();initCharts();resetSession();showAlert('BaccaratIQ v5: Player-focused, trap detection active. Use P/B/T keys.','ok');});
+function updateChart(){ if(eqChart){ eqChart.data.labels=S.equity.map((_,i)=>i); eqChart.data.datasets[0].data=S.equity; eqChart.update('none'); } }
+function initChart(){ eqChart=new Chart(document.getElementById('eq-chart'),{type:'line',data:{labels:[],datasets:[{data:[],borderColor:'var(--secure)',borderWidth:2,fill:true,backgroundColor:'rgba(0,255,157,0.05)',tension:0.3,pointRadius:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}}}});}
+function resetSession(){ let bank=parseFloat(document.getElementById('sl-bank').value); S={outcomes:[],bets:[],bankroll:bank,startBank:bank,equity:[bank],config:{...S.config},halted:false,stats:{bets:0,won:0,lost:0,skipped:0,trapsAvoided:0,totalStaked:0,totalPnl:0,pBets:0,pWon:0,bBets:0,bWon:0}}; document.getElementById('hist-list').innerHTML=''; document.getElementById('hist-count').innerText='0'; renderAll(null); updateStatsUI(); updateChart(); showAlert('Session reset · DUAL ENGINE READY','ok'); }
+function batchImport(){ let raw=document.getElementById('batch').value.toUpperCase().replace(/[^BPT]/g,''); for(let c of raw) record(c); document.getElementById('batch').value=''; showAlert(`Imported ${raw.length} rounds`,'ok'); }
+function runBacktest(){ let pts=S.outcomes.length; if(pts<20){showAlert('Need 20+ outcomes','warn');return;} let wins=0,bets=0; for(let i=8;i<pts;i++){ let hist=S.outcomes.slice(0,i); let decT=null; if(hist.length>=6){ let shoe=analyseShoe(hist),trap=detectTrap(hist); let baseP=(shoe.weightedP||0.446); let pConf=Math.min(88,(baseP-0.5)/0.18*100+30); if(pConf>=S.config.confThreshold+(S.config.secureMode?4:0) && trap.risk<58){bets++;if(S.outcomes[i]==='P')wins++;} else {let baseB=(shoe.weightedB||0.4585); let bConf=Math.min(88,(baseB-0.5)/0.18*100+30); if(bConf>=S.config.confThreshold+4 && trap.risk<58){bets++;if(S.outcomes[i]==='B')wins++;}}}} showAlert(`BACKTEST: ${bets} bets, ${wins} wins (${bets?((wins/bets)*100).toFixed(1):0}% WR)`,'ok');}
+function updateCfg(){ S.config.confThreshold=parseFloat(document.getElementById('sl-conf').value); S.config.stakePct=parseFloat(document.getElementById('sl-stake').value); S.config.secureMode=document.getElementById('tog-secure').checked; document.getElementById('sv-conf').innerText=S.config.confThreshold+'%'; document.getElementById('sv-stake').innerText=S.config.stakePct+'%'; let bank=parseFloat(document.getElementById('sl-bank').value); document.getElementById('sv-bank').innerText=bank>=1000?'$'+(bank/1000).toFixed(1)+'K':'$'+bank; if(S.outcomes.length>=6){let dec=computeDualDecision(); renderAll(dec);} }
+function showAlert(msg,t){let az=document.getElementById('alert-zone'),el=document.createElement('div');el.className=`alert ${t==='ok'?'ok':t==='danger'?'danger':'info'}`;el.textContent=msg;az.appendChild(el);setTimeout(()=>el.remove(),3500);}
+document.getElementById('sl-conf').addEventListener('input',updateCfg); document.getElementById('sl-bank').addEventListener('input',updateCfg); document.getElementById('sl-stake').addEventListener('input',updateCfg); document.getElementById('tog-secure').addEventListener('change',updateCfg);
+document.getElementById('btn-P').onclick=()=>record('P'); document.getElementById('btn-B').onclick=()=>record('B'); document.getElementById('btn-T').onclick=()=>record('T');
+document.addEventListener('keydown',e=>{if(!document.activeElement?.tagName==='INPUT'){let k=e.key.toUpperCase();if(k==='P')record('P');else if(k==='B')record('B');else if(k==='T')record('T');}});
+window.onload=()=>{updateCfg(); initChart(); resetSession(); showAlert('BaccaratIQ v7 · DUAL PREDICTOR active — Player & Banker secure bets','ok');};
 </script>
 </body>
 </html>
