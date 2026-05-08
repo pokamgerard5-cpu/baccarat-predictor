@@ -1,190 +1,181 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BACCARATIQ v10 · INTUITION</title>
-<style>
-    /* Using your established dark-grid aesthetic */
-    :root {
-        --bg: #020608; --bg2: #060D14; --P: #00C8FF; --B: #FF9000; 
-        --G: #00E676; --R: #FF3355; --T: #8B5CF6;
-    }
-    body { background: var(--bg); color: #fff; font-family: 'JetBrains Mono', monospace; margin: 0; padding: 20px; }
-    .grid { display: grid; grid-template-columns: 1fr 300px; gap: 20px; }
-    .card { background: var(--bg2); border: 1px solid #1A2633; padding: 15px; border-radius: 8px; }
-    .btn-group { display: flex; gap: 10px; margin-bottom: 20px; }
-    button { flex: 1; padding: 15px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 1.2em; }
-    .btn-p { background: var(--P); color: #000; }
-    .btn-b { background: var(--B); color: #000; }
-    .btn-t { background: var(--T); color: #fff; }
-    #prediction-box { font-size: 2em; text-align: center; padding: 20px; margin: 10px 0; border: 2px dashed #333; }
-    .feeling-meter { height: 4px; background: #111; margin-top: 5px; position: relative; }
-    .feeling-fill { height: 100%; background: var(--G); transition: width 0.3s; }
-    .log { font-size: 0.8em; color: #666; max-height: 200px; overflow-y: auto; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BACCARATIQ v11 · INTUITION ENGINE</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+    <style>
+        :root {
+            --bg: #020608; --bg2: #060D14; --panel: #0A1520;
+            --P: #00C8FF; --B: #FF9000; --T: #8B5CF6;
+            --G: #00E676; --R: #FF3355; --text: #E2E8F0;
+        }
+        body { 
+            background: var(--bg); color: var(--text); 
+            font-family: 'JetBrains Mono', monospace; margin: 0; padding: 20px; 
+        }
+        .container { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: 1fr 320px; gap: 20px; }
+        .card { background: var(--bg2); border: 1px solid #1A2633; padding: 20px; border-radius: 12px; }
+        
+        #prediction-display { 
+            font-size: 2.5rem; text-align: center; padding: 40px 20px; 
+            margin-bottom: 20px; border: 2px solid #1A2633; border-radius: 8px;
+            text-shadow: 0 0 20px rgba(255,255,255,0.1);
+        }
+
+        .input-group { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+        button { 
+            padding: 20px; border: none; border-radius: 8px; cursor: pointer; 
+            font-weight: 700; font-size: 1.1rem; transition: transform 0.1s;
+        }
+        button:active { transform: scale(0.95); }
+        .btn-p { background: var(--P); color: #000; }
+        .btn-b { background: var(--B); color: #000; }
+        .btn-t { background: var(--T); color: #fff; }
+
+        .history-strip { display: flex; gap: 6px; margin-top: 20px; flex-wrap: wrap; }
+        .dot { width: 14px; height: 14px; border-radius: 50%; }
+
+        .feeling-row { margin-bottom: 15px; }
+        .feeling-label { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 4px; color: #888; }
+        .meter-bg { height: 6px; background: #111; border-radius: 3px; overflow: hidden; }
+        .meter-fill { height: 100%; background: var(--G); transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+        
+        .status-msg { margin-top: 15px; font-size: 12px; color: #555; text-align: center; }
+        @media (max-width: 768px) { .container { grid-template-columns: 1fr; } }
+    </style>
 </head>
 <body>
 
-<div class="grid">
-    <div class="main">
+<div class="container">
+    <div class="main-panel">
         <div class="card">
-            <div id="prediction-box">AWAITING DATA...</div>
-            <div class="btn-group">
-                <button class="btn-p" onclick="addResult('P')">PLAYER</button>
-                <button class="btn-b" onclick="addResult('B')">BANKER</button>
-                <button class="btn-t" onclick="addResult('T')">TIE</button>
+            <div id="prediction-display">WAITING FOR DATA</div>
+            <div class="input-group">
+                <button class="btn-p" onclick="pushResult('P')">PLAYER</button>
+                <button class="btn-b" onclick="pushResult('B')">BANKER</button>
+                <button class="btn-t" onclick="pushResult('T')">TIE</button>
             </div>
-            <div id="status-bar" style="color: #888;">Input the last 5 results to prime the Intuition Engine.</div>
-        </div>
-        
-        <div class="card" style="margin-top:20px">
-            <h4>History Analysis</h4>
-            <div id="history-row" style="display:flex; gap:5px; flex-wrap:wrap"></div>
+            <div class="status-msg" id="status">Input 5 rounds to activate Intuition Logic</div>
+            <div class="history-strip" id="history"></div>
         </div>
     </div>
 
-    <div class="sidebar">
+    <div class="side-panel">
         <div class="card">
-            <h4>Model "Feeling"</h4>
-            <div id="model-feelings">
-                </div>
-        </div>
-        <div class="card" style="margin-top:20px">
-            <h4>Engine Logs</h4>
-            <div id="log" class="log"></div>
+            <h3 style="margin-top:0; font-size: 14px; color: var(--G);">ENGINE FEELING</h3>
+            <div id="feelings-container"></div>
+            <hr style="border: 0; border-top: 1px solid #1A2633; margin: 20px 0;">
+            <div id="stats" style="font-size: 12px; line-height: 1.8;">
+                Trend Velocity: <span id="vel-val">0.0</span><br>
+                Confidence: <span id="conf-val">0%</span>
+            </div>
         </div>
     </div>
 </div>
 
 <script>
-let state = {
-    outcomes: [],
-    weights: { markov: 1.0, pattern: 1.0, momentum: 1.0, bayes: 1.0 },
-    history: [], // Tracks {prediction, actual}
-    config: { threshold: 52, reactSpeed: 4 }
-};
-
-const MK = ['markov', 'pattern', 'momentum', 'bayes'];
-
-function addResult(val) {
-    state.outcomes.push(val);
-    updateModelWeights(); // Analyse past results to adjust "feeling"
-    renderHistory();
-    processPrediction();
-}
-
-// THE INTUITION LOOP: Adjusts weights based on what is CURRENTLY working
-function updateModelWeights() {
-    if (state.history.length === 0) return;
-    
-    MK.forEach(m => {
-        const last3 = state.history.slice(-3);
-        let winCount = 0;
-        last3.forEach(h => {
-            if (h.votes[m] === state.outcomes[state.outcomes.length-1]) winCount++;
-        });
-
-        // Boost hot models, crush failing ones
-        if (winCount >= 2) state.weights[m] = 1.6;
-        else if (winCount === 0) state.weights[m] = 0.6;
-        else state.weights[m] = 1.0;
-    });
-    renderFeelings();
-}
-
-function processPrediction() {
-    if (state.outcomes.length < 5) return;
-
-    const results = {
-        markov: runMarkov(),
-        pattern: runPattern(),
-        momentum: runMomentum(),
-        bayes: runBayes()
+    // CORE ENGINE STATE
+    const S = {
+        outcomes: [],
+        history: [], // {pred, actual, models: {}}
+        weights: { markov: 1.0, pattern: 1.0, momentum: 1.0, bayes: 1.0 },
+        models: ['markov', 'pattern', 'momentum', 'bayes'],
+        config: { threshold: 52 }
     };
 
-    let pScore = 0;
-    let bScore = 0;
-
-    MK.forEach(m => {
-        if (results[m].side === 'P') pScore += (results[m].conf * state.weights[m]);
-        if (results[m].side === 'B') bScore += (results[m].conf * state.weights[m]);
-    });
-
-    // FAST TREND DETECTION (Snap)
-    const w3 = state.outcomes.slice(-3).filter(x => x !== 'T');
-    const isStreak = w3.every(x => x === w3[0]);
-    
-    let decision = 'SKIP';
-    let finalConf = Math.max(pScore, bScore) / 4;
-    let side = pScore > bScore ? 'P' : 'B';
-
-    // If a streak is starting (3 in a row), boost confidence to "Snap" in
-    if (isStreak && side === w3[0]) finalConf += 15;
-    
-    // If a trend is "Decaying" (Confidence dropping compared to previous), Force Skip
-    if (finalConf >= state.config.threshold) {
-        decision = side;
+    function pushResult(val) {
+        S.outcomes.push(val);
+        if (S.history.length > 0) {
+            updateWeights(val);
+        }
+        renderUI();
+        runEngine();
     }
 
-    const box = document.getElementById('prediction-box');
-    box.textContent = decision === 'SKIP' ? '--- SKIP ---' : (decision === 'P' ? 'BET PLAYER' : 'BET BANKER');
-    box.style.color = decision === 'P' ? 'var(--P)' : (decision === 'B' ? 'var(--B)' : '#444');
+    function updateWeights(actual) {
+        // Look back at the last prediction and see which models were "feeling" it
+        const lastBatch = S.history[S.history.length - 1].modelVotes;
+        S.models.forEach(m => {
+            if (lastBatch[m] === actual) {
+                S.weights[m] = Math.min(S.weights[m] + 0.15, 2.0); // Reward
+            } else {
+                S.weights[m] = Math.max(S.weights[m] - 0.1, 0.5);  // Penalize
+            }
+        });
+    }
 
-    // Store for next adjustment
-    state.history.push({ votes: {
-        markov: results.markov.side,
-        pattern: results.pattern.side,
-        momentum: results.momentum.side,
-        bayes: results.bayes.side
-    }});
-}
+    function runEngine() {
+        if (S.outcomes.length < 5) return;
 
-// SIMPLIFIED CORE MODELS (Intuition Versions)
-function runMarkov() {
-    const last = state.outcomes[state.outcomes.length-1];
-    return { side: last === 'P' ? 'B' : 'P', conf: 55 }; // Simple transition
-}
+        // 1. Run Models
+        const votes = {
+            markov: S.outcomes[S.outcomes.length-1] === 'P' ? 'B' : 'P',
+            pattern: detectPattern(),
+            momentum: S.outcomes.slice(-2).every(x => x === S.outcomes[S.outcomes.length-1]) ? S.outcomes[S.outcomes.length-1] : 'P',
+            bayes: getBayes()
+        };
 
-function runPattern() {
-    const s = state.outcomes.join('').slice(-4);
-    if (s.includes('PPB') || s.includes('BBP')) return { side: s.endsWith('P') ? 'P' : 'B', conf: 60 };
-    return { side: 'P', conf: 45 };
-}
+        // 2. Aggregate with Weighting (Intuition)
+        let pWeight = 0, bWeight = 0;
+        S.models.forEach(m => {
+            if (votes[m] === 'P') pWeight += S.weights[m];
+            if (votes[m] === 'B') bWeight += S.weights[m];
+        });
 
-function runMomentum() {
-    const last2 = state.outcomes.slice(-2);
-    return { side: last2[0] === last2[1] ? last2[0] : 'SKIP', conf: 65 };
-}
+        const totalWeight = pWeight + bWeight;
+        const conf = (Math.max(pWeight, bWeight) / totalWeight) * 100;
+        const side = pWeight > bWeight ? 'P' : 'B';
 
-function runBayes() {
-    const counts = { P: 0, B: 0 };
-    state.outcomes.forEach(x => counts[x]++);
-    return { side: counts.P > counts.B ? 'B' : 'P', conf: 52 };
-}
+        // 3. Fast Trend Snap
+        const last3 = S.outcomes.slice(-3).filter(x => x !== 'T');
+        const isSnap = last3.length === 3 && last3.every(x => x === side);
+        
+        let finalDecision = 'SKIP';
+        if (conf > S.config.threshold || isSnap) finalDecision = side;
 
-// UI HELPERS
-function renderFeelings() {
-    const container = document.getElementById('model-feelings');
-    container.innerHTML = MK.map(m => `
-        <div style="margin-bottom:10px">
-            <div style="display:flex; justify-content:space-between; font-size:10px">
-                <span>${m.toUpperCase()}</span>
-                <span>${(state.weights[m]*100).toFixed(0)}% Power</span>
+        // 4. Update UI
+        const display = document.getElementById('prediction-display');
+        display.textContent = finalDecision === 'SKIP' ? '--- SKIP ---' : (finalDecision === 'P' ? 'BET PLAYER' : 'BET BANKER');
+        display.style.color = finalDecision === 'P' ? 'var(--P)' : (finalDecision === 'B' ? 'var(--B)' : '#444');
+        
+        document.getElementById('conf-val').textContent = conf.toFixed(1) + '%';
+        document.getElementById('vel-val').textContent = isSnap ? 'HIGH (Snap)' : 'NORMAL';
+
+        // Save for next round comparison
+        S.history.push({ pred: finalDecision, modelVotes: votes });
+    }
+
+    function detectPattern() {
+        const str = S.outcomes.slice(-3).join('');
+        return str === 'PBP' ? 'B' : (str === 'BPB' ? 'P' : S.outcomes[S.outcomes.length-1]);
+    }
+
+    function getBayes() {
+        const p = S.outcomes.filter(x => x === 'P').length;
+        const b = S.outcomes.filter(x => x === 'B').length;
+        return p > b ? 'B' : 'P'; // Betting on regression
+    }
+
+    function renderUI() {
+        // Render Dots
+        const hist = document.getElementById('history');
+        hist.innerHTML = S.outcomes.map(o => `<div class="dot" style="background:var(--${o})"></div>`).join('');
+
+        // Render Feeling Meters
+        const feel = document.getElementById('feelings-container');
+        feel.innerHTML = S.models.map(m => `
+            <div class="feeling-row">
+                <div class="feeling-label"><span>${m.toUpperCase()}</span><span>${(S.weights[m]*100).toFixed(0)}%</span></div>
+                <div class="meter-bg"><div class="meter-fill" style="width:${S.weights[m]*50}%"></div></div>
             </div>
-            <div class="feeling-meter">
-                <div class="feeling-fill" style="width: ${state.weights[m]*50}%"></div>
-            </div>
-        </div>
-    `).join('');
-}
+        `).join('');
 
-function renderHistory() {
-    const row = document.getElementById('history-row');
-    row.innerHTML = state.outcomes.map(o => `
-        <div style="width:20px; height:20px; border-radius:50%; background:var(--${o}); display:flex; align-items:center; justify-content:center; font-size:10px; color:#000; font-weight:bold">${o}</div>
-    `).join('');
-}
+        document.getElementById('status').textContent = `Round #${S.outcomes.length} Processed`;
+    }
 </script>
+
 </body>
 </html>
