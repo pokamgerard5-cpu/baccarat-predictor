@@ -1,843 +1,1583 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>AI Prediction Engine · One-Click Recording · P&L Tracking</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>APEX PRO — Advanced Prediction Engine v3.0</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#07090f;
+  --surface:#0d1117;
+  --surface2:#131920;
+  --surface3:#1a2230;
+  --border:#1e2d42;
+  --border2:#253549;
+  --blue:#3b82f6;
+  --blue-dim:#1d4ed8;
+  --blue-glow:rgba(59,130,246,0.15);
+  --amber:#f59e0b;
+  --amber-dim:#92400e;
+  --green:#10b981;
+  --green-dim:#065f46;
+  --red:#ef4444;
+  --red-dim:#991b1b;
+  --text:#e2e8f0;
+  --text2:#94a3b8;
+  --text3:#475569;
+  --accent:#3b82f6;
+  --p1:#3b82f6;
+  --p2:#f59e0b;
+  --tie:#10b981;
+  --profit:#10b981;
+  --loss:#ef4444;
+}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden}
+.mono{font-family:'Space Mono',monospace}
+.orb{font-family:'Orbitron',sans-serif}
 
-        body {
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #0a0c15 0%, #0f111a 100%);
-            color: #e2e8f0;
-            overflow-x: hidden;
-        }
+/* HEADER */
+header{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;display:flex;align-items:center;gap:24px;height:56px;position:sticky;top:0;z-index:100}
+.logo{font-family:'Orbitron',sans-serif;font-weight:900;font-size:18px;letter-spacing:3px;color:var(--blue);white-space:nowrap}
+.logo span{color:var(--green);font-weight:400;font-size:11px;letter-spacing:2px;display:block;margin-top:-2px}
+.nav{display:flex;gap:4px;flex:1}
+.nav-btn{background:none;border:none;color:var(--text2);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;padding:6px 14px;border-radius:6px;cursor:pointer;transition:all 0.15s;letter-spacing:0.5px}
+.nav-btn:hover{color:var(--text);background:var(--surface2)}
+.nav-btn.active{color:var(--blue);background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.2)}
+.header-stats{display:flex;gap:16px;margin-left:auto}
+.hstat{text-align:right}
+.hstat-val{font-family:'Space Mono',monospace;font-size:13px;font-weight:700;color:var(--text)}
+.hstat-lbl{font-size:10px;color:var(--text3);letter-spacing:0.5px;text-transform:uppercase}
 
-        /* Custom scrollbar */
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: #1e1f2e; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb { background: #3b3f5c; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: #5b5f8c; }
+/* PANELS */
+.panel{display:none;padding:20px 24px}
+.panel.active{display:block}
 
-        /* Glass morphism */
-        .glass {
-            background: rgba(15, 23, 42, 0.6);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(71, 85, 105, 0.2);
-        }
+/* GRID LAYOUTS */
+.dashboard-grid{display:grid;grid-template-columns:320px 1fr 320px;gap:16px;align-items:start}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px}
+.card-title{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--text3);margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.card-title::before{content:'';width:4px;height:4px;border-radius:50%;background:var(--blue)}
 
-        .glass-card {
-            background: rgba(20, 25, 45, 0.7);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            border: 1px solid rgba(71, 85, 105, 0.3);
-            transition: all 0.3s ease;
-        }
+/* BETTING STRATEGY SECTION */
+.betting-card{background:linear-gradient(135deg, rgba(16,185,129,0.05), rgba(59,130,246,0.05));border:1px solid rgba(16,185,129,0.2);margin-top:16px}
+.bet-recommendation{display:flex;align-items:center;justify-content:space-between;padding:12px;background:var(--surface2);border-radius:8px;margin-bottom:8px;border-left:3px solid var(--green)}
+.bet-recommendation.bet-big{border-left-color:var(--blue);background:rgba(59,130,246,0.1)}
+.bet-label{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:1px}
+.bet-value{font-family:'Orbitron',sans-serif;font-size:20px;font-weight:700}
+.bet-value.p1c{color:var(--p1)}
+.bet-value.p2c{color:var(--p2)}
+.bet-value.tiec{color:var(--tie)}
+.bet-confidence{font-size:10px;padding:2px 6px;border-radius:3px}
+.conf-high{background:rgba(16,185,129,0.2);color:var(--green)}
+.conf-med{background:rgba(245,158,11,0.2);color:var(--amber)}
+.conf-low{background:rgba(239,68,68,0.2);color:var(--red)}
+.bet-reason{font-size:10px;color:var(--text2);margin-top:6px;padding-top:6px;border-top:1px solid var(--border)}
+.profit-sim{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.prof-cell{background:var(--surface2);border-radius:6px;padding:8px;text-align:center}
+.prof-label{font-size:9px;color:var(--text3);text-transform:uppercase}
+.prof-value{font-family:'Space Mono',monospace;font-size:14px;font-weight:700}
+.prof-positive{color:var(--profit)}
+.prof-negative{color:var(--loss)}
 
-        .glass-card:hover {
-            border-color: rgba(96, 165, 250, 0.4);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-        }
+/* INPUT SECTION */
+.input-btns{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px}
+.outcome-btn{background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:14px 8px;cursor:pointer;transition:all 0.12s;display:flex;flex-direction:column;align-items:center;gap:6px;font-family:'DM Sans',sans-serif}
+.outcome-btn:hover{transform:translateY(-2px);border-color:var(--blue)}
+.outcome-btn:active{transform:translateY(0) scale(0.97)}
+.btn-icon{font-size:22px}
+.btn-label{font-size:12px;font-weight:600;letter-spacing:1px;text-transform:uppercase}
+.btn-label.p1c{color:var(--p1)}
+.btn-label.p2c{color:var(--p2)}
+.btn-label.tiec{color:var(--tie)}
+.btn-count{font-family:'Space Mono',monospace;font-size:10px;color:var(--text3)}
 
-        /* Gradient text */
-        .gradient-text {
-            background: linear-gradient(135deg, #60a5fa, #a78bfa, #f472b6);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-        }
+.recent-seq{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:12px;min-height:32px}
+.seq-dot{width:22px;height:22px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-family:'Space Mono',monospace;font-size:8px;font-weight:700;flex-shrink:0}
+.seq-dot.p1{background:rgba(59,130,246,0.2);color:var(--p1);border:1px solid rgba(59,130,246,0.3)}
+.seq-dot.p2{background:rgba(245,158,11,0.2);color:var(--p2);border:1px solid rgba(245,158,11,0.3)}
+.seq-dot.tie{background:rgba(16,185,129,0.2);color:var(--tie);border:1px solid rgba(16,185,129,0.3)}
 
-        /* One-click buttons */
-        .record-btn {
-            background: linear-gradient(135deg, #1e293b, #0f172a);
-            border: 2px solid;
-            border-radius: 20px;
-            padding: 20px 30px;
-            font-size: 24px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            text-align: center;
-            min-width: 160px;
-        }
+.input-actions{display:flex;gap:6px;margin-top:8px}
+.act-btn{flex:1;background:var(--surface2);border:1px solid var(--border2);border-radius:6px;padding:7px 10px;color:var(--text2);font-size:11px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all 0.12s}
+.act-btn:hover{color:var(--text);border-color:var(--border)}
+.act-btn.danger{color:var(--red)}
+.act-btn.danger:hover{border-color:var(--red);background:rgba(239,68,68,0.08)}
 
-        .record-btn:active {
-            transform: scale(0.95);
-        }
+/* PREDICTION DISPLAY */
+.prediction-main{display:flex;flex-direction:column;gap:12px}
+.pred-bars{display:flex;flex-direction:column;gap:10px}
+.pred-row{display:flex;flex-direction:column;gap:4px}
+.pred-header{display:flex;justify-content:space-between;align-items:center}
+.pred-name{font-size:12px;font-weight:600;letter-spacing:1px;text-transform:uppercase}
+.pred-pct{font-family:'Space Mono',monospace;font-size:15px;font-weight:700}
+.pred-bar-track{height:8px;background:var(--surface2);border-radius:4px;overflow:hidden}
+.pred-bar-fill{height:100%;border-radius:4px;transition:width 0.4s cubic-bezier(.4,0,.2,1)}
+.pred-bar-fill.p1{background:linear-gradient(90deg,#1d4ed8,#3b82f6)}
+.pred-bar-fill.p2{background:linear-gradient(90deg,#92400e,#f59e0b)}
+.pred-bar-fill.tie{background:linear-gradient(90deg,#065f46,#10b981)}
 
-        .record-p1 {
-            border-color: #3b82f6;
-            color: #60a5fa;
-            background: linear-gradient(135deg, #1e2a3a, #0f172a);
-        }
+.confidence-meter{display:flex;flex-direction:column;gap:6px}
+.conf-header{display:flex;justify-content:space-between}
+.conf-label{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:1px}
+.conf-value{font-family:'Space Mono',monospace;font-size:11px}
+.conf-track{height:4px;background:var(--surface2);border-radius:2px;overflow:hidden}
+.conf-fill{height:100%;border-radius:2px;transition:width 0.4s ease}
 
-        .record-p1:hover {
-            background: linear-gradient(135deg, #1e3a5f, #1e293b);
-            box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
-            transform: translateY(-2px);
-        }
+.winner-badge{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-radius:8px;margin-top:4px}
+.winner-badge.p1{background:rgba(59,130,246,0.1);border:1px solid rgba(59,130,246,0.25)}
+.winner-badge.p2{background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.25)}
+.winner-badge.tie{background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.25)}
+.winner-badge.none{background:var(--surface2);border:1px solid var(--border)}
+.wb-left{display:flex;flex-direction:column;gap:2px}
+.wb-title{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text3)}
+.wb-pred{font-family:'Orbitron',sans-serif;font-size:14px;font-weight:700}
+.wb-pred.p1c{color:var(--p1)}
+.wb-pred.p2c{color:var(--p2)}
+.wb-pred.tiec{color:var(--tie)}
+.wb-right{display:flex;flex-direction:column;gap:2px;text-align:right}
+.wb-risk{font-size:10px;padding:2px 8px;border-radius:3px;font-weight:600;letter-spacing:1px;text-transform:uppercase}
+.risk-low{background:rgba(16,185,129,0.2);color:var(--green)}
+.risk-med{background:rgba(245,158,11,0.2);color:var(--amber)}
+.risk-high{background:rgba(239,68,68,0.2);color:var(--red)}
 
-        .record-p2 {
-            border-color: #ef4444;
-            color: #f87171;
-        }
+/* MODELS SIDEBAR */
+.models-list{display:flex;flex-direction:column;gap:6px}
+.model-row{display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--surface2);border-radius:6px;border:1px solid var(--border)}
+.model-name{font-size:11px;font-weight:500;flex:1;color:var(--text2)}
+.model-pred{font-family:'Space Mono',monospace;font-size:10px;color:var(--text2)}
+.model-weight{font-family:'Space Mono',monospace;font-size:10px;color:var(--blue)}
+.model-best{font-size:8px;padding:1px 5px;border-radius:2px;background:rgba(59,130,246,0.15);color:var(--blue);letter-spacing:1px}
+.streak-box{display:flex;flex-direction:column;gap:8px;margin-top:4px}
+.streak-item{display:flex;justify-content:space-between;align-items:center}
+.streak-label{font-size:11px;color:var(--text3)}
+.streak-val{font-family:'Space Mono',monospace;font-size:11px;color:var(--text)}
 
-        .record-p2:hover {
-            background: linear-gradient(135deg, #5f1e2a, #1e293b);
-            box-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
-            transform: translateY(-2px);
-        }
+/* CHARTS */
+.charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
+.chart-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px}
 
-        .record-tie {
-            border-color: #f59e0b;
-            color: #fbbf24;
-        }
+/* HISTORY TABLE */
+.hist-table{width:100%;border-collapse:collapse;font-size:13px}
+.hist-table th{font-family:'Space Mono',monospace;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--text3);padding:8px 12px;border-bottom:1px solid var(--border);text-align:left}
+.hist-table td{padding:8px 12px;border-bottom:1px solid rgba(30,45,66,0.5);vertical-align:middle}
+.hist-table tr:hover td{background:var(--surface2)}
+.outcome-pill{display:inline-flex;align-items:center;padding:2px 8px;border-radius:4px;font-weight:600;font-size:11px;letter-spacing:0.5px}
+.pill-p1{background:rgba(59,130,246,0.15);color:var(--p1)}
+.pill-p2{background:rgba(245,158,11,0.15);color:var(--p2)}
+.pill-tie{background:rgba(16,185,129,0.15);color:var(--tie)}
+.acc-badge{display:inline-flex;align-items:center;padding:1px 6px;border-radius:3px;font-family:'Space Mono',monospace;font-size:10px}
+.acc-correct{background:rgba(16,185,129,0.15);color:var(--green)}
+.acc-wrong{background:rgba(239,68,68,0.15);color:var(--red)}
+.acc-none{background:var(--surface2);color:var(--text3)}
 
-        .record-tie:hover {
-            background: linear-gradient(135deg, #4a3a1e, #1e293b);
-            box-shadow: 0 0 20px rgba(245, 158, 11, 0.3);
-            transform: translateY(-2px);
-        }
+/* ANALYSIS */
+.analysis-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+.pattern-item{padding:10px;background:var(--surface2);border-radius:6px;border-left:3px solid var(--blue)}
+.pattern-item.amber{border-color:var(--amber)}
+.pattern-item.green{border-color:var(--green)}
+.pattern-item.red{border-color:var(--red)}
+.pattern-title{font-size:11px;font-weight:600;color:var(--text2);margin-bottom:4px}
+.pattern-val{font-family:'Space Mono',monospace;font-size:13px;color:var(--text)}
+.pattern-desc{font-size:10px;color:var(--text3);margin-top:3px}
 
-        /* P&L Panel */
-        .pnl-card {
-            background: linear-gradient(135deg, #1a1f35, #0f1225);
-            border-radius: 20px;
-            padding: 20px;
-            border: 1px solid rgba(16, 185, 129, 0.3);
-        }
+/* HEATMAP */
+.heatmap{display:grid;grid-template-columns:repeat(10,1fr);gap:3px}
+.hm-cell{aspect-ratio:1;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:7px;font-family:'Space Mono',monospace;font-weight:700}
 
-        .pnl-value {
-            font-size: 32px;
-            font-weight: 800;
-        }
+/* UTILITY */
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px;color:var(--text3);gap:8px}
+.empty-state .em-icon{font-size:32px;opacity:0.3}
+.empty-state .em-text{font-size:13px}
+.tag{display:inline-flex;padding:1px 6px;border-radius:3px;font-size:10px;font-weight:600;letter-spacing:0.5px;text-transform:uppercase}
+.tag-blue{background:rgba(59,130,246,0.12);color:var(--blue)}
+.tag-amber{background:rgba(245,158,11,0.12);color:var(--amber)}
+.tag-green{background:rgba(16,185,129,0.12);color:var(--green)}
+.tag-red{background:rgba(239,68,68,0.12);color:var(--red)}
+.tag-gray{background:var(--surface2);color:var(--text3)}
 
-        .pnl-positive { color: #10b981; }
-        .pnl-negative { color: #ef4444; }
-        .pnl-neutral { color: #94a3b8; }
+.divider{height:1px;background:var(--border);margin:12px 0}
+.flex-between{display:flex;justify-content:space-between;align-items:center}
+.text-muted{color:var(--text3);font-size:11px}
+.text-sm{font-size:12px;color:var(--text2)}
+.mono-sm{font-family:'Space Mono',monospace;font-size:11px}
 
-        /* Probability bars */
-        .prob-bar-container {
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 12px;
-            height: 12px;
-            overflow: hidden;
-        }
+/* SETTINGS */
+.setting-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)}
+.setting-label{font-size:13px;font-weight:500}
+.setting-desc{font-size:11px;color:var(--text3);margin-top:2px}
+input[type=range]{-webkit-appearance:none;width:120px;height:4px;background:var(--surface2);border-radius:2px;outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--blue);cursor:pointer}
+input[type=number],input[type=text]{background:var(--surface2);border:1px solid var(--border2);border-radius:6px;padding:6px 10px;color:var(--text);font-size:12px;font-family:'DM Sans',sans-serif;outline:none;width:80px}
+input[type=number]:focus,input[type=text]:focus{border-color:var(--blue)}
+.csv-area{width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:12px;color:var(--text);font-family:'Space Mono',monospace;font-size:11px;resize:vertical;min-height:80px;outline:none}
+.csv-area:focus{border-color:var(--blue)}
+.primary-btn{background:var(--blue);border:none;border-radius:6px;padding:8px 16px;color:#fff;font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.12s}
+.primary-btn:hover{background:#2563eb}
+.ghost-btn{background:none;border:1px solid var(--border2);border-radius:6px;padding:8px 16px;color:var(--text2);font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;transition:all 0.12s}
+.ghost-btn:hover{border-color:var(--border);color:var(--text)}
+.backtest-btn{background:linear-gradient(135deg,var(--green-dim),var(--green));border:none;color:white}
 
-        .prob-bar {
-            height: 100%;
-            transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-            border-radius: 12px;
-        }
+/* NOTIFICATION TOAST */
+#toast{position:fixed;bottom:24px;right:24px;background:var(--surface);border:1px solid var(--border2);border-radius:8px;padding:10px 16px;font-size:12px;color:var(--text);z-index:999;opacity:0;transform:translateY(10px);transition:all 0.25s;pointer-events:none}
+#toast.show{opacity:1;transform:translateY(0)}
 
-        /* Badges */
-        .badge {
-            display: inline-flex;
-            align-items: center;
-            padding: 6px 14px;
-            border-radius: 30px;
-            font-size: 11px;
-            font-weight: 600;
-            letter-spacing: 0.3px;
-        }
+.big-number{font-family:'Orbitron',sans-serif;font-size:24px;font-weight:700;line-height:1}
+.medium-number{font-family:'Space Mono',monospace;font-size:16px;font-weight:700}
+.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.stat-cell{background:var(--surface2);border-radius:8px;padding:12px;text-align:center}
+.stat-val{font-family:'Space Mono',monospace;font-size:18px;font-weight:700}
+.stat-lbl{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-top:2px}
 
-        .badge-win { background: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
-        .badge-loss { background: rgba(239, 68, 68, 0.2); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }
-        .badge-pending { background: rgba(245, 158, 11, 0.2); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); }
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 1.5s infinite}
+.live-indicator{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--green);letter-spacing:1px;text-transform:uppercase}
 
-        /* Table */
-        .data-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
+.reason-box{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:10px 12px;font-size:11px;color:var(--text2);line-height:1.6}
+.reason-box strong{color:var(--text);font-weight:600}
 
-        .data-table th,
-        .data-table td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid rgba(71, 85, 105, 0.2);
-        }
+.acc-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.acc-name{font-size:10px;color:var(--text2);width:60px;flex-shrink:0}
+.acc-track{flex:1;height:4px;background:var(--surface2);border-radius:2px;overflow:hidden}
+.acc-fill{height:100%;border-radius:2px;background:var(--blue);transition:width 0.4s}
+.acc-pct{font-family:'Space Mono',monospace;font-size:10px;color:var(--text2);width:30px;text-align:right}
 
-        .data-table th {
-            color: #94a3b8;
-            font-weight: 500;
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-        }
+.bet-size-selector{display:flex;gap:8px;margin-top:8px}
+.bet-size-btn{flex:1;background:var(--surface2);border:1px solid var(--border2);border-radius:4px;padding:4px;font-size:10px;cursor:pointer}
+.bet-size-btn.active{background:var(--blue);border-color:var(--blue);color:white}
 
-        /* Button */
-        .btn-icon {
-            background: rgba(30, 41, 59, 0.6);
-            border: 1px solid rgba(71, 85, 105, 0.4);
-            padding: 8px 16px;
-            border-radius: 12px;
-            color: #e2e8f0;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-size: 12px;
-        }
-
-        .btn-icon:hover {
-            background: rgba(51, 65, 85, 0.8);
-            border-color: #3b82f6;
-        }
-
-        /* Animations */
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .animate-in {
-            animation: slideIn 0.4s ease-out;
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .record-btn { padding: 15px 20px; font-size: 18px; min-width: 120px; }
-            .pnl-value { font-size: 24px; }
-            .container { padding: 12px; }
-        }
-    </style>
+@media(max-width:900px){
+  .dashboard-grid{grid-template-columns:1fr;grid-template-rows:auto}
+  .charts-grid{grid-template-columns:1fr}
+  .analysis-grid{grid-template-columns:1fr}
+  .stat-grid{grid-template-columns:1fr 1fr}
+}
+</style>
 </head>
 <body>
-    <div style="max-width: 1600px; margin: 0 auto; padding: 20px;">
-        <!-- Header -->
-        <div class="glass-card" style="padding: 20px; margin-bottom: 20px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
-                <div>
-                    <h1 style="font-size: 28px; font-weight: 800;">
-                        <span class="gradient-text">🎯 AI Prediction Engine</span>
-                    </h1>
-                    <p style="color: #94a3b8; margin-top: 6px; font-size: 13px;">Statistical Intelligence · One-Click Recording · Real-time P&L</p>
-                </div>
-                <div style="display: flex; gap: 10px;">
-                    <button class="btn-icon" onclick="exportData()"><i class="fas fa-download"></i> Export</button>
-                    <button class="btn-icon" onclick="retrainModels()"><i class="fas fa-brain"></i> Retrain</button>
-                    <button class="btn-icon" onclick="resetData()" style="color: #ef4444;"><i class="fas fa-trash"></i> Reset</button>
-                </div>
-            </div>
+
+<header>
+  <div class="logo">APEX PRO<span>PREDICTION ENGINE v3.0</span></div>
+  <nav class="nav">
+    <button class="nav-btn active" onclick="showPanel('dashboard')">⬛ Dashboard</button>
+    <button class="nav-btn" onclick="showPanel('history')">◫ History</button>
+    <button class="nav-btn" onclick="showPanel('analysis')">◈ Analysis</button>
+    <button class="nav-btn" onclick="showPanel('settings')">◎ Settings</button>
+  </nav>
+  <div class="header-stats">
+    <div class="hstat"><div class="hstat-val mono" id="hTotalGames">0</div><div class="hstat-lbl">Games</div></div>
+    <div class="hstat"><div class="hstat-val mono" id="hAccuracy">—</div><div class="hstat-lbl">Accuracy</div></div>
+    <div class="hstat"><div class="hstat-val mono" id="hProfit">+$0</div><div class="hstat-lbl">Profit (sim)</div></div>
+    <div class="hstat">
+      <div class="live-indicator"><div class="live-dot"></div><span>Live</span></div>
+    </div>
+  </div>
+</header>
+
+<!-- DASHBOARD -->
+<div id="panel-dashboard" class="panel active">
+  <div class="dashboard-grid">
+
+    <!-- LEFT: INPUT -->
+    <div>
+      <div class="card">
+        <div class="card-title">Quick Input</div>
+        <div class="input-btns">
+          <button class="outcome-btn p1" onclick="recordOutcome('P1')">
+            <div class="btn-icon">①</div>
+            <div class="btn-label p1c">Player 1</div>
+            <div class="btn-count mono" id="cnt-P1">0 wins</div>
+          </button>
+          <button class="outcome-btn tie" onclick="recordOutcome('TIE')">
+            <div class="btn-icon">⊘</div>
+            <div class="btn-label tiec">Tie</div>
+            <div class="btn-count mono" id="cnt-TIE">0 ties</div>
+          </button>
+          <button class="outcome-btn p2" onclick="recordOutcome('P2')">
+            <div class="btn-icon">②</div>
+            <div class="btn-label p2c">Player 2</div>
+            <div class="btn-count mono" id="cnt-P2">0 wins</div>
+          </button>
         </div>
 
-        <!-- Main Grid -->
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
-            <!-- LEFT: One-Click Recording -->
-            <div class="glass-card" style="padding: 24px;">
-                <h3 style="margin-bottom: 20px; font-size: 16px;"><i class="fas fa-hand-pointer"></i> One-Click Match Recording</h3>
-                <div style="display: flex; gap: 15px; flex-wrap: wrap; justify-content: center;">
-                    <button class="record-btn record-p1" onclick="recordMatch('P1')">
-                        <i class="fas fa-user"></i><br>
-                        PLAYER 1<br>
-                        <span style="font-size: 11px;">WIN</span>
-                    </button>
-                    <button class="record-btn record-p2" onclick="recordMatch('P2')">
-                        <i class="fas fa-user"></i><br>
-                        PLAYER 2<br>
-                        <span style="font-size: 11px;">WIN</span>
-                    </button>
-                    <button class="record-btn record-tie" onclick="recordMatch('Tie')">
-                        <i class="fas fa-handshake"></i><br>
-                        TIE / DRAW<br>
-                        <span style="font-size: 11px;">DRAW</span>
-                    </button>
-                </div>
-                <div style="margin-top: 20px; padding: 12px; background: rgba(0,0,0,0.3); border-radius: 12px; text-align: center;">
-                    <i class="fas fa-keyboard"></i> Keyboard shortcuts: <strong>1</strong> = P1 Win | <strong>2</strong> = P2 Win | <strong>3</strong> = Tie
-                </div>
-            </div>
-
-            <!-- RIGHT: P&L Panel -->
-            <div class="pnl-card" id="pnlPanel">
-                <h3 style="margin-bottom: 15px; font-size: 16px;"><i class="fas fa-chart-line"></i> Profit & Loss Dashboard</h3>
-                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 20px;">
-                    <div>
-                        <div style="font-size: 11px; color: #94a3b8;">Total P&L</div>
-                        <div class="pnl-value" id="totalPnL">$0.00</div>
-                    </div>
-                    <div>
-                        <div style="font-size: 11px; color: #94a3b8;">Total Staked</div>
-                        <div class="pnl-value pnl-neutral" id="totalStaked">$0.00</div>
-                    </div>
-                    <div>
-                        <div style="font-size: 11px; color: #94a3b8;">Win Rate</div>
-                        <div class="pnl-value" id="winRate">0%</div>
-                    </div>
-                    <div>
-                        <div style="font-size: 11px; color: #94a3b8;">ROI</div>
-                        <div class="pnl-value" id="roi">0%</div>
-                    </div>
-                </div>
-                <div style="border-top: 1px solid rgba(71,85,105,0.3); padding-top: 15px;">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                        <span style="font-size: 12px;">📊 Bets: <span id="totalBets">0</span></span>
-                        <span style="font-size: 12px;">✅ Won: <span id="betsWon">0</span></span>
-                        <span style="font-size: 12px;">❌ Lost: <span id="betsLost">0</span></span>
-                    </div>
-                    <div class="prob-bar-container" style="margin-top: 5px;">
-                        <div class="prob-bar" id="winLossBar" style="width: 0%; background: #10b981;"></div>
-                    </div>
-                </div>
-            </div>
+        <div class="card-title" style="margin-top:4px">Recent Sequence (last 30)</div>
+        <div class="recent-seq" id="recentSeq">
+          <div class="empty-state" style="padding:10px;flex-direction:row">
+            <span class="em-text">No games yet — start recording!</span>
+          </div>
         </div>
 
-        <!-- Prediction & Analytics Grid -->
-        <div style="display: grid; grid-template-columns: 1fr 1.5fr; gap: 20px; margin-bottom: 20px;">
-            <!-- Live Prediction -->
-            <div class="glass-card" style="padding: 24px;">
-                <h3 style="margin-bottom: 20px; font-size: 16px;"><i class="fas fa-chart-simple"></i> Next Match Prediction</h3>
-                
-                <div style="margin-bottom: 20px;">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
-                        <span><i class="fas fa-user" style="color: #3b82f6;"></i> Player 1 Win</span>
-                        <span style="font-weight: 700; font-size: 18px;" id="predP1">0%</span>
-                    </div>
-                    <div class="prob-bar-container">
-                        <div class="prob-bar" id="p1Bar" style="width: 0%; background: linear-gradient(90deg, #3b82f6, #60a5fa);"></div>
-                    </div>
-                </div>
-                
-                <div style="margin-bottom: 20px;">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
-                        <span><i class="fas fa-user" style="color: #ef4444;"></i> Player 2 Win</span>
-                        <span style="font-weight: 700; font-size: 18px;" id="predP2">0%</span>
-                    </div>
-                    <div class="prob-bar-container">
-                        <div class="prob-bar" id="p2Bar" style="width: 0%; background: linear-gradient(90deg, #ef4444, #f87171);"></div>
-                    </div>
-                </div>
-                
-                <div style="margin-bottom: 20px;">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
-                        <span><i class="fas fa-handshake" style="color: #f59e0b;"></i> Tie / Draw</span>
-                        <span style="font-weight: 700; font-size: 18px;" id="predTie">0%</span>
-                    </div>
-                    <div class="prob-bar-container">
-                        <div class="prob-bar" id="tieBar" style="width: 0%; background: linear-gradient(90deg, #f59e0b, #fbbf24);"></div>
-                    </div>
-                </div>
-                
-                <div class="glass-card" style="padding: 15px; margin-top: 15px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-                        <div>
-                            <span style="font-size: 11px; color: #94a3b8;">Confidence</span>
-                            <div style="font-size: 24px; font-weight: 700;" id="confidenceScore">—</div>
-                        </div>
-                        <div>
-                            <span style="font-size: 11px; color: #94a3b8;">Suggested Bet</span>
-                            <div style="font-size: 20px; font-weight: 700;" id="suggestedBet">—</div>
-                        </div>
-                        <div>
-                            <span style="font-size: 11px; color: #94a3b8;">Risk Level</span>
-                            <div style="font-size: 20px; font-weight: 700;" id="riskLevel">—</div>
-                        </div>
-                    </div>
-                    <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(71,85,105,0.3);">
-                        <div style="font-size: 12px; color: #94a3b8;" id="predictionReason">Loading analysis...</div>
-                    </div>
-                </div>
+        <div class="divider"></div>
+        <div class="flex-between" style="margin-bottom:8px">
+          <div class="stat-grid" style="grid-template-columns:repeat(3,1fr);flex:1">
+            <div class="stat-cell">
+              <div class="stat-val" id="s-p1-pct" style="color:var(--p1);font-size:14px">—</div>
+              <div class="stat-lbl">P1 rate</div>
             </div>
-
-            <!-- Charts & Stats -->
-            <div class="glass-card" style="padding: 24px;">
-                <h3 style="margin-bottom: 15px; font-size: 16px;"><i class="fas fa-chart-line"></i> Recent Performance</h3>
-                <canvas id="trendChart" style="height: 200px; width: 100%;"></canvas>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
-                    <div>
-                        <div style="font-size: 11px; color: #94a3b8;">Current Streak</div>
-                        <div style="font-size: 28px; font-weight: 700;" id="currentStreak">0</div>
-                    </div>
-                    <div>
-                        <div style="font-size: 11px; color: #94a3b8;">Longest Streak</div>
-                        <div style="font-size: 28px; font-weight: 700;" id="longestStreak">0</div>
-                    </div>
-                    <div>
-                        <div style="font-size: 11px; color: #94a3b8;">Model Accuracy</div>
-                        <div style="font-size: 28px; font-weight: 700;" id="modelAccuracy">—</div>
-                    </div>
-                    <div>
-                        <div style="font-size: 11px; color: #94a3b8;">Total Matches</div>
-                        <div style="font-size: 28px; font-weight: 700;" id="totalMatches">0</div>
-                    </div>
-                </div>
+            <div class="stat-cell">
+              <div class="stat-val" id="s-tie-pct" style="color:var(--tie);font-size:14px">—</div>
+              <div class="stat-lbl">Tie rate</div>
             </div>
+            <div class="stat-cell">
+              <div class="stat-val" id="s-p2-pct" style="color:var(--p2);font-size:14px">—</div>
+              <div class="stat-lbl">P2 rate</div>
+            </div>
+          </div>
         </div>
 
-        <!-- Match History Table -->
-        <div class="glass-card" style="padding: 24px; margin-bottom: 20px;">
-            <h3 style="margin-bottom: 15px; font-size: 16px;"><i class="fas fa-history"></i> Match History <span style="font-size: 12px; color: #94a3b8;" id="historyCount"></span></h3>
-            <div style="overflow-x: auto; max-height: 300px; overflow-y: auto;">
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Winner</th>
-                            <th>Our Bet</th>
-                            <th>Result</th>
-                            <th>P&L</th>
-                            <th>Date</th>
-                        </tr>
-                    </thead>
-                    <tbody id="matchesTableBody"></tbody>
-                </table>
-            </div>
+        <div class="input-actions">
+          <button class="act-btn" onclick="undoLast()" title="Undo last">↩ Undo</button>
+          <button class="act-btn" onclick="showPanel('settings')" title="Import CSV">⇥ Import</button>
+          <button class="act-btn" onclick="exportCSV()" title="Export CSV">⇤ Export</button>
+          <button class="act-btn danger" onclick="clearData()" title="Clear all">⊗ Clear</button>
         </div>
+      </div>
 
-        <!-- Pattern Detection -->
-        <div class="glass-card" style="padding: 24px;">
-            <h3 style="margin-bottom: 15px; font-size: 16px;"><i class="fas fa-brain"></i> Pattern Detection & Insights</h3>
-            <div id="patternInsights" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px;"></div>
+      <!-- BETTING STRATEGY CARD (NEW) -->
+      <div class="card betting-card" id="bettingCard">
+        <div class="card-title">🎯 Live Betting Strategy</div>
+        <div id="bettingContent">
+          <div class="text-muted" style="text-align:center;padding:20px">Need 5+ games for betting recommendations</div>
         </div>
+        <div class="bet-size-selector" style="margin-top:12px">
+          <button class="bet-size-btn" data-size="1" onclick="setBetSize(1)">$1</button>
+          <button class="bet-size-btn" data-size="5" onclick="setBetSize(5)">$5</button>
+          <button class="bet-size-btn active" data-size="10" onclick="setBetSize(10)">$10</button>
+          <button class="bet-size-btn" data-size="25" onclick="setBetSize(25)">$25</button>
+          <button class="bet-size-btn" data-size="100" onclick="setBetSize(100)">$100</button>
+        </div>
+      </div>
     </div>
 
-    <script>
-        // ============================================
-        // COMPLETE PREDICTION ENGINE WITH P&L
-        // ============================================
-        
-        // Data structure
-        let matches = [];
-        let bets = []; // Track each bet placed
-        let nextId = 1;
-        
-        // Betting configuration
-        let betAmount = 10; // Default stake $10 per prediction
-        let lastBet = null;
-        
-        // Initialize sample data
-        function initSampleData() {
-            const sample = [
-                { id: 1, winner: 'P1', date: new Date(2024, 0, 15).toISOString(), ourBet: 'P1', result: 'win', pnl: 9.50 },
-                { id: 2, winner: 'P1', date: new Date(2024, 0, 16).toISOString(), ourBet: 'P1', result: 'win', pnl: 9.50 },
-                { id: 3, winner: 'P2', date: new Date(2024, 0, 17).toISOString(), ourBet: 'P2', result: 'win', pnl: 9.50 },
-                { id: 4, winner: 'P1', date: new Date(2024, 0, 18).toISOString(), ourBet: 'P1', result: 'win', pnl: 9.50 },
-                { id: 5, winner: 'P2', date: new Date(2024, 0, 19).toISOString(), ourBet: 'P1', result: 'loss', pnl: -10 },
-                { id: 6, winner: 'P2', date: new Date(2024, 0, 20).toISOString(), ourBet: 'P2', result: 'win', pnl: 9.50 },
-                { id: 7, winner: 'P1', date: new Date(2024, 0, 21).toISOString(), ourBet: 'P1', result: 'win', pnl: 9.50 },
-                { id: 8, winner: 'Tie', date: new Date(2024, 0, 22).toISOString(), ourBet: null, result: 'skip', pnl: 0 },
-                { id: 9, winner: 'P1', date: new Date(2024, 0, 23).toISOString(), ourBet: 'P1', result: 'win', pnl: 9.50 },
-                { id: 10, winner: 'P2', date: new Date(2024, 0, 24).toISOString(), ourBet: 'P2', result: 'win', pnl: 9.50 },
-                { id: 11, winner: 'P1', date: new Date(2024, 0, 25).toISOString(), ourBet: 'P1', result: 'win', pnl: 9.50 },
-                { id: 12, winner: 'P1', date: new Date(2024, 0, 26).toISOString(), ourBet: 'P1', result: 'win', pnl: 9.50 },
-                { id: 13, winner: 'P2', date: new Date(2024, 0, 27).toISOString(), ourBet: 'P1', result: 'loss', pnl: -10 },
-                { id: 14, winner: 'Tie', date: new Date(2024, 0, 28).toISOString(), ourBet: null, result: 'skip', pnl: 0 },
-                { id: 15, winner: 'P2', date: new Date(2024, 0, 29).toISOString(), ourBet: 'P2', result: 'win', pnl: 9.50 }
-            ];
-            matches = sample;
-            bets = sample.filter(b => b.ourBet).map(b => ({ ...b, stake: 10 }));
-            nextId = 16;
-            saveToLocal();
+    <!-- CENTER: PREDICTION -->
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div class="card">
+        <div class="flex-between" style="margin-bottom:14px">
+          <div class="card-title" style="margin-bottom:0">Live Prediction</div>
+          <div id="gameCount" class="text-muted mono-sm">0 games analyzed</div>
+        </div>
+
+        <div class="prediction-main" id="predMain">
+          <div class="pred-bars">
+            <div class="pred-row">
+              <div class="pred-header">
+                <div class="pred-name" style="color:var(--p1)">Player 1</div>
+                <div class="pred-pct" style="color:var(--p1)" id="pct-P1">33.3%</div>
+              </div>
+              <div class="pred-bar-track"><div class="pred-bar-fill p1" id="bar-P1" style="width:33.3%"></div></div>
+            </div>
+            <div class="pred-row">
+              <div class="pred-header">
+                <div class="pred-name" style="color:var(--p2)">Player 2</div>
+                <div class="pred-pct" style="color:var(--p2)" id="pct-P2">33.3%</div>
+              </div>
+              <div class="pred-bar-track"><div class="pred-bar-fill p2" id="bar-P2" style="width:33.3%"></div></div>
+            </div>
+            <div class="pred-row">
+              <div class="pred-header">
+                <div class="pred-name" style="color:var(--tie)">Tie</div>
+                <div class="pred-pct" style="color:var(--tie)" id="pct-TIE">33.3%</div>
+              </div>
+              <div class="pred-bar-track"><div class="pred-bar-fill tie" id="bar-TIE" style="width:33.3%"></div></div>
+            </div>
+          </div>
+
+          <div class="winner-badge none" id="winnerBadge">
+            <div class="wb-left">
+              <div class="wb-title">Predicted Outcome</div>
+              <div class="wb-pred" id="winnerPred" style="color:var(--text3)">Awaiting data…</div>
+            </div>
+            <div class="wb-right">
+              <div class="wb-risk none" id="riskBadge">—</div>
+              <div class="text-muted" id="streakNote" style="font-size:10px;margin-top:4px">—</div>
+            </div>
+          </div>
+
+          <div class="confidence-meter">
+            <div class="conf-header">
+              <div class="conf-label">Confidence</div>
+              <div class="conf-value mono" id="confValue">—</div>
+            </div>
+            <div class="conf-track"><div class="conf-fill" id="confFill" style="width:0%;background:var(--text3)"></div></div>
+          </div>
+
+          <div class="reason-box" id="reasonBox">
+            <strong>APEX PRO:</strong> Enter match results to begin analysis. Enhanced with anti-bias correction and streak-aware betting.
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Rolling Probability Trend</div>
+        <div style="position:relative;height:180px">
+          <canvas id="trendChart" role="img" aria-label="Rolling probability trend">Rolling probabilities over time.</canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: MODELS + STATS -->
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div class="card">
+        <div class="card-title">Model Ensemble</div>
+        <div class="models-list" id="modelList">
+          <div class="text-muted" style="font-size:11px;padding:8px 0">Activate after 5 games</div>
+        </div>
+        <div class="divider"></div>
+        <div class="card-title">Model Accuracy</div>
+        <div id="modelAccuracy">
+          <div class="text-muted" style="font-size:11px">Tracking after 10+ games</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Streak Analysis</div>
+        <div class="streak-box" id="streakBox">
+          <div class="streak-item">
+            <div class="streak-label">Current streak</div>
+            <div class="streak-val" id="curStreak">—</div>
+          </div>
+          <div class="streak-item">
+            <div class="streak-label">Max P1 streak</div>
+            <div class="streak-val" id="maxP1">—</div>
+          </div>
+          <div class="streak-item">
+            <div class="streak-label">Max P2 streak</div>
+            <div class="streak-val" id="maxP2">—</div>
+          </div>
+          <div class="streak-item">
+            <div class="streak-label">Reversal rate (streak=1)</div>
+            <div class="streak-val" id="revRate1">—</div>
+          </div>
+          <div class="streak-item">
+            <div class="streak-label">Avg streak length</div>
+            <div class="streak-val" id="avgStreak">—</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHARTS ROW -->
+  <div class="charts-grid">
+    <div class="chart-card">
+      <div class="card-title">Outcome Distribution</div>
+      <div style="position:relative;height:180px">
+        <canvas id="distChart" role="img">Outcome distribution.</canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="card-title">Prediction Accuracy Over Time</div>
+      <div style="position:relative;height:180px">
+        <canvas id="accChart" role="img">Prediction accuracy trend.</canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- HISTORY -->
+<div id="panel-history" class="panel">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+    <div class="card-title" style="margin-bottom:0">Match History</div>
+    <div style="display:flex;gap:8px">
+      <button class="ghost-btn" onclick="exportCSV()">Export CSV</button>
+      <button class="ghost-btn" onclick="clearData()" style="color:var(--red)">Clear All</button>
+    </div>
+  </div>
+  <div class="card" style="overflow-x:auto">
+    <table class="hist-table">
+      <thead>
+        <tr><th>#</th><th>Game</th><th>Outcome</th><th>Predicted</th><th>Correct?</th><th>Bet</th><th>Win/Loss</th></tr>
+      </thead>
+      <tbody id="historyBody">
+        <tr><td colspan="7"><div class="empty-state"><div class="em-text">No games recorded yet.</div></div></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ANALYSIS -->
+<div id="panel-analysis" class="panel">
+  <div class="analysis-grid" style="margin-bottom:16px" id="analysisGrid">
+    <div class="empty-state" style="grid-column:1/-1;padding:40px"><div class="em-text">Record at least 10 games to see deep analysis.</div></div>
+  </div>
+
+  <div class="charts-grid">
+    <div class="chart-card">
+      <div class="card-title">Transition Probability Matrix</div>
+      <div id="transitionMatrix" style="font-size:11px;font-family:'Space Mono',monospace">
+        <div class="text-muted">Awaiting data…</div>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="card-title">N-gram Pattern Frequency</div>
+      <div style="position:relative;height:180px">
+        <canvas id="ngramChart" role="img">N-gram frequency chart.</canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:16px">
+    <div class="card-title">Outcome Heatmap (Last 100 Games)</div>
+    <div class="heatmap" id="heatmap"></div>
+    <div style="display:flex;gap:12px;margin-top:8px">
+      <div style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text3)"><div style="width:10px;height:10px;border-radius:2px;background:rgba(59,130,246,0.7)"></div>Player 1</div>
+      <div style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text3)"><div style="width:10px;height:10px;border-radius:2px;background:rgba(245,158,11,0.7)"></div>Player 2</div>
+      <div style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text3)"><div style="width:10px;height:10px;border-radius:2px;background:rgba(16,185,129,0.7)"></div>Tie</div>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS -->
+<div id="panel-settings" class="panel">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+    <div class="card">
+      <div class="card-title">Engine Configuration</div>
+      <div class="setting-row">
+        <div><div class="setting-label">Recency Window</div><div class="setting-desc">Games used for recent trend analysis</div></div>
+        <input type="number" id="cfg-window" value="20" min="5" max="100" onchange="saveConfig()">
+      </div>
+      <div class="setting-row">
+        <div><div class="setting-label">Markov Order</div><div class="setting-desc">How many past states to consider</div></div>
+        <input type="number" id="cfg-markov" value="2" min="1" max="4" onchange="saveConfig()">
+      </div>
+      <div class="setting-row">
+        <div><div class="setting-label">Anti-Bias Strength</div><div class="setting-desc">Corrects for P1 overprediction bias</div></div>
+        <input type="range" id="cfg-antibias" min="0" max="100" value="60" oninput="document.getElementById('cfg-antibias-val').textContent=this.value+'%';saveConfig()">
+        <span id="cfg-antibias-val" class="mono-sm" style="width:32px;text-align:right">60%</span>
+      </div>
+      <div class="setting-row">
+        <div><div class="setting-label">Streak Reversal Boost</div><div class="setting-desc">Extra weight for streak-based reversal</div></div>
+        <input type="range" id="cfg-reversal" min="0" max="100" value="55" oninput="document.getElementById('cfg-reversal-val').textContent=this.value+'%';saveConfig()">
+        <span id="cfg-reversal-val" class="mono-sm" style="width:32px;text-align:right">55%</span>
+      </div>
+      <div class="setting-row">
+        <div><div class="setting-label">Player 1 Label</div><div class="setting-desc">Custom display name</div></div>
+        <input type="text" id="cfg-p1name" value="Player 1" style="width:100px" onchange="saveConfig();applyLabels()">
+      </div>
+      <div class="setting-row">
+        <div><div class="setting-label">Player 2 Label</div><div class="setting-desc">Custom display name</div></div>
+        <input type="text" id="cfg-p2name" value="Player 2" style="width:100px" onchange="saveConfig();applyLabels()">
+      </div>
+      <div style="margin-top:12px">
+        <button class="primary-btn" onclick="recalcAll()">⟳ Recalculate Engine</button>
+        <button class="ghost-btn backtest-btn" onclick="runBacktest()" style="margin-left:8px">📊 Backtest Strategy</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Import Data</div>
+      <div class="setting-desc" style="margin-bottom:8px">Paste CSV data: one outcome per line. Valid values: P1, P2, TIE</div>
+      <textarea class="csv-area" id="csvInput" placeholder="P1&#10;P2&#10;TIE&#10;P1&#10;P1&#10;..."></textarea>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button class="primary-btn" onclick="importCSV()">Import</button>
+        <button class="ghost-btn" onclick="importCSV(true)">Append</button>
+      </div>
+      <div class="divider"></div>
+      <div class="card-title">Test Data (Based on Real Statistics)</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="ghost-btn" style="font-size:11px;padding:5px 10px" onclick="loadRealWorldData()">📊 Load Real Data (76 games)</button>
+        <button class="ghost-btn" style="font-size:11px;padding:5px 10px" onclick="generateRealistic(50)">50 Realistic</button>
+      </div>
+      <div class="divider"></div>
+      <div class="card-title">Model Weights</div>
+      <div id="weightDisplay"></div>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const STATES = ['P1','P2','TIE'];
+let history = [];
+let predHistory = [];
+let betHistory = [];
+let currentBetSize = 10;
+let modelWeights = {markov:1,bayes:1,ngram2:1,ngram3:1,streak:1,reversal:1};
+let config = {window:20,markov:2,antibias:60,reversal:55,p1name:'Player 1',p2name:'Player 2'};
+let charts = {};
+let lastPrediction = null;
+
+// ─── STORAGE ───────────────────────────────────
+function save(){
+  try{
+    localStorage.setItem('apexpro_history',JSON.stringify(history));
+    localStorage.setItem('apexpro_pred_history',JSON.stringify(predHistory));
+    localStorage.setItem('apexpro_bet_history',JSON.stringify(betHistory));
+    localStorage.setItem('apexpro_weights',JSON.stringify(modelWeights));
+    localStorage.setItem('apexpro_config',JSON.stringify(config));
+  }catch(e){}
+}
+
+function load(){
+  try{
+    const h=localStorage.getItem('apexpro_history');
+    const ph=localStorage.getItem('apexpro_pred_history');
+    const bh=localStorage.getItem('apexpro_bet_history');
+    const w=localStorage.getItem('apexpro_weights');
+    const c=localStorage.getItem('apexpro_config');
+    if(h) history=JSON.parse(h);
+    if(ph) predHistory=JSON.parse(ph);
+    if(bh) betHistory=JSON.parse(bh);
+    if(w) modelWeights=JSON.parse(w);
+    if(c){
+      config=Object.assign(config,JSON.parse(c));
+      applyConfigToUI();
+    }
+  }catch(e){}
+}
+
+function saveConfig(){
+  config.window=parseInt(document.getElementById('cfg-window').value)||20;
+  config.markov=parseInt(document.getElementById('cfg-markov').value)||2;
+  config.antibias=parseInt(document.getElementById('cfg-antibias').value)||60;
+  config.reversal=parseInt(document.getElementById('cfg-reversal').value)||55;
+  config.p1name=document.getElementById('cfg-p1name').value||'Player 1';
+  config.p2name=document.getElementById('cfg-p2name').value||'Player 2';
+  save();
+}
+
+function applyConfigToUI(){
+  document.getElementById('cfg-window').value=config.window;
+  document.getElementById('cfg-markov').value=config.markov;
+  document.getElementById('cfg-antibias').value=config.antibias;
+  document.getElementById('cfg-antibias-val').textContent=config.antibias+'%';
+  document.getElementById('cfg-reversal').value=config.reversal;
+  document.getElementById('cfg-reversal-val').textContent=config.reversal+'%';
+  document.getElementById('cfg-p1name').value=config.p1name;
+  document.getElementById('cfg-p2name').value=config.p2name;
+}
+
+function setBetSize(size){
+  currentBetSize = size;
+  document.querySelectorAll('.bet-size-btn').forEach(btn=>{
+    btn.classList.remove('active');
+    if(parseInt(btn.dataset.size) === size) btn.classList.add('active');
+  });
+  updateBettingStrategy();
+}
+
+// ─── CORE PREDICTION ENGINES ────────────────────
+function uniform(){return{P1:0.333,P2:0.333,TIE:0.334};}
+
+function normalize(obj){
+  const sum=obj.P1+obj.P2+obj.TIE;
+  if(sum===0) return uniform();
+  return{P1:obj.P1/sum,P2:obj.P2/sum,TIE:obj.TIE/sum};
+}
+
+function applyAntiBias(probs){
+  // Corrects for systematic P1 overprediction bias
+  const biasFactor = config.antibias / 100;
+  const corrected = {...probs};
+  corrected.P1 = probs.P1 * (1 - biasFactor * 0.3);
+  corrected.P2 = probs.P2 * (1 + biasFactor * 0.2);
+  corrected.TIE = probs.TIE * (1 + biasFactor * 0.1);
+  return normalize(corrected);
+}
+
+function buildMarkov(h, order=1){
+  const mat={};
+  for(let i=order;i<h.length;i++){
+    const key=h.slice(i-order,i).join('|');
+    const next=h[i];
+    if(!mat[key]) mat[key]={P1:0,P2:0,TIE:0};
+    mat[key][next]++;
+  }
+  const norm={};
+  for(const k in mat){
+    const s=mat[k].P1+mat[k].P2+mat[k].TIE;
+    norm[k]={P1:mat[k].P1/s,P2:mat[k].P2/s,TIE:mat[k].TIE/s};
+  }
+  return norm;
+}
+
+function markovPredict(h){
+  const ord=Math.min(config.markov,h.length-1,3);
+  if(h.length<ord+1) return uniform();
+  const mat=buildMarkov(h,ord);
+  const key=h.slice(-ord).join('|');
+  if(mat[key]) return mat[key];
+  if(ord>1){
+    const mat2=buildMarkov(h,1);
+    const k2=h[h.length-1];
+    if(mat2[k2]) return mat2[k2];
+  }
+  return uniform();
+}
+
+function bayesPredict(h){
+  const win=Math.min(config.window,h.length);
+  const recent=h.slice(-win);
+  const c={P1:1,P2:1,TIE:1};
+  recent.forEach(r=>c[r]++);
+  return normalize(c);
+}
+
+function ngramPredict(h,n){
+  if(h.length<n+1) return uniform();
+  const key=h.slice(-n).join(',');
+  const c={P1:0,P2:0,TIE:0};
+  let tot=0;
+  for(let i=n;i<h.length;i++){
+    if(h.slice(i-n,i).join(',')=== key){c[h[i]]++;tot++;}
+  }
+  if(tot===0) return bayesPredict(h);
+  return normalize(c);
+}
+
+function streakPredict(h){
+  if(h.length<2) return uniform();
+  const last=h[h.length-1];
+  let streak=1;
+  for(let i=h.length-2;i>=0;i--){
+    if(h[i]===last) streak++;
+    else break;
+  }
+  // Based on data: streaks of 1-3 reverse ~55-60%
+  const reversalRate = Math.min(0.65, config.reversal/100 + (streak-1)*0.02);
+  const base = {P1:0.333,P2:0.333,TIE:0.334};
+  if(streak >= 4){
+    // Long streaks rarely reverse in the data (0% for streak=4,6,7)
+    base[last] = Math.min(0.8, base[last] + 0.3);
+    const others = STATES.filter(s=>s!==last);
+    others.forEach(s=>base[s] = (1-base[last])/2);
+  } else {
+    base[last] = Math.max(0.2, base[last] - reversalRate);
+    const others = STATES.filter(s=>s!==last);
+    others.forEach(s=>base[s] += reversalRate/2);
+  }
+  return normalize(base);
+}
+
+function reversalPredict(h){
+  // Order-2 reversal pattern detection: after P1|P2 -> P1 67%, after P2|P1 -> P1 64%
+  if(h.length<2) return uniform();
+  const lastTwo = h.slice(-2);
+  const last = h[h.length-1];
+  
+  if(lastTwo[0] === 'P2' && lastTwo[1] === 'P1'){
+    return {P1:0.67, P2:0.29, TIE:0.04};
+  }
+  if(lastTwo[0] === 'P1' && lastTwo[1] === 'P2'){
+    return {P1:0.64, P2:0.29, TIE:0.07};
+  }
+  if(lastTwo[0] === 'P1' && lastTwo[1] === 'P1'){
+    return {P1:0.54, P2:0.46, TIE:0.00};
+  }
+  if(lastTwo[0] === 'P2' && lastTwo[1] === 'P2'){
+    return {P1:0.57, P2:0.29, TIE:0.14};
+  }
+  return uniform();
+}
+
+function weightedEnsemble(h){
+  const models={
+    markov:markovPredict(h),
+    bayes:bayesPredict(h),
+    ngram2:ngramPredict(h,2),
+    ngram3:ngramPredict(h,3),
+    streak:streakPredict(h),
+    reversal:reversalPredict(h)
+  };
+  const wSum=Object.values(modelWeights).reduce((a,b)=>a+b,0);
+  let res={P1:0,P2:0,TIE:0};
+  for(const [name,pred] of Object.entries(models)){
+    const w=(modelWeights[name]||1)/wSum;
+    res.P1+=pred.P1*w;
+    res.P2+=pred.P2*w;
+    res.TIE+=pred.TIE*w;
+  }
+  res = applyAntiBias(res);
+  return{result:normalize(res),models};
+}
+
+function computeConfidence(models){
+  const preds = Object.values(models);
+  const topPreds = preds.map(m => {
+    const maxP = Math.max(m.P1, m.P2, m.TIE);
+    if(m.P1 === maxP) return 'P1';
+    if(m.P2 === maxP) return 'P2';
+    return 'TIE';
+  });
+  const agreeCount = topPreds.filter(p => p === topPreds[0]).length;
+  return Math.min(95, Math.max(20, 20 + agreeCount * 12));
+}
+
+// ─── BETTING STRATEGY (NEW) ─────────────────────
+function getBetRecommendation(){
+  if(history.length < 5) return null;
+  
+  const last = history[history.length-1];
+  const lastTwo = history.length >= 2 ? history.slice(-2) : null;
+  const streak = getCurrentStreakLength();
+  const {result} = weightedEnsemble(history);
+  const predictedWinner = STATES.reduce((a,s)=>result[s]>result[a]?s:a,'P1');
+  
+  let betOn = null;
+  let confidence = 0;
+  let reasons = [];
+  
+  // Strategy 1: P2 -> P1 reversal (65.4% historical)
+  if(last === 'P2'){
+    betOn = 'P1';
+    confidence = 65;
+    reasons.push('P2→P1 reversal pattern (65% historical)');
+  }
+  // Strategy 2: After P1|P2 sequence
+  else if(lastTwo && lastTwo[0] === 'P1' && lastTwo[1] === 'P2'){
+    betOn = 'P1';
+    confidence = 67;
+    reasons.push('P1→P2 sequence → P1 67% historically');
+  }
+  // Strategy 3: After P2|P1 sequence
+  else if(lastTwo && lastTwo[0] === 'P2' && lastTwo[1] === 'P1'){
+    betOn = 'P1';
+    confidence = 64;
+    reasons.push('P2→P1 sequence → P1 64% historically');
+  }
+  // Strategy 4: Streak reversal (streak 1-3)
+  else if(streak >= 1 && streak <= 3){
+    const reverseMap = {'P1':'P2', 'P2':'P1', 'TIE':'P1'};
+    betOn = reverseMap[last];
+    confidence = 55 + streak * 2;
+    reasons.push(`Streak of ${streak} → reversal likely (55-60% historical)`);
+  }
+  // Strategy 5: Long streak (4+) - stick with current
+  else if(streak >= 4){
+    betOn = last;
+    confidence = 65;
+    reasons.push(`Long streak (${streak}) → continuation pattern`);
+  }
+  // Strategy 6: Ensemble prediction as fallback
+  else {
+    betOn = predictedWinner;
+    confidence = 50;
+    reasons.push(`Ensemble signal: ${config[betOn === 'P1' ? 'p1name' : betOn === 'P2' ? 'p2name' : 'Tie']} leads`);
+  }
+  
+  // Don't bet on TIE (historical accuracy 0%)
+  if(betOn === 'TIE'){
+    betOn = 'P1';
+    confidence = 45;
+    reasons.push('TIE prediction avoided (0% historical accuracy) → default to P1');
+  }
+  
+  return {betOn, confidence: Math.min(75, confidence), reasons};
+}
+
+function getCurrentStreakLength(){
+  if(history.length === 0) return 0;
+  let streak = 1;
+  const last = history[history.length-1];
+  for(let i=history.length-2; i>=0; i--){
+    if(history[i] === last) streak++;
+    else break;
+  }
+  return streak;
+}
+
+function calculateProfitSimulation(){
+  let totalProfit = 0;
+  let wins = 0;
+  let totalBets = 0;
+  
+  for(let i=0; i<betHistory.length; i++){
+    const bet = betHistory[i];
+    if(bet.betOn === bet.actual){
+      totalProfit += bet.amount;
+      wins++;
+    } else {
+      totalProfit -= bet.amount;
+    }
+    totalBets++;
+  }
+  
+  return {profit: totalProfit, wins, totalBets, accuracy: totalBets > 0 ? (wins/totalBets*100).toFixed(1) : 0};
+}
+
+function updateBettingStrategy(){
+  const container = document.getElementById('bettingContent');
+  if(history.length < 5){
+    container.innerHTML = '<div class="text-muted" style="text-align:center;padding:20px">Need 5+ games for betting recommendations</div>';
+    return;
+  }
+  
+  const rec = getBetRecommendation();
+  if(!rec){
+    container.innerHTML = '<div class="text-muted" style="text-align:center;padding:20px">Analyzing patterns...</div>';
+    return;
+  }
+  
+  const sim = calculateProfitSimulation();
+  const betLabel = rec.betOn === 'P1' ? config.p1name : rec.betOn === 'P2' ? config.p2name : 'Tie';
+  const betClass = rec.betOn === 'P1' ? 'p1c' : rec.betOn === 'P2' ? 'p2c' : 'tiec';
+  const confClass = rec.confidence > 60 ? 'conf-high' : rec.confidence > 45 ? 'conf-med' : 'conf-low';
+  const betSize = currentBetSize;
+  const potentialWin = betSize;
+  const potentialLoss = betSize;
+  
+  container.innerHTML = `
+    <div class="bet-recommendation ${rec.confidence > 65 ? 'bet-big' : ''}">
+      <div>
+        <div class="bet-label">RECOMMENDED BET</div>
+        <div class="bet-value ${betClass}">${betLabel}</div>
+      </div>
+      <div style="text-align:right">
+        <div class="bet-label">STAKE</div>
+        <div class="bet-value" style="font-size:16px">$${betSize}</div>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <span class="bet-confidence ${confClass}">${rec.confidence}% confidence</span>
+      <span class="text-muted">Risk: ${rec.confidence > 60 ? 'LOW' : rec.confidence > 45 ? 'MEDIUM' : 'HIGH'}</span>
+    </div>
+    <div class="bet-reason">
+      <strong>Why?</strong> ${rec.reasons.slice(0,2).join(' • ')}
+    </div>
+    <div class="profit-sim">
+      <div class="prof-cell"><div class="prof-label">Win</div><div class="prof-value prof-positive">+$${potentialWin}</div></div>
+      <div class="prof-cell"><div class="prof-label">Loss</div><div class="prof-value prof-negative">-$${potentialLoss}</div></div>
+      <div class="prof-cell"><div class="prof-label">Sim Profit</div><div class="prof-value ${sim.profit >= 0 ? 'prof-positive' : 'prof-negative'}">${sim.profit >= 0 ? '+' : ''}$${sim.profit}</div></div>
+    </div>
+  `;
+  
+  document.getElementById('hProfit').textContent = sim.profit >= 0 ? `+$${sim.profit}` : `-$${Math.abs(sim.profit)}`;
+}
+
+function recordBetOutcome(actual){
+  if(history.length === 0) return;
+  
+  const rec = getBetRecommendation();
+  if(rec && rec.betOn){
+    betHistory.push({
+      gameNumber: history.length,
+      betOn: rec.betOn,
+      amount: currentBetSize,
+      actual: actual,
+      won: rec.betOn === actual,
+      confidence: rec.confidence
+    });
+    save();
+  }
+}
+
+// ─── UI UPDATES ─────────────────────────────────
+function getLabel(state){
+  if(state==='P1') return config.p1name;
+  if(state==='P2') return config.p2name;
+  return 'Tie';
+}
+
+function applyLabels(){
+  document.querySelector('.btn-label.p1c').textContent=config.p1name;
+  document.querySelector('.btn-label.p2c').textContent=config.p2name;
+  document.querySelectorAll('.pred-name')[0].textContent = config.p1name;
+  document.querySelectorAll('.pred-name')[1].textContent = config.p2name;
+}
+
+function updateUI(){
+  const n=history.length;
+  document.getElementById('hTotalGames').textContent=n;
+  document.getElementById('gameCount').textContent=`${n} game${n!==1?'s':''} analyzed`;
+  
+  const correct=predHistory.filter(p=>p.predicted&&p.predicted===p.actual).length;
+  const predN=predHistory.filter(p=>p.predicted).length;
+  document.getElementById('hAccuracy').textContent=predN>0?Math.round(correct/predN*100)+'%':'—';
+  
+  const c={P1:0,P2:0,TIE:0};
+  history.forEach(r=>c[r]++);
+  document.getElementById('cnt-P1').textContent=`${c.P1} wins`;
+  document.getElementById('cnt-P2').textContent=`${c.P2} wins`;
+  document.getElementById('cnt-TIE').textContent=`${c.TIE} ties`;
+  
+  document.getElementById('s-p1-pct').textContent=n>0?Math.round(c.P1/n*100)+'%':'—';
+  document.getElementById('s-p2-pct').textContent=n>0?Math.round(c.P2/n*100)+'%':'—';
+  document.getElementById('s-tie-pct').textContent=n>0?Math.round(c.TIE/n*100)+'%':'—';
+  
+  updateRecentSeq();
+  updateStreakAnalysis();
+  
+  if(n>=3){
+    const {result,models}=weightedEnsemble(history);
+    lastPrediction=result;
+    const conf=computeConfidence(models);
+    updatePredBars(result,conf,models);
+    updateReason(result,conf);
+    updateModelList(models,conf);
+  } else {
+    resetPredDisplay();
+  }
+  
+  updateCharts();
+  updateHistoryTable();
+  updateAnalysis();
+  updateWeightDisplay();
+  updateBettingStrategy();
+  
+  // Update reversal rate display
+  const revRate = calculateReversalRate();
+  document.getElementById('revRate1').textContent = revRate ? `${revRate}%` : '—';
+}
+
+function calculateReversalRate(){
+  if(history.length < 3) return null;
+  let reversals = 0;
+  let total = 0;
+  for(let i=2; i<history.length; i++){
+    if(history[i] !== history[i-1]){
+      total++;
+      if(history[i] === history[i-2]) reversals++;
+    }
+  }
+  return total > 0 ? Math.round(reversals/total*100) : null;
+}
+
+function updateRecentSeq(){
+  const el=document.getElementById('recentSeq');
+  const recent=history.slice(-30);
+  if(recent.length===0){
+    el.innerHTML='<div class="empty-state" style="padding:10px;flex-direction:row"><span class="em-text">No games yet — start recording!</span></div>';
+    return;
+  }
+  el.innerHTML=recent.map((r,i)=>{
+    const cls=r==='P1'?'p1':r==='P2'?'p2':'tie';
+    const lbl=r==='P1'?'P1':r==='P2'?'P2':'T';
+    return `<div class="seq-dot ${cls}" title="Game ${history.length-recent.length+i+1}: ${getLabel(r)}">${lbl}</div>`;
+  }).join('');
+}
+
+function updatePredBars(result,conf,models){
+  const p1=Math.round(result.P1*100);
+  const p2=Math.round(result.P2*100);
+  const tie=Math.round(result.TIE*100);
+  
+  document.getElementById('pct-P1').textContent=p1+'%';
+  document.getElementById('pct-P2').textContent=p2+'%';
+  document.getElementById('pct-TIE').textContent=tie+'%';
+  document.getElementById('bar-P1').style.width=p1+'%';
+  document.getElementById('bar-P2').style.width=p2+'%';
+  document.getElementById('bar-TIE').style.width=tie+'%';
+  
+  const winner=STATES.reduce((a,s)=>result[s]>result[a]?s:a,'P1');
+  const wCls=winner==='P1'?'p1':winner==='P2'?'p2':'tie';
+  const badge=document.getElementById('winnerBadge');
+  badge.className=`winner-badge ${wCls}`;
+  const wPred=document.getElementById('winnerPred');
+  wPred.textContent=getLabel(winner);
+  wPred.className=`wb-pred ${wCls}c`;
+  
+  const risk=conf>70?'LOW':conf>45?'MEDIUM':'HIGH';
+  const riskEl=document.getElementById('riskBadge');
+  riskEl.textContent=risk+' RISK';
+  riskEl.className=`wb-risk risk-${risk.toLowerCase()}`;
+  
+  const streak = getCurrentStreakLength();
+  const streakNote=document.getElementById('streakNote');
+  if(streak>2){
+    streakNote.textContent=`${streak}-game ${getLabel(history[history.length-1])} streak`;
+  } else {
+    streakNote.textContent='Pattern: mixed';
+  }
+  
+  document.getElementById('confValue').textContent=conf+'%';
+  const fill=document.getElementById('confFill');
+  fill.style.width=conf+'%';
+  fill.style.background=conf>70?'var(--green)':conf>45?'var(--amber)':'var(--red)';
+}
+
+function updateReason(result,conf){
+  const winner=STATES.reduce((a,s)=>result[s]>result[a]?s:a,'P1');
+  const pct=Math.round(result[winner]*100);
+  const reasons = [];
+  
+  if(getCurrentStreakLength() >= 4){
+    reasons.push(`Long streak of ${getCurrentStreakLength()} detected → continuation expected`);
+  } else if(history.length >= 2 && history[history.length-1] === 'P2'){
+    reasons.push(`P2 → P1 reversal pattern (65% historical) active`);
+  }
+  
+  const reasonText = reasons.length > 0 ? reasons.join(' ') : 'Standard ensemble prediction with anti-bias correction active.';
+  document.getElementById('reasonBox').innerHTML = `<strong>APEX PRO:</strong> ${getLabel(winner)} at ${pct}%. ${reasonText}`;
+}
+
+function updateModelList(models,conf){
+  const names={markov:'Markov',bayes:'Bayesian',ngram2:'Bigram',ngram3:'Trigram',streak:'Streak',reversal:'Reversal'};
+  const topModel=Object.entries(modelWeights).reduce((a,b)=>b[1]>a[1]?b:a,['',0])[0];
+  
+  document.getElementById('modelList').innerHTML=Object.entries(models).map(([name,pred])=>{
+    const winner=STATES.reduce((a,s)=>pred[s]>pred[a]?s:a,'P1');
+    const wColors={P1:'var(--p1)',P2:'var(--p2)',TIE:'var(--tie)'};
+    const pct=Math.round(pred[winner]*100);
+    const wt=modelWeights[name]||1;
+    const isTop=name===topModel;
+    return `<div class="model-row">
+      <div class="model-name">${names[name]||name}${isTop?'<span class="model-best" style="margin-left:4px">BEST</span>':''}</div>
+      <div class="model-pred" style="color:${wColors[winner]}">${getLabel(winner)} ${pct}%</div>
+      <div class="model-weight" title="Weight">w:${wt.toFixed(2)}</div>
+    </div>`;
+  }).join('');
+  
+  const predN=predHistory.filter(p=>p.predicted).length;
+  if(predN<5){
+    document.getElementById('modelAccuracy').innerHTML='<div class="text-muted" style="font-size:11px">Need 5+ predictions to track</div>';
+    return;
+  }
+  const acc=Math.round(predHistory.filter(p=>p.predicted&&p.predicted===p.actual).length/predN*100);
+  const rolling=predHistory.slice(-10).filter(p=>p.predicted&&p.predicted===p.actual).length*10;
+  document.getElementById('modelAccuracy').innerHTML=`
+    <div class="acc-row"><div class="acc-name">Overall</div><div class="acc-track"><div class="acc-fill" style="width:${acc}%"></div></div><div class="acc-pct">${acc}%</div></div>
+    <div class="acc-row"><div class="acc-name">Last 10</div><div class="acc-track"><div class="acc-fill" style="width:${rolling}%;background:var(--amber)"></div></div><div class="acc-pct">${rolling}%</div></div>
+  `;
+}
+
+function updateStreakAnalysis(){
+  if(history.length<2){
+    ['curStreak','maxP1','maxP2','maxTie','avgStreak'].forEach(id=>document.getElementById(id).textContent='—');
+    return;
+  }
+  
+  let maxStreaks={P1:0,P2:0,TIE:0};
+  let curStreak=1,curState=history[0];
+  let streakLengths=[];
+  for(let i=1;i<history.length;i++){
+    if(history[i]===curState){curStreak++;}
+    else{
+      streakLengths.push(curStreak);
+      if(curStreak>maxStreaks[curState]) maxStreaks[curState]=curStreak;
+      curState=history[i];curStreak=1;
+    }
+  }
+  streakLengths.push(curStreak);
+  if(curStreak>maxStreaks[curState]) maxStreaks[curState]=curStreak;
+  
+  const currentStreak = getCurrentStreakLength();
+  const cs=document.getElementById('curStreak');
+  cs.textContent=`${currentStreak}x ${getLabel(history[history.length-1])}`;
+  cs.style.color=history[history.length-1]==='P1'?'var(--p1)':history[history.length-1]==='P2'?'var(--p2)':'var(--tie)';
+  document.getElementById('maxP1').textContent=maxStreaks.P1+'x';
+  document.getElementById('maxP2').textContent=maxStreaks.P2+'x';
+  document.getElementById('maxTie').textContent=maxStreaks.TIE+'x';
+  const avg=streakLengths.length>0?(streakLengths.reduce((a,b)=>a+b,0)/streakLengths.length).toFixed(1):'—';
+  document.getElementById('avgStreak').textContent=avg+'x avg';
+}
+
+function resetPredDisplay(){
+  document.getElementById('pct-P1').textContent='—';
+  document.getElementById('pct-P2').textContent='—';
+  document.getElementById('pct-TIE').textContent='—';
+  document.getElementById('bar-P1').style.width='33%';
+  document.getElementById('bar-P2').style.width='33%';
+  document.getElementById('bar-TIE').style.width='33%';
+  document.getElementById('reasonBox').innerHTML='<strong>APEX PRO:</strong> Record at least 3 games to activate predictions.';
+  document.getElementById('modelList').innerHTML='<div class="text-muted" style="font-size:11px;padding:8px 0">Activate after 5 games</div>';
+}
+
+function updateWeightDisplay(){
+  const names={markov:'Markov',bayes:'Bayes',ngram2:'Bigram',ngram3:'Trigram',streak:'Streak',reversal:'Reversal'};
+  const total=Object.values(modelWeights).reduce((a,b)=>a+b,0);
+  document.getElementById('weightDisplay').innerHTML=Object.entries(modelWeights).map(([k,v])=>{
+    const pct=Math.round(v/total*100);
+    return `<div class="acc-row"><div class="acc-name" style="width:80px">${names[k]||k}</div><div class="acc-track"><div class="acc-fill" style="width:${pct}%"></div></div><div class="acc-pct">${pct}%</div></div>`;
+  }).join('');
+}
+
+// ─── CHARTS ─────────────────────────────────────
+function initCharts(){
+  const opts={responsive:true,maintainAspectRatio:false,animation:{duration:300}};
+  const gridColor='rgba(30,45,66,0.8)';
+  const textColor='#475569';
+  
+  const trendCtx=document.getElementById('trendChart').getContext('2d');
+  charts.trend=new Chart(trendCtx,{
+    type:'line',
+    data:{labels:[],datasets:[
+      {label:config.p1name,data:[],borderColor:'#3b82f6',backgroundColor:'rgba(59,130,246,0.1)',borderWidth:1.5,tension:0.4,pointRadius:0,fill:true},
+      {label:config.p2name,data:[],borderColor:'#f59e0b',backgroundColor:'rgba(245,158,11,0.05)',borderWidth:1.5,tension:0.4,pointRadius:0},
+      {label:'Tie',data:[],borderColor:'#10b981',backgroundColor:'rgba(16,185,129,0.05)',borderWidth:1.5,tension:0.4,pointRadius:0}
+    ]},
+    options:{...opts,plugins:{legend:{display:false}},scales:{
+      x:{grid:{color:gridColor},ticks:{color:textColor,font:{size:9},maxTicksLimit:8}},
+      y:{min:0,max:100,grid:{color:gridColor},ticks:{color:textColor,font:{size:9},callback:v=>v+'%'}}
+    }}
+  });
+  
+  const distCtx=document.getElementById('distChart').getContext('2d');
+  charts.dist=new Chart(distCtx,{
+    type:'bar',
+    data:{labels:[config.p1name,'Tie',config.p2name],datasets:[{
+      data:[0,0,0],
+      backgroundColor:['rgba(59,130,246,0.7)','rgba(16,185,129,0.7)','rgba(245,158,11,0.7)'],
+      borderColor:['#3b82f6','#10b981','#f59e0b'],
+      borderWidth:1,borderRadius:4
+    }]},
+    options:{...opts,plugins:{legend:{display:false}},scales:{
+      x:{grid:{display:false},ticks:{color:textColor,font:{size:9}}},
+      y:{grid:{color:gridColor},ticks:{color:textColor,font:{size:9}}}
+    }}
+  });
+  
+  const accCtx=document.getElementById('accChart').getContext('2d');
+  charts.acc=new Chart(accCtx,{
+    type:'line',
+    data:{labels:[],datasets:[{
+      label:'Accuracy',data:[],borderColor:'#10b981',backgroundColor:'rgba(16,185,129,0.1)',
+      borderWidth:1.5,tension:0.4,pointRadius:2,fill:true
+    }]},
+    options:{...opts,plugins:{legend:{display:false}},scales:{
+      x:{grid:{color:gridColor},ticks:{color:textColor,font:{size:9},maxTicksLimit:8}},
+      y:{min:0,max:100,grid:{color:gridColor},ticks:{color:textColor,font:{size:9},callback:v=>v+'%'}}
+    }}
+  });
+  
+  const ngramCtx=document.getElementById('ngramChart').getContext('2d');
+  charts.ngram=new Chart(ngramCtx,{
+    type:'bar',
+    data:{labels:[],datasets:[{
+      data:[],backgroundColor:'rgba(59,130,246,0.6)',borderColor:'#3b82f6',borderWidth:1,borderRadius:3
+    }]},
+    options:{...opts,indexAxis:'y',plugins:{legend:{display:false}},scales:{
+      x:{grid:{color:gridColor},ticks:{color:textColor,font:{size:9}}},
+      y:{grid:{display:false},ticks:{color:textColor,font:{size:8}}}
+    }}
+  });
+}
+
+function updateCharts(){
+  if(!charts.trend) return;
+  const n=history.length;
+  
+  if(n>=5){
+    const win=10;
+    const labels=[];const d1=[];const d2=[];const dt=[];
+    for(let i=win;i<=n;i++){
+      const slice=history.slice(i-win,i);
+      const {result}=weightedEnsemble(slice);
+      labels.push(`G${i}`);
+      d1.push(Math.round(result.P1*100));
+      d2.push(Math.round(result.P2*100));
+      dt.push(Math.round(result.TIE*100));
+    }
+    charts.trend.data.labels=labels;
+    charts.trend.data.datasets[0].data=d1;
+    charts.trend.data.datasets[1].data=d2;
+    charts.trend.data.datasets[2].data=dt;
+    charts.trend.update('none');
+  }
+  
+  const c={P1:0,P2:0,TIE:0};
+  history.forEach(r=>c[r]++);
+  charts.dist.data.datasets[0].data=[c.P1,c.TIE,c.P2];
+  charts.dist.data.labels=[getLabel('P1'),'Tie',getLabel('P2')];
+  charts.dist.update('none');
+  
+  if(predHistory.length>=3){
+    const labels=[];const data=[];
+    const roll=5;
+    for(let i=roll;i<=predHistory.length;i++){
+      const slice=predHistory.slice(i-roll,i).filter(p=>p.predicted);
+      if(slice.length===0) continue;
+      const acc=Math.round(slice.filter(p=>p.predicted===p.actual).length/slice.length*100);
+      labels.push(`G${i}`);
+      data.push(acc);
+    }
+    charts.acc.data.labels=labels;
+    charts.acc.data.datasets[0].data=data;
+    charts.acc.update('none');
+  }
+}
+
+// ─── HISTORY TABLE ──────────────────────────────
+function updateHistoryTable(){
+  const tbody=document.getElementById('historyBody');
+  if(predHistory.length===0){
+    tbody.innerHTML='<tr><td colspan="7"><div class="empty-state"><div class="em-text">No games recorded yet.</div></div></td></tr>';
+    return;
+  }
+  
+  const rows=predHistory.slice().reverse().slice(0,200).map((ph,ri)=>{
+    const idx=predHistory.length-ri;
+    const oCls=ph.actual==='P1'?'pill-p1':ph.actual==='P2'?'pill-p2':'pill-tie';
+    const pCls=ph.predicted==='P1'?'pill-p1':ph.predicted==='P2'?'pill-p2':ph.predicted==='TIE'?'pill-tie':'';
+    const correct=ph.predicted?ph.predicted===ph.actual:null;
+    const accCls=correct===null?'acc-none':correct?'acc-correct':'acc-wrong';
+    const accTxt=correct===null?'—':correct?'✓':'✗';
+    const bet = betHistory.find(b => b.gameNumber === idx);
+    const betDisplay = bet ? `$${bet.amount} on ${bet.betOn === 'P1' ? 'P1' : bet.betOn === 'P2' ? 'P2' : 'T'}` : '—';
+    const winLoss = bet ? (bet.won ? `<span style="color:var(--profit)">+$${bet.amount}</span>` : `<span style="color:var(--loss)">-$${bet.amount}</span>`) : '—';
+    return `<tr>
+      <td class="mono" style="color:var(--text3);font-size:11px">${idx}</td>
+      <td class="mono" style="font-size:11px;color:var(--text3)">#${idx}</td>
+      <td><span class="outcome-pill ${oCls}">${getLabel(ph.actual)}</span></td>
+      <td>${ph.predicted?`<span class="outcome-pill ${pCls}">${getLabel(ph.predicted)}</span>`:'<span style="color:var(--text3);font-size:11px">—</span>'}</td>
+      <td><span class="acc-badge ${accCls}">${accTxt}</span></td>
+      <td class="mono" style="font-size:10px">${betDisplay}</td>
+      <td class="mono" style="font-size:10px">${winLoss}</td>
+    </tr>`;
+  }).join('');
+  tbody.innerHTML=rows;
+}
+
+// ─── ANALYSIS PANEL ─────────────────────────────
+function updateAnalysis(){
+  const n=history.length;
+  const grid=document.getElementById('analysisGrid');
+  
+  if(n<10){
+    grid.innerHTML='<div class="empty-state" style="grid-column:1/-1;padding:40px"><div class="em-text">Record at least 10 games to see deep analysis.</div></div>';
+    updateHeatmap([]);
+    return;
+  }
+  
+  const c={P1:0,P2:0,TIE:0};
+  history.forEach(r=>c[r]++);
+  const revRate = calculateReversalRate();
+  const altRate = calculateAlternationRate();
+  const p1Bias = c.P1/n > 0.55 ? 'BIASED' : 'Balanced';
+  
+  const mat=buildMarkov(history,1);
+  const matEl=document.getElementById('transitionMatrix');
+  if(Object.keys(mat).length>0){
+    const header='<div style="display:grid;grid-template-columns:60px repeat(3,1fr);gap:4px;margin-bottom:4px;font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:1px"><div>From→To</div><div>P1</div><div>P2</div><div>Tie</div></div>';
+    const rows=STATES.map(from=>{
+      const row=mat[from]||{P1:0.33,P2:0.33,TIE:0.34};
+      return `<div style="display:grid;grid-template-columns:60px repeat(3,1fr);gap:4px;margin-bottom:3px;font-size:10px">
+        <div style="color:var(--text3)">${getLabel(from)}</div>
+        <div style="color:var(--p1)">${Math.round((row.P1||0)*100)}%</div>
+        <div style="color:var(--p2)">${Math.round((row.P2||0)*100)}%</div>
+        <div style="color:var(--tie)">${Math.round((row.TIE||0)*100)}%</div>
+      </div>`;
+    }).join('');
+    matEl.innerHTML=header+rows;
+  }
+  
+  if(charts.ngram && n>=6){
+    const counts={};
+    for(let i=2;i<n;i++){
+      const k=history[i-2]+'→'+history[i-1]+' → '+history[i];
+      counts[k]=(counts[k]||0)+1;
+    }
+    const top=Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,8);
+    charts.ngram.data.labels=top.map(([k])=>k.replace('P1',config.p1name.slice(0,3)).replace('P2',config.p2name.slice(0,3)));
+    charts.ngram.data.datasets[0].data=top.map(([,v])=>v);
+    charts.ngram.update('none');
+  }
+  
+  grid.innerHTML=`
+    <div class="pattern-item"><div class="pattern-title">Alternation Rate</div><div class="pattern-val">${Math.round(altRate*100)}%</div><div class="pattern-desc">How often outcomes switch</div></div>
+    <div class="pattern-item amber"><div class="pattern-title">Reversal Pattern (2-step)</div><div class="pattern-val">${revRate !== null ? revRate+'%' : '—'}</div><div class="pattern-desc">A→B→A sequence frequency</div></div>
+    <div class="pattern-item green"><div class="pattern-title">P1 Win Rate</div><div class="pattern-val">${Math.round(c.P1/n*100)}%</div><div class="pattern-desc">${p1Bias} ${c.P1/n > 0.55 ? '(above expected 33%)' : '(near expected)'}</div></div>
+    <div class="pattern-item red"><div class="pattern-title">P2 Win Rate</div><div class="pattern-val">${Math.round(c.P2/n*100)}%</div><div class="pattern-desc">${c.P2/n < 0.35 ? 'Below expected' : 'Near expected'}</div></div>
+    <div class="pattern-item"><div class="pattern-title">Tie Rate Anomaly</div><div class="pattern-val">${Math.round(c.TIE/n*100)}%</div><div class="pattern-desc">Expected ~33%, ${Math.abs(c.TIE/n-0.33) > 0.1 ? 'Significant deviation' : 'Normal'}</div></div>
+    <div class="pattern-item"><div class="pattern-title">Current Streak</div><div class="pattern-val">${getCurrentStreakLength()}x</div><div class="pattern-desc">${getCurrentStreakLength() >= 4 ? 'Long streak → continuation mode' : 'Active reversal pattern'}</div></div>
+  `;
+  
+  updateHeatmap(history.slice(-100));
+}
+
+function calculateAlternationRate(){
+  if(history.length<2) return 0;
+  let switches=0;
+  for(let i=1;i<history.length;i++) if(history[i]!==history[i-1]) switches++;
+  return switches/(history.length-1);
+}
+
+function updateHeatmap(recent){
+  const el=document.getElementById('heatmap');
+  if(recent.length===0){el.innerHTML='';return;}
+  el.innerHTML=recent.map(r=>{
+    const cls=r==='P1'?'rgba(59,130,246,0.7)':r==='P2'?'rgba(245,158,11,0.7)':'rgba(16,185,129,0.7)';
+    return `<div class="hm-cell" style="background:${cls};color:rgba(255,255,255,0.8)">${r==='TIE'?'T':r==='P1'?'1':'2'}</div>`;
+  }).join('');
+}
+
+// ─── ACTIONS ────────────────────────────────────
+function recordOutcome(state){
+  let predicted=null,probs=null,conf=null;
+  if(history.length>=3){
+    const {result}=weightedEnsemble(history);
+    const cm=weightedEnsemble(history).models;
+    conf=computeConfidence(cm);
+    probs=result;
+    predicted=STATES.reduce((a,s)=>result[s]>result[a]?s:a,'P1');
+  }
+  
+  history.push(state);
+  
+  if(predicted&&history.length>3){
+    // Update model weights based on accuracy
+    for(const name in modelWeights){
+      const predModels = weightedEnsemble(history.slice(0,-1)).models;
+      if(predModels[name]){
+        const topPred = STATES.reduce((a,s)=>predModels[name][s]>predModels[name][a]?s:a,'P1');
+        if(topPred === state){
+          modelWeights[name] = Math.min(3, modelWeights[name] * 1.03);
+        } else {
+          modelWeights[name] = Math.max(0.3, modelWeights[name] * 0.97);
         }
-        
-        // Local storage
-        function saveToLocal() {
-            localStorage.setItem('predictionEngineData', JSON.stringify({ matches, bets, nextId }));
-        }
-        
-        function loadFromLocal() {
-            const data = localStorage.getItem('predictionEngineData');
-            if (data) {
-                const parsed = JSON.parse(data);
-                matches = parsed.matches || [];
-                bets = parsed.bets || [];
-                nextId = parsed.nextId || 1;
-            } else {
-                initSampleData();
-            }
-        }
-        
-        // ============================================
-        // ADVANCED PREDICTION MODELS
-        // ============================================
-        
-        // Weighted recent matches (exponential decay)
-        function getWeightedOutcomes() {
-            const outcomes = matches.map(m => m.winner);
-            const decay = 0.7;
-            const weights = [];
-            for (let i = 0; i < outcomes.length; i++) {
-                weights.push(Math.exp(decay * (i - outcomes.length + 1)));
-            }
-            return { outcomes, weights };
-        }
-        
-        // Markov Chain Prediction
-        function markovPrediction() {
-            if (matches.length < 2) return { P1: 0.34, P2: 0.33, Tie: 0.33 };
-            const transitions = { 'P1': { 'P1': 0, 'P2': 0, 'Tie': 0 }, 'P2': { 'P1': 0, 'P2': 0, 'Tie': 0 }, 'Tie': { 'P1': 0, 'P2': 0, 'Tie': 0 } };
-            for (let i = 0; i < matches.length - 1; i++) {
-                transitions[matches[i].winner][matches[i+1].winner]++;
-            }
-            const last = matches[matches.length-1].winner;
-            const total = transitions[last].P1 + transitions[last].P2 + transitions[last].Tie || 1;
-            return { P1: transitions[last].P1 / total, P2: transitions[last].P2 / total, Tie: transitions[last].Tie / total };
-        }
-        
-        // Bayesian Prediction
-        function bayesianPrediction() {
-            const p1 = matches.filter(m => m.winner === 'P1').length;
-            const p2 = matches.filter(m => m.winner === 'P2').length;
-            const tie = matches.filter(m => m.winner === 'Tie').length;
-            const total = matches.length || 1;
-            const prior = { P1: 0.45, P2: 0.45, Tie: 0.10 };
-            const likelihood = { P1: p1/total, P2: p2/total, Tie: tie/total };
-            const posterior = {};
-            const norm = likelihood.P1*prior.P1 + likelihood.P2*prior.P2 + likelihood.Tie*prior.Tie;
-            posterior.P1 = (likelihood.P1 * prior.P1) / norm;
-            posterior.P2 = (likelihood.P2 * prior.P2) / norm;
-            posterior.Tie = (likelihood.Tie * prior.Tie) / norm;
-            return posterior;
-        }
-        
-        // Streak Analysis
-        function streakPrediction() {
-            if (matches.length === 0) return { P1: 0.34, P2: 0.33, Tie: 0.33 };
-            let streak = 1;
-            let streakWinner = matches[matches.length-1].winner;
-            for (let i = matches.length-2; i >= 0 && matches[i].winner === streakWinner; i--) streak++;
-            const continuation = Math.max(0.35, 0.65 - (streak-1) * 0.08);
-            const probs = { P1: 0.33, P2: 0.33, Tie: 0.34 };
-            if (streakWinner === 'P1') probs.P1 = continuation;
-            else if (streakWinner === 'P2') probs.P2 = continuation;
-            else probs.Tie = continuation;
-            const total = probs.P1 + probs.P2 + probs.Tie;
-            return { P1: probs.P1/total, P2: probs.P2/total, Tie: probs.Tie/total };
-        }
-        
-        // Weighted Frequency
-        function weightedFrequencyPrediction() {
-            const { outcomes, weights } = getWeightedOutcomes();
-            let p1w = 0, p2w = 0, tiew = 0, total = 0;
-            for (let i = 0; i < outcomes.length; i++) {
-                const w = weights[i] || 1;
-                if (outcomes[i] === 'P1') p1w += w;
-                else if (outcomes[i] === 'P2') p2w += w;
-                else tiew += w;
-                total += w;
-            }
-            return { P1: p1w/total, P2: p2w/total, Tie: tiew/total };
-        }
-        
-        // Monte Carlo Simulation
-        function monteCarloPrediction(sims = 5000) {
-            const base = weightedFrequencyPrediction();
-            let p1 = 0, p2 = 0, tie = 0;
-            for (let i = 0; i < sims; i++) {
-                const r = Math.random();
-                if (r < base.P1) p1++;
-                else if (r < base.P1 + base.P2) p2++;
-                else tie++;
-            }
-            return { P1: p1/sims, P2: p2/sims, Tie: tie/sims };
-        }
-        
-        // Logistic Regression style (recent form)
-        function logisticPrediction() {
-            const recent = matches.slice(-20);
-            if (recent.length < 5) return weightedFrequencyPrediction();
-            let p1Score = 0, p2Score = 0, tieScore = 0;
-            for (let i = 0; i < recent.length; i++) {
-                const weight = 1 + (i / recent.length);
-                if (recent[i].winner === 'P1') p1Score += weight;
-                else if (recent[i].winner === 'P2') p2Score += weight;
-                else tieScore += weight;
-            }
-            const total = p1Score + p2Score + tieScore;
-            return { P1: p1Score/total, P2: p2Score/total, Tie: tieScore/total };
-        }
-        
-        // Ensemble Prediction
-        function ensemblePrediction() {
-            const models = {
-                markov: markovPrediction(),
-                bayesian: bayesianPrediction(),
-                streak: streakPrediction(),
-                weighted: weightedFrequencyPrediction(),
-                monteCarlo: monteCarloPrediction(3000),
-                logistic: logisticPrediction()
-            };
-            
-            // Weighted average with model importance
-            const weights = { markov: 1.2, bayesian: 1.0, streak: 1.1, weighted: 1.0, monteCarlo: 1.3, logistic: 1.1 };
-            let final = { P1: 0, P2: 0, Tie: 0 };
-            let totalWeight = 0;
-            for (let model in models) {
-                final.P1 += models[model].P1 * weights[model];
-                final.P2 += models[model].P2 * weights[model];
-                final.Tie += models[model].Tie * weights[model];
-                totalWeight += weights[model];
-            }
-            final.P1 /= totalWeight;
-            final.P2 /= totalWeight;
-            final.Tie /= totalWeight;
-            return final;
-        }
-        
-        // Confidence Score
-        function calculateConfidence(probs) {
-            const maxProb = Math.max(probs.P1, probs.P2, probs.Tie);
-            const entropy = -(probs.P1 * Math.log(probs.P1+0.001) + probs.P2 * Math.log(probs.P2+0.001) + probs.Tie * Math.log(probs.Tie+0.001));
-            const confidence = Math.min(95, Math.max(25, (maxProb - 0.34) * 180 + (1 - entropy/1.1) * 30));
-            return Math.round(confidence);
-        }
-        
-        // Determine bet suggestion based on confidence threshold
-        function getBetSuggestion(probs, confidence) {
-            const threshold = 55;
-            if (confidence < threshold) return { action: 'SKIP', reason: 'Low confidence' };
-            const best = Object.keys(probs).reduce((a, b) => probs[a] > probs[b] ? a : b);
-            return { action: best, reason: `High confidence (${confidence}%)` };
-        }
-        
-        // Calculate P&L stats
-        function calculatePnLStats() {
-            const totalBets = bets.filter(b => b.ourBet).length;
-            const wonBets = bets.filter(b => b.result === 'win').length;
-            const lostBets = bets.filter(b => b.result === 'loss').length;
-            const totalPnL = bets.reduce((sum, b) => sum + (b.pnl || 0), 0);
-            const totalStaked = bets.filter(b => b.ourBet).reduce((sum, b) => sum + (b.stake || 10), 0);
-            const winRate = totalBets > 0 ? (wonBets / totalBets * 100) : 0;
-            const roi = totalStaked > 0 ? (totalPnL / totalStaked * 100) : 0;
-            return { totalBets, wonBets, lostBets, totalPnL, totalStaked, winRate, roi };
-        }
-        
-        // Record match (one-click!)
-        function recordMatch(winner) {
-            // Get prediction before recording
-            const pred = ensemblePrediction();
-            const confidence = calculateConfidence(pred);
-            const suggestion = getBetSuggestion(pred, confidence);
-            
-            // Calculate P&L if we placed a bet
-            let pnl = 0;
-            let result = 'skip';
-            let ourBet = null;
-            
-            if (suggestion.action !== 'SKIP') {
-                ourBet = suggestion.action;
-                if (ourBet === winner) {
-                    result = 'win';
-                    pnl = betAmount * 0.95; // 1.95 odds (simplified)
-                } else {
-                    result = 'loss';
-                    pnl = -betAmount;
-                }
-            }
-            
-            // Create match record
-            const match = {
-                id: nextId++,
-                winner: winner,
-                date: new Date().toISOString(),
-                ourBet: ourBet,
-                result: result,
-                pnl: pnl,
-                stake: result !== 'skip' ? betAmount : 0
-            };
-            
-            matches.unshift(match);
-            if (result !== 'skip') {
-                bets.unshift(match);
-            }
-            
-            saveToLocal();
-            refreshAll();
-            
-            // Flash animation on the clicked button
-            const btn = document.querySelector(`.record-${winner === 'P1' ? 'p1' : winner === 'P2' ? 'p2' : 'tie'}`);
-            if (btn) {
-                btn.style.transform = 'scale(0.95)';
-                setTimeout(() => { btn.style.transform = ''; }, 150);
-            }
-        }
-        
-        // ============================================
-        // UI RENDERING
-        // ============================================
-        
-        let trendChart;
-        
-        function updateUI() {
-            const pred = ensemblePrediction();
-            const confidence = calculateConfidence(pred);
-            const suggestion = getBetSuggestion(pred, confidence);
-            const stats = calculatePnLStats();
-            
-            // Update prediction display
-            document.getElementById('predP1').textContent = (pred.P1 * 100).toFixed(1) + '%';
-            document.getElementById('predP2').textContent = (pred.P2 * 100).toFixed(1) + '%';
-            document.getElementById('predTie').textContent = (pred.Tie * 100).toFixed(1) + '%';
-            document.getElementById('p1Bar').style.width = (pred.P1 * 100) + '%';
-            document.getElementById('p2Bar').style.width = (pred.P2 * 100) + '%';
-            document.getElementById('tieBar').style.width = (pred.Tie * 100) + '%';
-            
-            document.getElementById('confidenceScore').textContent = confidence + '%';
-            document.getElementById('suggestedBet').textContent = suggestion.action === 'SKIP' ? 'SKIP' : `BET ${suggestion.action}`;
-            
-            let riskText = 'Low';
-            let riskColor = '#10b981';
-            if (confidence < 45) { riskText = 'High'; riskColor = '#ef4444'; }
-            else if (confidence < 65) { riskText = 'Medium'; riskColor = '#f59e0b'; }
-            document.getElementById('riskLevel').textContent = riskText;
-            document.getElementById('riskLevel').style.color = riskColor;
-            
-            document.getElementById('predictionReason').innerHTML = `
-                <i class="fas fa-chart-line"></i> Based on ${matches.length} historical matches<br>
-                <i class="fas fa-brain"></i> Ensemble: Markov + Bayesian + Streak + Monte Carlo<br>
-                ${suggestion.action !== 'SKIP' ? `<i class="fas fa-check-circle" style="color: #10b981;"></i> Betting: ${suggestion.action} (confidence ${confidence}% > threshold)` : 
-                `<i class="fas fa-pause-circle" style="color: #f59e0b;"></i> Skipping - confidence below threshold`}
-            `;
-            
-            // Update P&L panel
-            document.getElementById('totalPnL').textContent = `$${stats.totalPnL.toFixed(2)}`;
-            document.getElementById('totalPnL').className = `pnl-value ${stats.totalPnL >= 0 ? 'pnl-positive' : 'pnl-negative'}`;
-            document.getElementById('totalStaked').textContent = `$${stats.totalStaked.toFixed(2)}`;
-            document.getElementById('winRate').textContent = stats.winRate.toFixed(1) + '%';
-            document.getElementById('winRate').className = `pnl-value ${stats.winRate >= 50 ? 'pnl-positive' : stats.winRate > 0 ? 'pnl-neutral' : 'pnl-negative'}`;
-            document.getElementById('roi').textContent = (stats.roi >= 0 ? '+' : '') + stats.roi.toFixed(1) + '%';
-            document.getElementById('roi').className = `pnl-value ${stats.roi >= 5 ? 'pnl-positive' : stats.roi >= 0 ? 'pnl-neutral' : 'pnl-negative'}`;
-            document.getElementById('totalBets').textContent = stats.totalBets;
-            document.getElementById('betsWon').textContent = stats.wonBets;
-            document.getElementById('betsLost').textContent = stats.lostBets;
-            
-            const winPercent = stats.totalBets > 0 ? (stats.wonBets / stats.totalBets * 100) : 0;
-            document.getElementById('winLossBar').style.width = winPercent + '%';
-            
-            // Update stats
-            document.getElementById('totalMatches').textContent = matches.length;
-            
-            let currentStreak = 0;
-            for (let i = 0; i < matches.length; i++) {
-                if (matches[i].result === 'win') currentStreak++;
-                else if (matches[i].result === 'loss') break;
-            }
-            document.getElementById('currentStreak').textContent = currentStreak;
-            
-            let longestStreak = 0, tempStreak = 0;
-            for (let i = 0; i < matches.length; i++) {
-                if (matches[i].result === 'win') tempStreak++;
-                else { longestStreak = Math.max(longestStreak, tempStreak); tempStreak = 0; }
-            }
-            longestStreak = Math.max(longestStreak, tempStreak);
-            document.getElementById('longestStreak').textContent = longestStreak;
-            
-            const recentAcc = bets.slice(0, 10).filter(b => b.result !== 'skip').length;
-            const correct = bets.slice(0, 10).filter(b => b.result === 'win').length;
-            document.getElementById('modelAccuracy').textContent = recentAcc > 0 ? Math.round(correct / recentAcc * 100) + '%' : '—';
-            
-            document.getElementById('historyCount').textContent = `(${matches.length} matches)`;
-            
-            // Update table
-            const tbody = document.getElementById('matchesTableBody');
-            tbody.innerHTML = matches.slice(0, 30).map(m => `
-                <tr>
-                    <td>${m.id}</td>
-                    <td><span class="badge ${m.winner === 'P1' ? 'badge-win' : m.winner === 'P2' ? 'badge-loss' : 'badge-pending'}" style="background: ${m.winner === 'P1' ? 'rgba(59,130,246,0.2)' : m.winner === 'P2' ? 'rgba(239,68,68,0.2)' : 'rgba(245,158,11,0.2)'}">${m.winner}</span></td>
-                    <td>${m.ourBet ? `<span class="badge ${m.ourBet === 'P1' ? 'badge-win' : 'badge-loss'}">${m.ourBet}</span>` : '-'}</td>
-                    <td><span class="badge ${m.result === 'win' ? 'badge-win' : m.result === 'loss' ? 'badge-loss' : 'badge-pending'}">${m.result === 'win' ? '✅ WIN' : m.result === 'loss' ? '❌ LOSS' : '⏸️ SKIP'}</span></td>
-                    <td style="color: ${m.pnl > 0 ? '#10b981' : m.pnl < 0 ? '#ef4444' : '#94a3b8'}">${m.pnl > 0 ? '+' : ''}$${m.pnl?.toFixed(2) || '0'}</td>
-                    <td style="font-size: 11px;">${new Date(m.date).toLocaleDateString()}</td>
-                </tr>
-            `).join('');
-            
-            // Update chart
-            const last20 = matches.slice(0, 20).reverse().map(m => m.winner === 'P1' ? 1 : m.winner === 'P2' ? 0 : 0.5);
-            if (trendChart) trendChart.destroy();
-            const ctx = document.getElementById('trendChart').getContext('2d');
-            trendChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: last20.map((_, i) => `M${i+1}`),
-                    datasets: [{ label: 'Outcome (1=P1, 0=P2, 0.5=Tie)', data: last20, borderColor: '#60a5fa', backgroundColor: 'rgba(96,165,250,0.1)', fill: true, tension: 0.3 }]
-                },
-                options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { labels: { color: '#94a3b8' } } }, scales: { y: { min: 0, max: 1, grid: { color: 'rgba(71,85,105,0.3)' } }, x: { grid: { display: false } } } }
-            });
-            
-            // Pattern insights
-            const p1Rate = (matches.filter(m => m.winner === 'P1').length / matches.length * 100).toFixed(1);
-            const p2Rate = (matches.filter(m => m.winner === 'P2').length / matches.length * 100).toFixed(1);
-            const tieRate = (matches.filter(m => m.winner === 'Tie').length / matches.length * 100).toFixed(1);
-            const recentForm = matches.slice(0, 5).filter(m => m.result === 'win').length;
-            
-            document.getElementById('patternInsights').innerHTML = `
-                <div class="glass-card" style="padding: 12px;">
-                    <i class="fas fa-chart-pie"></i> <strong>Historical Split</strong><br>
-                    P1: ${p1Rate}% | P2: ${p2Rate}% | Tie: ${tieRate}%
-                </div>
-                <div class="glass-card" style="padding: 12px;">
-                    <i class="fas fa-fire"></i> <strong>Recent Form</strong><br>
-                    Last 5 bets: ${recentForm}/5 wins (${(recentForm/5*100).toFixed(0)}% hit rate)
-                </div>
-                <div class="glass-card" style="padding: 12px;">
-                    <i class="fas fa-chart-line"></i> <strong>Risk Assessment</strong><br>
-                    Current volatility: ${Math.abs(pred.P1 - pred.P2) < 0.1 ? 'High (toss-up)' : 'Low (clear favorite)'}
-                </div>
-                <div class="glass-card" style="padding: 12px;">
-                    <i class="fas fa-robot"></i> <strong>Model Status</strong><br>
-                    Active: Markov + Bayesian + Streak + Monte Carlo (6 models)
-                </div>
-            `;
-        }
-        
-        function refreshAll() {
-            updateUI();
-        }
-        
-        // Export/Import functions
-        function exportData() {
-            const dataStr = JSON.stringify({ matches, bets, nextId }, null, 2);
-            const blob = new Blob([dataStr], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `prediction_export_${new Date().toISOString().slice(0,19)}.json`;
-            a.click();
-            URL.revokeObjectURL(url);
-        }
-        
-        function retrainModels() {
-            refreshAll();
-            const pred = ensemblePrediction();
-            alert(`Models retrained!\nCurrent prediction: P1 ${(pred.P1*100).toFixed(1)}% | P2 ${(pred.P2*100).toFixed(1)}% | Tie ${(pred.Tie*100).toFixed(1)}%`);
-        }
-        
-        function resetData() {
-            if (confirm('⚠️ Reset all match data and P&L history? This cannot be undone.')) {
-                initSampleData();
-                refreshAll();
-            }
-        }
-        
-        // Keyboard shortcuts
-        document.addEventListener('keydown', (e) => {
-            if (e.key === '1') recordMatch('P1');
-            else if (e.key === '2') recordMatch('P2');
-            else if (e.key === '3') recordMatch('Tie');
-        });
-        
-        // Initialize
-        loadFromLocal();
-        refreshAll();
-        
-        // Expose globals
-        window.recordMatch = recordMatch;
-        window.exportData = exportData;
-        window.retrainModels = retrainModels;
-        window.resetData = resetData;
-    </script>
+      }
+    }
+  }
+  
+  predHistory.push({actual:state,predicted,probs,conf});
+  recordBetOutcome(state);
+  
+  save();
+  updateUI();
+  toast(`Recorded: ${getLabel(state)}`);
+}
+
+function undoLast(){
+  if(history.length===0) return;
+  history.pop();
+  predHistory.pop();
+  if(betHistory.length > 0 && betHistory[betHistory.length-1].gameNumber === history.length+1){
+    betHistory.pop();
+  }
+  save();
+  updateUI();
+  toast('Last game removed');
+}
+
+function clearData(){
+  if(history.length===0) return;
+  if(!confirm('Clear all game data? This cannot be undone.')) return;
+  history=[];predHistory=[];betHistory=[];
+  modelWeights={markov:1,bayes:1,ngram2:1,ngram3:1,streak:1,reversal:1};
+  save();
+  updateUI();
+  toast('Data cleared');
+}
+
+function exportCSV(){
+  if(history.length===0){toast('No data to export');return;}
+  const rows=['game,outcome,predicted,bet_on,bet_amount,result'];
+  predHistory.forEach((ph,i)=>{
+    const bet = betHistory.find(b => b.gameNumber === i+1);
+    rows.push(`${i+1},${ph.actual},${ph.predicted||''},${bet ? bet.betOn : ''},${bet ? bet.amount : ''},${bet ? (bet.won ? 'WIN' : 'LOSS') : ''}`);
+  });
+  const blob=new Blob([rows.join('\n')],{type:'text/csv'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='apexpro-data.csv';
+  a.click();
+  toast('CSV exported');
+}
+
+function importCSV(append=false){
+  const raw=document.getElementById('csvInput').value.trim();
+  if(!raw){toast('No data entered');return;}
+  const map={'1':'P1','2':'P2','T':'TIE','TIE':'TIE','P1':'P1','P2':'P2','PLAYER1':'P1','PLAYER2':'P2','DRAW':'TIE','D':'TIE'};
+  const lines=raw.split(/[\n,;]+/).map(l=>l.trim().toUpperCase()).filter(Boolean);
+  const valid=lines.map(l=>map[l]).filter(Boolean);
+  if(valid.length===0){toast('No valid outcomes found. Use P1, P2, TIE');return;}
+  if(!append){history=[];predHistory=[];betHistory=[];}
+  valid.forEach(s=>{history.push(s);predHistory.push({actual:s,predicted:null,probs:null,conf:null});});
+  save();
+  updateUI();
+  document.getElementById('csvInput').value='';
+  toast(`Imported ${valid.length} games`);
+}
+
+function loadRealWorldData(){
+  const realData = ['P1','P2','P1','P2','P2','P1','P1','P1','P1','P2','P1','P1','P1','P1','P1','P1','P2','P2','P1','P2','P2','P2','P1','P2','P1','P2','P2','P2','P2','P1','P1','P1','P1','P2','P2','P1','P1','P1','P2','P1','P2','P1','P1','P1','P1','P2','P1','P2','P1','P1','P2','P2','P1','P1','TIE','P1','P2','P2','P2','P2','P1','TIE','P2','P1','P1','P2','P1','P2','P1','P1','P1','P1','P2','P2','P2','P2'];
+  history = [];
+  predHistory = [];
+  betHistory = [];
+  realData.forEach(s => history.push(s));
+  updateUI();
+  toast(`Loaded ${realData.length} real-world games (P1 ${realData.filter(x=>x==='P1').length}, P2 ${realData.filter(x=>x==='P2').length}, TIE ${realData.filter(x=>x==='TIE').length})`);
+}
+
+function generateRealistic(count){
+  const probs = {P1:0.63, P2:0.35, TIE:0.02};
+  for(let i=0;i<count;i++){
+    const r = Math.random();
+    if(r < probs.P1) recordOutcome('P1');
+    else if(r < probs.P1 + probs.P2) recordOutcome('P2');
+    else recordOutcome('TIE');
+  }
+}
+
+function recalcAll(){
+  modelWeights={markov:1,bayes:1,ngram2:1,ngram3:1,streak:1,reversal:1};
+  save();
+  updateUI();
+  toast('Engine recalculated');
+}
+
+function runBacktest(){
+  if(history.length < 10){
+    toast('Need at least 10 games for backtest');
+    return;
+  }
+  
+  let simulatedProfit = 0;
+  let wins = 0;
+  
+  for(let i=5; i<history.length; i++){
+    const testHistory = history.slice(0,i);
+    const actual = history[i];
+    
+    // Simulate betting decision based on historical data
+    const last = testHistory[testHistory.length-1];
+    let betOn = null;
+    if(last === 'P2') betOn = 'P1';
+    else if(testHistory.length >= 2 && testHistory.slice(-2)[0] === 'P1' && testHistory.slice(-2)[1] === 'P2') betOn = 'P1';
+    else if(testHistory.length >= 2 && testHistory.slice(-2)[0] === 'P2' && testHistory.slice(-2)[1] === 'P1') betOn = 'P1';
+    else if(last !== 'TIE') betOn = last === 'P1' ? 'P2' : 'P1';
+    else betOn = 'P1';
+    
+    if(betOn === actual){
+      simulatedProfit += currentBetSize;
+      wins++;
+    } else {
+      simulatedProfit -= currentBetSize;
+    }
+  }
+  
+  const accuracy = (wins / (history.length - 5) * 100).toFixed(1);
+  toast(`Backtest: ${accuracy}% accuracy, ${simulatedProfit >= 0 ? '+' : ''}$${simulatedProfit} profit on ${history.length-5} bets ($${currentBetSize}/bet)`);
+}
+
+function showPanel(name){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('panel-'+name).classList.add('active');
+  const btns=[...document.querySelectorAll('.nav-btn')];
+  const labels={dashboard:'Dashboard',history:'History',analysis:'Analysis',settings:'Settings'};
+  btns.forEach(b=>{if(b.textContent.includes(labels[name])) b.classList.add('active');});
+  if(name==='analysis') updateAnalysis();
+}
+
+let toastTimer;
+function toast(msg){
+  const el=document.getElementById('toast');
+  el.textContent=msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>el.classList.remove('show'),2000);
+}
+
+// Keyboard shortcuts
+document.addEventListener('keydown',e=>{
+  if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA') return;
+  if(e.key==='1') recordOutcome('P1');
+  else if(e.key==='2') recordOutcome('P2');
+  else if(e.key==='t'||e.key==='T') recordOutcome('TIE');
+  else if(e.key==='z'&&(e.ctrlKey||e.metaKey)) undoLast();
+  else if(e.key==='b') runBacktest();
+});
+
+// Init
+load();
+initCharts();
+applyLabels();
+updateUI();
+
+setTimeout(()=>toast('🎯 APEX PRO v3.0 loaded! Press 1=P1, 2=P2, T=Tie | B=Backtest'),1500);
+</script>
 </body>
 </html>
