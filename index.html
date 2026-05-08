@@ -1,540 +1,865 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-  <title>Player Prediction Engine | Statistical Match Forecaster</title>
-  <!-- Chart.js CDN for visualizations -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-  <!-- Font Awesome 6 (free icons) -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Player Prediction Engine · BaccaratIQ Architecture</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Bebas+Neue&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#020608;--bg2:#060D14;--bg3:#0A1520;--bg4:#0F1D2C;
+  --P1:#00C8FF;--P1l:#80E8FF;--P1d:#001C28;
+  --P2:#FF9000;--P2l:#FFD090;--P2d:#261300;
+  --T:#8B5CF6;--G:#00E676;--R:#FF3355;
+  --W:#FFB800;--border:#08182A;--border2:#102030;
+  --text:#B8D4E8;--text2:#4E7090;--text3:#28404E;
+  --mono:'JetBrains Mono',monospace;
+  --head:'Bebas Neue',sans-serif;
+}
+html,body{height:100%;overflow:hidden}
+body{background:var(--bg);color:var(--text);font-family:var(--mono);font-size:11px}
+::-webkit-scrollbar{width:2px}::-webkit-scrollbar-thumb{background:var(--border3)}
 
-    body {
-      background: radial-gradient(circle at 10% 20%, #0a0f1e, #03060c);
-      color: #eef2ff;
-      padding: 1.5rem;
-      min-height: 100vh;
-    }
+#top{height:44px;background:var(--bg2);border-bottom:1px solid var(--border2);display:flex;align-items:center;padding:0 12px;gap:0}
+.logo{font-family:var(--head);font-size:19px;color:#fff;letter-spacing:1px}
+.logov{font-size:7px;color:var(--text3);margin-right:14px;padding-top:4px}
+.ts{display:flex;flex-direction:column;padding:0 9px;border-left:1px solid var(--border2)}
+.ts lb{font-size:7px;color:var(--text3);text-transform:uppercase}
+.tv{font-size:11px;font-weight:600}.tv.P1{color:var(--P1l)}.tv.P2{color:var(--P2l)}.tv.w{color:var(--W)}.tv.n{color:var(--text2)}
+.sp{flex:1}
+.bdg{padding:2px 7px;border-radius:2px;font-size:7px;font-weight:700}
+.bdg-live{background:rgba(0,230,118,.1);color:var(--G);border:1px solid rgba(0,230,118,.25)}
+.bdg-P1{background:var(--P1d);color:var(--P1l);border:1px solid var(--P1)}
+.bdg-P2{background:var(--P2d);color:var(--P2l);border:1px solid var(--P2)}
 
-    /* modern glassmorphic container */
-    .app-container {
-      max-width: 1600px;
-      margin: 0 auto;
-    }
+#wrap{display:grid;grid-template-columns:240px 1fr 280px;height:calc(100vh - 44px);overflow:hidden}
+.lp,.rp{overflow-y:auto;background:var(--bg2);border-right:1px solid var(--border2)}
+.rp{border-left:1px solid var(--border2)}
+.sec{border-bottom:1px solid var(--border);padding:9px 11px}
+.sh{font-size:7px;color:var(--text3);text-transform:uppercase;margin-bottom:6px;display:flex;gap:5px}
 
-    /* header */
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      flex-wrap: wrap;
-      margin-bottom: 2rem;
-      border-bottom: 1px solid rgba(72, 187, 255, 0.2);
-      padding-bottom: 1rem;
-    }
-    .title h1 {
-      font-size: 1.8rem;
-      background: linear-gradient(135deg, #c084fc, #60a5fa);
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-      letter-spacing: -0.3px;
-    }
-    .title p {
-      font-size: 0.85rem;
-      color: #94a3b8;
-    }
-    .actions-buttons {
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
-    button, .btn-outline {
-      background: rgba(15, 25, 45, 0.8);
-      backdrop-filter: blur(4px);
-      border: 1px solid #2d3a5e;
-      padding: 0.5rem 1rem;
-      border-radius: 40px;
-      color: #e2e8f0;
-      font-weight: 500;
-      cursor: pointer;
-      transition: 0.2s;
-      font-size: 0.8rem;
-    }
-    button i, .btn-outline i {
-      margin-right: 6px;
-    }
-    button:hover {
-      background: #2d3e6e;
-      border-color: #60a5fa;
-      transform: scale(0.98);
-    }
-    .primary-btn {
-      background: #3b82f6;
-      border-color: #60a5fa;
-      color: white;
-    }
-    .danger-btn {
-      background: #7f1a1a;
-      border-color: #ef4444;
-    }
+.ebtns{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:6px}
+.eb{padding:10px 4px;border-radius:3px;border:1px solid var(--border3);background:var(--bg3);font-family:var(--head);font-size:15px;cursor:pointer;text-align:center}
+.eb:active{transform:scale(.92)}
+.eb.P1{color:var(--P1l)}.eb.P1:hover,.eb.P1.fl{background:var(--P1d);border-color:var(--P1)}
+.eb.P2{color:var(--P2l)}.eb.P2:hover,.eb.P2.fl{background:var(--P2d);border-color:var(--P2)}
+.brow{display:flex;gap:4px;margin-bottom:4px}
+.brow input{flex:1;background:var(--bg3);border:1px solid var(--border3);border-radius:3px;color:var(--text);font-family:var(--mono);font-size:10px;padding:4px 7px}
+.brow button{padding:4px 8px;background:var(--bg4);border:1px solid var(--border3);border-radius:3px;color:var(--text2);cursor:pointer}
+.btnrow{display:flex;gap:4px;margin-top:5px}
+.btn{flex:1;padding:5px;border-radius:3px;border:1px solid var(--border3);background:var(--bg3);color:var(--text3);cursor:pointer;font-size:7px}
+.btn.pri{border-color:rgba(0,230,118,.4);color:var(--G)}
+.btn.dan{border-color:rgba(255,51,85,.3);color:var(--R)}
+.sr{display:flex;align-items:center;gap:5px;margin-bottom:5px}
+.sr label{font-size:7px;color:var(--text3);width:80px}
+.sr input{flex:1;accent-color:var(--G)}
 
-    /* tabs */
-    .tabs {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.25rem;
-      margin-bottom: 2rem;
-      border-bottom: 1px solid #1e293b;
-    }
-    .tab-btn {
-      background: transparent;
-      border: none;
-      border-radius: 0;
-      padding: 0.75rem 1.5rem;
-      font-weight: 600;
-      border-bottom: 2px solid transparent;
-    }
-    .tab-btn.active {
-      border-bottom-color: #3b82f6;
-      color: #3b82f6;
-      background: rgba(59,130,246,0.1);
-    }
+#hl{flex:1;overflow-y:auto;min-height:200px}
+.hi{display:flex;align-items:center;gap:4px;padding:2px;border-bottom:1px solid rgba(8,24,42,.9);font-size:8px}
+.hb{width:15px;height:15px;border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:700}
+.hbP1{background:var(--P1d);color:var(--P1l)}.hbP2{background:var(--P2d);color:var(--P2l)}
+.hp{margin-left:auto;font-weight:600}.hp.pos{color:var(--G)}.hp.neg{color:var(--R)}
 
-    /* dashboard cards */
-    .dashboard-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 1.2rem;
-      margin-bottom: 2rem;
-    }
-    .stat-card {
-      background: rgba(15, 25, 45, 0.7);
-      backdrop-filter: blur(8px);
-      border-radius: 24px;
-      padding: 1rem 1.2rem;
-      border: 1px solid #2d3a5e;
-      transition: 0.2s;
-    }
-    .stat-card h4 {
-      font-size: 0.8rem;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: #9ca3af;
-    }
-    .stat-number {
-      font-size: 2.3rem;
-      font-weight: 800;
-      margin-top: 6px;
-    }
-    .chart-container {
-      background: rgba(10, 20, 35, 0.6);
-      border-radius: 24px;
-      padding: 1rem;
-      margin-bottom: 2rem;
-      border: 1px solid #2d3a5e;
-    }
+#ctr{display:flex;flex-direction:column;overflow:hidden}
+.windows{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin-bottom:7px}
+.win-cell{background:var(--bg3);border:1px solid var(--border);border-radius:3px;padding:6px 8px}
+.win-cell .wv{font-size:16px;font-family:var(--head)}.wv.P1{color:var(--P1l)}.wv.P2{color:var(--P2l)}
+.decision-box{padding:10px 12px;background:var(--bg2);border-bottom:1px solid var(--border2)}
+.decision-main{display:flex;gap:7px}
+.bet-card{flex:1;border-radius:3px;border:1px solid var(--border2);background:var(--bg3);padding:10px;text-align:center}
+.bet-card .ba{font-family:var(--head);font-size:22px}.ba.P1{color:var(--P1l)}.ba.P2{color:var(--P2l)}
+.conf-bar{height:3px;background:var(--bg4);border-radius:1px;margin:6px 0}
+.conf-fill{height:100%;border-radius:1px;transition:width .3s}
+#reasoning{padding:6px 12px;max-height:80px;overflow-y:auto;font-size:7px}
+#charts-area{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:5px;padding:6px}
+.chart-card{background:var(--bg2);border:1px solid var(--border);border-radius:3px;padding:7px}
+.chart-card h4{font-size:7px;color:var(--text3);margin-bottom:4px}
 
-    /* tables and forms */
-    .match-form, .filter-bar {
-      background: #0f172acc;
-      border-radius: 24px;
-      padding: 1.2rem;
-      margin-bottom: 1.5rem;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 1rem;
-      align-items: flex-end;
-    }
-    .form-group {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-    .form-group label {
-      font-size: 0.7rem;
-      font-weight: 600;
-      color: #a0aec0;
-    }
-    input, select, textarea {
-      background: #0a0f1e;
-      border: 1px solid #334155;
-      padding: 8px 12px;
-      border-radius: 16px;
-      color: white;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-    th, td {
-      text-align: left;
-      padding: 12px 8px;
-      border-bottom: 1px solid #1e2a3a;
-    }
-    .prediction-card {
-      background: linear-gradient(145deg, #1e293b, #0f172a);
-      border-radius: 32px;
-      padding: 1.8rem;
-      text-align: center;
-    }
-    .winner-badge {
-      font-size: 2.5rem;
-      font-weight: bold;
-    }
-    .progress {
-      background: #1e293b;
-      border-radius: 30px;
-      height: 12px;
-      margin: 12px 0;
-    }
-    .progress-fill {
-      background: #3b82f6;
-      width: 0%;
-      height: 12px;
-      border-radius: 30px;
-    }
-    .flex-between {
-      display: flex;
-      justify-content: space-between;
-    }
-    @media (max-width: 680px) {
-      body { padding: 1rem; }
-      .tab-btn { padding: 0.5rem 0.8rem; font-size: 0.7rem; }
-    }
-  </style>
+.sg{display:grid;grid-template-columns:1fr 1fr;gap:3px}
+.sc{background:var(--bg3);border:1px solid var(--border);border-radius:3px;padding:6px 8px}
+.sc .sv{font-size:16px;font-family:var(--head)}.sv.pos{color:var(--G)}.sv.neg{color:var(--R)}
+.mvrow{display:flex;align-items:center;gap:4px;margin-bottom:4px;font-size:8px}
+.mvbar{flex:1;height:3px;background:var(--bg4);border-radius:1px;overflow:hidden}
+.mvfill{height:100%}
+#mx-table{width:100%;font-size:8px;border-collapse:collapse}
+#mx-table td,#mx-table th{padding:3px;border:1px solid var(--border);text-align:center}
+.mx-hi{background:rgba(0,230,118,.1);color:var(--G)}
+</style>
 </head>
 <body>
-<div class="app-container">
-  <div class="header">
-    <div class="title">
-      <h1><i class="fas fa-brain"></i> Player Prediction Engine</h1>
-      <p>statistical forecasting | pattern learning | monte carlo simulation</p>
+<div id="top">
+  <div class="logo">PLAYER PREDICTION ENGINE</div>
+  <div class="logov">BaccaratIQ Architecture · 7-Model Ensemble</div>
+  <div class="ts"><lb>Matches</lb><div class="tv n" id="total-matches">0</div></div>
+  <div class="ts"><lb>P1 Wins</lb><div class="tv P1" id="p1-wins">0</div></div>
+  <div class="ts"><lb>P2 Wins</lb><div class="tv P2" id="p2-wins">0</div></div>
+  <div class="ts"><lb>Win Rate</lb><div class="tv n" id="win-rate">—</div></div>
+  <div class="sp"></div>
+  <span class="bdg bdg-live">ACTIVE</span>
+  <span class="bdg bdg-P1" id="top-call">READY</span>
+</div>
+
+<div id="wrap">
+<!-- LEFT PANEL -->
+<div class="lp">
+  <div class="sec">
+    <div class="sh">📝 Record Outcome</div>
+    <div class="ebtns">
+      <button class="eb P1" onclick="record('P1')">PLAYER 1</button>
+      <button class="eb P2" onclick="record('P2')">PLAYER 2</button>
     </div>
-    <div class="actions-buttons">
-      <button id="exportDataBtn"><i class="fas fa-download"></i> Export JSON</button>
-      <button id="importDataBtn"><i class="fas fa-upload"></i> Import JSON</button>
-      <button id="resetDataBtn" class="danger-btn"><i class="fas fa-trash-alt"></i> Reset All</button>
+    <div class="brow"><input id="batch" placeholder="Paste sequence: P1 P2 P1 P1..."><button onclick="batchImport()">IMPORT</button></div>
+  </div>
+  <div class="sec">
+    <div class="sh">⚙️ Configuration</div>
+    <div class="sr"><label>Confidence Threshold</label><input type="range" min="40" max="85" value="55" id="conf-thresh"><span id="thresh-val">55%</span></div>
+    <div class="sr"><label>React Speed (1-5)</label><input type="range" min="1" max="5" value="3" id="react-speed"><span id="speed-val">3</span></div>
+    <div class="btnrow">
+      <button class="btn dan" onclick="resetSession()">RESET ALL</button>
+      <button class="btn pri" onclick="runBacktest()">BACKTEST</button>
     </div>
   </div>
-
-  <div class="tabs">
-    <button class="tab-btn active" data-tab="dashboard"><i class="fas fa-chart-line"></i> Dashboard</button>
-    <button class="tab-btn" data-tab="history"><i class="fas fa-list"></i> Match History</button>
-    <button class="tab-btn" data-tab="predictions"><i class="fas fa-chart-simple"></i> Predictions</button>
-    <button class="tab-btn" data-tab="analytics"><i class="fas fa-chart-pie"></i> Analytics</button>
-    <button class="tab-btn" data-tab="simulation"><i class="fas fa-dice-d6"></i> Simulation</button>
-    <button class="tab-btn" data-tab="settings"><i class="fas fa-sliders-h"></i> Settings</button>
-  </div>
-
-  <!-- DASHBOARD TAB -->
-  <div id="dashboardTab" class="tab-content">
-    <div class="dashboard-grid" id="statsGrid"></div>
-    <div class="chart-container"><canvas id="formChart" height="80"></canvas></div>
-    <div class="chart-container"><canvas id="trendLineChart" height="80"></canvas></div>
-    <div class="chart-container"><h4>🏆 Recent Form (Last 10 matches)</h4><canvas id="streakHeatmap" height="60"></canvas></div>
-  </div>
-
-  <!-- HISTORY TAB -->
-  <div id="historyTab" class="tab-content" style="display:none;">
-    <div class="match-form">
-      <div class="form-group"><label>Winner</label><select id="winnerSelect"><option value="P1">Player 1</option><option value="P2">Player 2</option></select></div>
-      <div class="form-group"><label>Score (e.g., 3-1)</label><input type="text" id="scoreInput" placeholder="3-2"></div>
-      <div class="form-group"><label>Notes/Tags</label><input type="text" id="notesInput" placeholder="clutch / upset"></div>
-      <button id="addMatchBtn" class="primary-btn"><i class="fas fa-plus"></i> Record Match</button>
-    </div>
-    <div class="filter-bar"><div class="form-group"><label>Filter by date range (optional)</label><input type="date" id="dateFrom"><input type="date" id="dateTo"></div><button id="applyFilterBtn">Apply</button><button id="resetFilterBtn">Reset</button></div>
-    <div style="overflow-x:auto;"><table id="matchesTable"><thead><tr><th>ID</th><th>Winner</th><th>Score</th><th>Date</th><th>Notes</th><th></th></tr></thead><tbody></tbody></table></div>
-  </div>
-
-  <!-- PREDICTIONS TAB -->
-  <div id="predictionsTab" class="tab-content" style="display:none;">
-    <div class="prediction-card" id="predictionContainer"></div>
-    <div class="chart-container"><canvas id="predictionTrendChart" height="80"></canvas></div>
-  </div>
-
-  <!-- ANALYTICS TAB (advanced stats) -->
-  <div id="analyticsTab" class="tab-content" style="display:none;">
-    <div class="dashboard-grid" id="advancedStats"></div>
-    <div class="chart-container"><canvas id="monthlyWinCanvas" height="100"></canvas></div>
-    <div class="chart-container"><h4>⚡ Momentum & Volatility</h4><canvas id="momentumChart" height="70"></canvas></div>
-  </div>
-
-  <!-- SIMULATION TAB -->
-  <div id="simulationTab" class="tab-content" style="display:none;">
-    <div class="match-form"><div class="form-group"><label>Number of simulations</label><input type="number" id="simCount" value="5000" step="500"></div><button id="runSimBtn"><i class="fas fa-chart-line"></i> Run Monte Carlo</button></div>
-    <div id="simResults" class="prediction-card"></div>
-  </div>
-
-  <!-- SETTINGS TAB -->
-  <div id="settingsTab" class="tab-content" style="display:none;">
-    <div class="stat-card"><h4>⚙️ Prediction Model Tunings</h4><button id="retrainModelBtn">Re-train / Recalibrate</button><p style="margin-top:12px">Recent weight exponent: 0.7 (higher = recent matches more important)</p><input type="range" id="recencyWeight" min="0.3" max="1.0" step="0.01" value="0.7"><span id="weightVal">0.70</span></div>
-    <div class="stat-card"><h4>📊 Prediction Accuracy Tracker</h4><div id="accuracyTracker">Calculating...</div><button id="clearHistoryRetainModel">Clear matches (keep empty model)</button></div>
+  <div class="sec" style="flex:1;overflow:hidden;display:flex;flex-direction:column">
+    <div class="sh">📜 Match History <span id="history-count">0</span></div>
+    <div id="hl"></div>
   </div>
 </div>
 
+<!-- CENTER PANEL -->
+<div id="ctr">
+  <div class="sec" style="padding:10px 12px">
+    <div class="windows">
+      <div class="win-cell"><lb>W3 · Fast Window</lb><div class="wv" id="w3-lead">—</div><div class="ws" style="font-size:7px;color:var(--text3)" id="w3-pct">—</div></div>
+      <div class="win-cell"><lb>W5 · Medium Window</lb><div class="wv" id="w5-lead">—</div><div class="ws" id="w5-pct">—</div></div>
+      <div class="win-cell"><lb>W10 · Slow Window</lb><div class="wv" id="w10-lead">—</div><div class="ws" id="w10-pct">—</div></div>
+    </div>
+    <div class="trend-bars" style="display:grid;grid-template-columns:1fr 1fr;gap:5px">
+      <div class="tbar-cell" style="background:var(--bg3);border:1px solid var(--border);border-radius:3px;padding:6px">
+        <lb>Trend Velocity</lb><div style="height:4px;background:var(--bg4);border-radius:2px"><div id="vel-bar" style="height:100%;width:0%;background:var(--G);border-radius:2px"></div></div>
+        <div id="vel-val" style="font-size:7px;margin-top:2px">—</div>
+      </div>
+      <div class="tbar-cell" style="background:var(--bg3);border:1px solid var(--border);border-radius:3px;padding:6px">
+        <lb>Reversal Risk</lb><div style="height:4px;background:var(--bg4);border-radius:2px"><div id="rev-bar" style="height:100%;width:0%;background:var(--R);border-radius:2px"></div></div>
+        <div id="rev-val" style="font-size:7px;margin-top:2px">—</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="decision-box">
+    <div class="decision-main">
+      <div class="bet-card" id="bet-card">
+        <div class="ba" id="decision-text">—</div>
+        <div class="conf-bar"><div class="conf-fill" id="conf-fill" style="width:0%"></div></div>
+        <div id="stake-info" style="font-size:8px;margin-top:4px">—</div>
+      </div>
+      <div style="width:120px">
+        <div class="dm" style="background:var(--bg3);padding:5px;border-radius:3px;margin-bottom:3px"><lb>Confidence</lb><div id="conf-val">—</div></div>
+        <div class="dm" style="background:var(--bg3);padding:5px;border-radius:3px;margin-bottom:3px"><lb>Models Agree</lb><div id="agree-val">—/7</div></div>
+        <div class="dm" style="background:var(--bg3);padding:5px;border-radius:3px"><lb>Win Probability</lb><div id="prob-val">—</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="reasoning"><div class="rt" style="font-size:7px;color:var(--text3)">🧠 ENGINE REASONING</div><div id="reason-list"></div></div>
+
+  <div id="charts-area">
+    <div class="chart-card"><h4>📈 Equity / Performance Curve</h4><canvas id="equity-chart" style="height:100px;width:100%"></canvas></div>
+    <div class="chart-card"><h4>📊 Window Trends (P1 %)</h4><canvas id="trend-chart" style="height:100px;width:100%"></canvas></div>
+  </div>
+</div>
+
+<!-- RIGHT PANEL -->
+<div class="rp">
+  <div class="sec">
+    <div class="sh">📊 Statistics</div>
+    <div class="sg">
+      <div class="sc"><lb>Total Bets</lb><div class="sv" id="stat-bets">0</div></div>
+      <div class="sc"><lb>Won</lb><div class="sv pos" id="stat-won">0</div></div>
+      <div class="sc"><lb>Lost</lb><div class="sv neg" id="stat-lost">0</div></div>
+      <div class="sc"><lb>Win Rate</lb><div class="sv" id="stat-wr">—</div></div>
+    </div>
+    <div style="margin-top:6px"><div style="height:4px;background:var(--bg4);border-radius:2px;display:flex"><div id="win-bar" style="height:100%;width:0%;background:var(--G)"></div><div id="loss-bar" style="height:100%;width:0%;background:var(--R)"></div></div></div>
+  </div>
+
+  <div class="sec">
+    <div class="sh">🎯 7-Model Ensemble Votes</div>
+    <div id="model-votes"></div>
+    <div style="margin-top:6px;padding:4px;background:var(--bg3);border-radius:3px;font-size:7px" id="ensemble-sum">—</div>
+  </div>
+
+  <div class="sec">
+    <div class="sh">🔄 Markov Matrix (Weighted)</div>
+    <table id="mx-table">
+      <tr><th>→</th><th>P1</th><th>P2</th></tr>
+      <tr><th>P1</th><td id="mx-P1P1">—</td><td id="mx-P1P2">—</td></tr>
+      <tr><th>P2</th><td id="mx-P2P1">—</td><td id="mx-P2P2">—</td></tr>
+    </table>
+  </div>
+
+  <div class="sec">
+    <div class="sh">🔍 Pattern Recognition</div>
+    <div id="patterns" style="font-size:7px">Building...</div>
+  </div>
+
+  <div class="sec">
+    <div class="sh">📋 Last 10 Outcomes</div>
+    <div id="last10" style="display:flex;gap:3px;flex-wrap:wrap"></div>
+    <div class="sigrow" style="margin-top:6px"><span>Streak Length</span><span style="margin-left:auto" id="streak-val">0</span></div>
+    <div class="sigrow"><span>Chop Score</span><span style="margin-left:auto" id="chop-val">—</span></div>
+    <div class="sigrow"><span>W3→W10 Drift</span><span style="margin-left:auto" id="drift-val">—</span></div>
+  </div>
+</div>
+</div>
+
 <script>
-  // ---------- DATA LAYER ----------
-  let allMatches = [];    // each: { id, winner, score, date, notes }
-  let nextId = 1;
-  let filterFrom = null, filterTo = null;
-  let recencyWeight = 0.7;   // exponent for weighting (closer to 1 = more recent influence)
+// ============================================================
+// PLAYER PREDICTION ENGINE · BACCARATIQ ARCHITECTURE
+// 7-Model Ensemble: Markov, Pattern, Streak/Chop, Bayesian,
+// Momentum, Deviation, Reversal Detection
+// Windows: W3 / W5 / W10 with adaptive weighting
+// ============================================================
 
-  // Helper: load/save
-  function saveToLocal() { localStorage.setItem('predictionEngineV2', JSON.stringify({ matches: allMatches, nextId, recencyWeight })); }
-  function loadFromLocal() {
-    const raw = localStorage.getItem('predictionEngineV2');
-    if(raw) {
-      try{
-        const data = JSON.parse(raw);
-        allMatches = data.matches || [];
-        nextId = data.nextId || (allMatches.length? Math.max(...allMatches.map(m=>m.id),0)+1 : 1);
-        recencyWeight = data.recencyWeight !== undefined ? data.recencyWeight : 0.7;
-        document.getElementById('recencyWeight').value = recencyWeight;
-        document.getElementById('weightVal').innerText = recencyWeight.toFixed(2);
-      }catch(e){}
-    } else { // seed demo matches
-      allMatches = [
-        { id:1, winner:'P1', score:'3-1', date: new Date(Date.now()-86400000*10).toISOString().slice(0,10), notes:'dominant' },
-        { id:2, winner:'P1', score:'3-2', date: new Date(Date.now()-86400000*9).toISOString().slice(0,10), notes:'close' },
-        { id:3, winner:'P2', score:'2-3', date: new Date(Date.now()-86400000*7).toISOString().slice(0,10), notes:'comeback' },
-        { id:4, winner:'P1', score:'3-0', date: new Date(Date.now()-86400000*5).toISOString().slice(0,10), notes:'fast' },
-        { id:5, winner:'P2', score:'1-3', date: new Date(Date.now()-86400000*3).toISOString().slice(0,10), notes:'upset' },
-        { id:6, winner:'P2', score:'2-3', date: new Date(Date.now()-86400000*2).toISOString().slice(0,10), notes:'equal' },
-        { id:7, winner:'P1', score:'3-2', date: new Date(Date.now()-86400000*1).toISOString().slice(0,10), notes:'clutch' }
-      ];
-      nextId = 8;
-      saveToLocal();
+// PRIOR probabilities for P1 vs P2 (default fair, can be adjusted)
+const PRIOR = { P1: 0.5, P2: 0.5 };
+const MODEL_NAMES = ['Markov', 'Pattern', 'Streak/Chop', 'Bayesian', 'Momentum', 'Deviation', 'Reversal'];
+const MODEL_KEYS = ['mk', 'pt', 'sc', 'by', 'mo', 'dv', 'rv'];
+
+let state = {
+  outcomes: [],           // ['P1', 'P2', ...]
+  predictions: [],       // historical predictions for accuracy tracking
+  w3history: [],         // W3 P1 percentage over time
+  w5history: [],
+  w10history: [],
+  modelAccuracy: { mk: [], pt: [], sc: [], by: [], mo: [], dv: [], rv: [] },
+  stats: {
+    matches: 0, p1Wins: 0, p2Wins: 0,
+    bets: 0, won: 0, lost: 0, skipped: 0,
+    totalStaked: 0, totalPnl: 0,
+    bestStreak: 0, currentStreak: 0
+  },
+  lastDecision: null,
+  config: {
+    confThreshold: 55,
+    reactSpeed: 3,
+    secureMode: true
+  }
+};
+
+// Helper functions
+function clamp(v, min, max) { return Math.min(max, Math.max(min, v)); }
+function mean(arr) { return arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : 0; }
+function std(arr) { let m = mean(arr); return Math.sqrt(arr.reduce((a,b)=>a+(b-m)**2,0)/(arr.length||1)); }
+function lastN(n) { return state.outcomes.slice(-n); }
+function getPct(arr) {
+  let p1 = arr.filter(x=>x==='P1').length;
+  let p2 = arr.filter(x=>x==='P2').length;
+  return { p1Pct: p1/(p1+p2||1), p2Pct: p2/(p1+p2||1), p1, p2 };
+}
+
+// WINDOW ANALYSIS (W3, W5, W10)
+function windowAnalysis(outcomes, n) {
+  const w = lastN(n);
+  if (w.length < Math.min(n, 3)) return { lead: '?', conf: 0, p1Pct: 0.5, p2Pct: 0.5 };
+  const { p1Pct, p2Pct, p1, p2 } = getPct(w);
+  const lead = p1Pct > p2Pct ? 'P1' : p1Pct < p2Pct ? 'P2' : '?';
+  const margin = Math.abs(p1Pct - p2Pct);
+  const conf = clamp(margin / 0.25 * 60 + Math.min(w.length, n) / n * 20, 0, 90);
+  return { lead, conf, p1Pct, p2Pct, p1, p2, len: w.length };
+}
+
+// TREND VELOCITY (W3 vs W10 divergence)
+function trendVelocity() {
+  if (state.outcomes.length < 6) return { velocity: 0, direction: '?', accel: 0 };
+  const w3 = windowAnalysis(state.outcomes, 3);
+  const w5 = windowAnalysis(state.outcomes, 5);
+  const w10 = windowAnalysis(state.outcomes, 10);
+  const velocity = w3.p1Pct - w10.p1Pct;
+  const accel = w3.p1Pct - w5.p1Pct;
+  const direction = velocity > 0.08 ? 'P1' : velocity < -0.08 ? 'P2' : 'FLAT';
+  return { velocity, direction, accel, w3p1: w3.p1Pct, w5p1: w5.p1Pct, w10p1: w10.p1Pct };
+}
+
+// REVERSAL DETECTOR (streak exhaustion)
+function reversalDetector() {
+  if (state.outcomes.length < 4) return { risk: 0, side: '?', streakLen: 0, signal: false };
+  const last = state.outcomes[state.outcomes.length - 1];
+  let streakLen = 0;
+  for (let i = state.outcomes.length - 1; i >= 0 && state.outcomes[i] === last; i--) streakLen++;
+  const runs = [];
+  let cur = 1;
+  for (let i = 1; i < state.outcomes.length; i++) {
+    if (state.outcomes[i] === state.outcomes[i-1]) cur++;
+    else { runs.push(cur); cur = 1; }
+  }
+  runs.push(cur);
+  const avgRun = runs.length ? mean(runs) : 2.5;
+  const stdRun = runs.length > 2 ? std(runs) : 1;
+  const zStreak = (streakLen - avgRun) / (stdRun + 0.1);
+  const risk = clamp(zStreak * 20, 0, 95);
+  const w3 = lastN(3);
+  const w3Opp = w3.filter(x => x !== last).length;
+  const signal = risk > 40 || (streakLen >= 3 && w3Opp >= 2);
+  return { risk, side: last, streakLen, avgRun: avgRun.toFixed(1), signal, earlyFlip: w3Opp >= 2 };
+}
+
+// MODEL 1: MARKOV (weighted recent transitions)
+function modelMarkov() {
+  if (state.outcomes.length < 4) return { vote: '?', prob: { P1: 0.5, P2: 0.5 }, conf: 0 };
+  let trans = { P1: { P1: 1, P2: 1 }, P2: { P1: 1, P2: 1 } };
+  function addWeighted(arr, weight) {
+    for (let i = 0; i < arr.length - 1; i++) {
+      let from = arr[i], to = arr[i+1];
+      if (trans[from]) trans[from][to] += weight;
     }
   }
+  addWeighted(state.outcomes.slice(0, -10), 0.5);
+  addWeighted(lastN(10), 2);
+  addWeighted(lastN(5), 3);
+  addWeighted(lastN(3), 5);
+  const last = state.outcomes[state.outcomes.length - 1];
+  const row = trans[last];
+  const total = row.P1 + row.P2;
+  const prob = { P1: row.P1 / total, P2: row.P2 / total };
+  const vote = prob.P1 >= prob.P2 ? 'P1' : 'P2';
+  const conf = clamp(Math.abs(prob.P1 - prob.P2) / 0.12 * 60, 0, 95);
+  return { vote, prob, conf };
+}
 
-  // filtering matches
-  function getFilteredMatches() {
-    let matches = [...allMatches];
-    if(filterFrom) matches = matches.filter(m => m.date >= filterFrom);
-    if(filterTo) matches = matches.filter(m => m.date <= filterTo);
-    return matches;
-  }
-
-  // ---------------- PREDICTION ENGINE (probabilistic, weighted recency, patterns) ----------------
-  function computePrediction() {
-    const matches = getFilteredMatches();
-    if(matches.length === 0) return { winner: 'N/A', p1Prob: 0.5, confidence: 0, streakAnalysis: 'no data', patternSignal: 0 };
-
-    // 1) base frequency with recency weighting
-    let weightSum = 0, p1Weight = 0;
-    matches.forEach((m, idx) => {
-      const position = idx; // 0 oldest
-      const recencyFactor = Math.pow(position / Math.max(1,matches.length-1), recencyWeight); // more recent higher weight
-      const w = 0.5 + recencyFactor * 0.8; // weight spread 0.5..1.3
-      weightSum += w;
-      if(m.winner === 'P1') p1Weight += w;
-    });
-    let p1ProbBase = weightSum>0 ? p1Weight/weightSum : 0.5;
-
-    // 2) streak detection (last 3 matches pattern)
-    let last5 = matches.slice(-5).map(m=>m.winner);
-    let streakBonus = 0;
-    if(last5.length>=3){
-      let last3 = last5.slice(-3);
-      if(last3[0]===last3[1] && last3[1]===last3[2]) streakBonus = last3[0]==='P1'? -0.12 : 0.12; // reversal tendency after long streak?
-      // pattern recognition: alternating? if P1,P2,P1 -> stronger for P1
-      if(last3[0]==='P1' && last3[1]==='P2' && last3[2]==='P1') streakBonus += 0.08;
-      if(last3[0]==='P2' && last3[1]==='P1' && last3[2]==='P2') streakBonus -= 0.08;
+// MODEL 2: PATTERN MATCH (3-gram + 4-gram)
+function modelPattern() {
+  if (state.outcomes.length < 7) return { vote: '?', prob: { P1: 0.5, P2: 0.5 }, conf: 0, patterns: [] };
+  function buildLib(n) {
+    let lib = {};
+    for (let i = n; i < state.outcomes.length; i++) {
+      let key = state.outcomes.slice(i - n, i).join('');
+      let next = state.outcomes[i];
+      if (!lib[key]) lib[key] = { P1: 0, P2: 0, n: 0 };
+      lib[key][next]++;
+      lib[key].n++;
     }
-    // 3) momentum recent form (last 4 matches weighted high)
-    let recentP1 = matches.slice(-4).filter(m=>m.winner==='P1').length / Math.min(4,matches.length);
-    let momentum = (recentP1 - 0.5)*0.2;
-
-    let finalP1Prob = Math.min(0.95, Math.max(0.05, p1ProbBase + streakBonus + momentum));
-    // confidence based on match count + volatility
-    let volatility = Math.abs(p1ProbBase-0.5)*2;
-    let confidence = Math.min(0.95, 0.5 + (matches.length/50) + volatility*0.3);
-    let mostProbableWinner = finalP1Prob >= 0.5 ? 'Player 1' : 'Player 2';
-    return { winner: mostProbableWinner, p1Prob: finalP1Prob, confidence, streakAnalysis: `Last 5: ${last5.join('→')}`, patternSignal: streakBonus };
+    return lib;
   }
-
-  // Monte Carlo simulation (future matches)
-  function monteCarloSimulation(simCount=5000) {
-    const pred = computePrediction();
-    let p1Wins = 0;
-    for(let i=0;i<simCount;i++) {
-      const r = Math.random();
-      if(r < pred.p1Prob) p1Wins++;
+  const lib3 = buildLib(3);
+  const lib4 = buildLib(4);
+  let p1Weight = 0, p2Weight = 0, totalWeight = 0, patterns = [];
+  const addLib = (lib, key, wt) => {
+    if (lib[key] && lib[key].n >= 2) {
+      p1Weight += lib[key].P1 * wt;
+      p2Weight += lib[key].P2 * wt;
+      totalWeight += lib[key].n * wt;
+      patterns.push({ seq: key, ...lib[key] });
     }
-    const p1WinProb = p1Wins/simCount;
-    const expectedStreakSim = p1WinProb > 0.6 ? 'Likely P1 streak' : (p1WinProb<0.4? 'Likely P2 streak' : 'Alternating pattern');
-    return { p1WinProb, p2WinProb: 1-p1WinProb, expectedStreakSim };
-  }
+  };
+  const last3 = state.outcomes.slice(-3).join('');
+  const last4 = state.outcomes.slice(-4).join('');
+  addLib(lib3, last3, 1);
+  addLib(lib4, last4, 2);
+  if (totalWeight < 2) return { vote: '?', prob: { P1: 0.5, P2: 0.5 }, conf: 0, patterns: [] };
+  const prob = { P1: p1Weight / totalWeight, P2: p2Weight / totalWeight };
+  const vote = prob.P1 >= prob.P2 ? 'P1' : 'P2';
+  const conf = clamp((Math.abs(prob.P1 - prob.P2) * 2 + Math.min(totalWeight, 20)/20) * 45, 0, 90);
+  return { vote, prob, conf, patterns };
+}
 
-  // advanced analytics: rolling avg, momentum, volatility, accuracy tracking
-  function computeAdvancedMetrics() {
-    let matches = getFilteredMatches();
-    if(matches.length===0) return { rollingAvg:0.5, momentumScore:0, volatilityIdx:0, predAccuracy:null };
-    let results = matches.map(m=> m.winner==='P1'?1:0);
-    let rolling = results.slice(-5).reduce((a,b)=>a+b,0)/Math.min(5,results.length);
-    let momentumScore = results.length>1 ? results[results.length-1] - (results.slice(0,-1).reduce((a,b)=>a+b,0)/(results.length-1)) : 0;
-    let diffs=[];
-    for(let i=1;i<results.length;i++) diffs.push(Math.abs(results[i]-results[i-1]));
-    let volatilityIdx = diffs.reduce((a,b)=>a+b,0)/Math.max(1,diffs.length);
-    // prediction accuracy: compare our previous predictions (simulated by leave-last-out)
-    let correct=0, tested=0;
-    for(let i=2;i<matches.length;i++){
-      let hist = matches.slice(0,i);
-      let tempEngine = ()=> {
-        let wsum=0,p1w=0;
-        hist.forEach((m,idx)=>{ let w=0.5+Math.pow(idx/hist.length,recencyWeight)*0.8; wsum+=w; if(m.winner==='P1') p1w+=w; });
-        let prob = wsum>0? p1w/wsum:0.5;
-        return prob>=0.5?'P1':'P2';
-      };
-      let predW = tempEngine();
-      if(predW === matches[i].winner) correct++;
-      tested++;
-    }
-    let predAccuracy = tested>0 ? correct/tested : null;
-    return { rollingAvg:rolling, momentumScore, volatilityIdx, predAccuracy };
+// MODEL 3: STREAK / CHOP ADAPTIVE
+function modelStreakChop() {
+  if (state.outcomes.length < 4) return { vote: '?', prob: { P1: 0.5, P2: 0.5 }, conf: 0, phase: 'WAIT' };
+  const w = lastN(10);
+  let switches = 0;
+  for (let i = 1; i < w.length; i++) if (w[i] !== w[i-1]) switches++;
+  const chopScore = w.length > 1 ? switches / (w.length - 1) : 0.5;
+  const last = state.outcomes[state.outcomes.length - 1];
+  let streakLen = 0;
+  for (let i = state.outputs; i-- && state.outcomes[i] === last;) streakLen++;
+  let prob = { P1: 0.5, P2: 0.5 }, conf = 20, phase = 'BALANCED';
+  if (chopScore > 0.6) {
+    phase = 'CHOPPY';
+    prob = last === 'P1' ? { P1: 0.45, P2: 0.55 } : { P1: 0.55, P2: 0.45 };
+    conf = clamp((chopScore - 0.6) * 200, 0, 75);
+  } else if (streakLen >= 2) {
+    phase = 'STREAKY';
+    prob = last === 'P1' ? { P1: 0.6, P2: 0.4 } : { P1: 0.4, P2: 0.6 };
+    conf = clamp(streakLen * 15, 0, 80);
   }
+  const vote = prob.P1 >= prob.P2 ? 'P1' : 'P2';
+  return { vote, prob, conf, phase, chopScore, streakLen };
+}
 
-  // ---------- UI RENDERING ----------
-  function renderDashboard() {
-    const matches = getFilteredMatches();
-    const p1Wins = matches.filter(m=>m.winner==='P1').length;
-    const p2Wins = matches.filter(m=>m.winner==='P2').length;
-    const total = matches.length;
-    let currentStreak=0, longestStreak=0, lastWinner=null, cur=0;
-    matches.forEach(m=>{
-      if(m.winner===lastWinner) cur++; else cur=1;
-      if(cur>longestStreak) longestStreak=cur;
-      lastWinner=m.winner;
-      currentStreak=cur;
-    });
-    const pred = computePrediction();
-    document.getElementById('statsGrid').innerHTML = `
-      <div class="stat-card"><h4>🏟️ Total Matches</h4><div class="stat-number">${total}</div></div>
-      <div class="stat-card"><h4>👑 Player 1 Wins</h4><div class="stat-number">${p1Wins}</div></div>
-      <div class="stat-card"><h4>⚔️ Player 2 Wins</h4><div class="stat-number">${p2Wins}</div></div>
-      <div class="stat-card"><h4>🔥 Current Streak</h4><div class="stat-number">${currentStreak} (${lastWinner||'-'})</div></div>
-      <div class="stat-card"><h4>📈 Longest Streak</h4><div class="stat-number">${longestStreak}</div></div>
-      <div class="stat-card"><h4>🎯 Prediction Conf.</h4><div class="stat-number">${(pred.confidence*100).toFixed(1)}%</div></div>
-    `;
-    // form chart (last 10 results)
-    const last10 = matches.slice(-10).map(m=> m.winner==='P1'?1:0);
-    if(window.formChartInstance) window.formChartInstance.destroy();
-    const ctx = document.getElementById('formChart').getContext('2d');
-    window.formChartInstance = new Chart(ctx, { type:'line', data:{ labels:last10.map((_,i)=>`Game ${i+1}`), datasets:[{label:'Result (1=P1,0=P2)', data:last10, borderColor:'#3b82f6', tension:0.2}] }, options:{ responsive:true } });
-    // timeline line
-    const timelineData = matches.map((m,i)=> ({x:i, y:m.winner==='P1'?1:0}));
-    if(window.trendLine) window.trendLine.destroy();
-    const ctx2 = document.getElementById('trendLineChart').getContext('2d');
-    window.trendLine = new Chart(ctx2, { type:'line', data:{ datasets:[{label:'Winner Trend (P1=1)', data:timelineData, borderColor:'#a855f7', fill:false}] }, options:{ scales:{ y:{min:0,max:1}} } });
-    // streak heatmap (bar)
-    if(window.streakHeat) window.streakHeat.destroy();
-    const ctxHeat = document.getElementById('streakHeatmap').getContext('2d');
-    let recentForm = matches.slice(-10).map(m=> m.winner==='P1'? 'P1':'P2');
-    window.streakHeat = new Chart(ctxHeat, { type:'bar', data:{ labels:recentForm.map((_,i)=>i+1), datasets:[{label:'Winner', data:recentForm.map(w=> w==='P1'?1:0), backgroundColor:'#3b82f6'}] } });
+// MODEL 4: BAYESIAN (weighted windows)
+function modelBayesian() {
+  if (state.outcomes.length < 4) return { vote: '?', prob: { P1: 0.5, P2: 0.5 }, conf: 0 };
+  let p1Prior = PRIOR.P1 * 5, p2Prior = PRIOR.P2 * 5;
+  for (let o of state.outcomes.slice(0, -10)) {
+    if (o === 'P1') p1Prior += 0.3;
+    else p2Prior += 0.3;
   }
-
-  function renderHistoryTable() {
-    let matches = getFilteredMatches();
-    const tbody = document.querySelector('#matchesTable tbody');
-    tbody.innerHTML = matches.slice().reverse().map(m => `<tr><td>${m.id}</td><td>${m.winner}</td><td>${m.score||'-'}</td><td>${m.date}</td><td>${m.notes||''}</td><td><button class="deleteMatchBtn" data-id="${m.id}"><i class="fas fa-trash"></i></button></td></tr>`).join('');
-    document.querySelectorAll('.deleteMatchBtn').forEach(btn=> btn.addEventListener('click',(e)=>{
-      const id = parseInt(btn.dataset.id);
-      allMatches = allMatches.filter(m=>m.id !== id);
-      saveToLocal(); renderAll();
-    }));
+  for (let o of lastN(10)) {
+    if (o === 'P1') p1Prior += 1.5;
+    else p2Prior += 1.5;
   }
-
-  function renderPredictions() {
-    const pred = computePrediction();
-    const advanced = computeAdvancedMetrics();
-    document.getElementById('predictionContainer').innerHTML = `
-      <h3>🔮 Most Probable Next Winner</h3>
-      <div class="winner-badge">${pred.winner}</div>
-      <div class="flex-between"><span>Win Probability (P1)</span><span>${(pred.p1Prob*100).toFixed(1)}%</span></div><div class="progress"><div class="progress-fill" style="width:${pred.p1Prob*100}%"></div></div>
-      <div class="flex-between"><span>Confidence Score</span><span>${(pred.confidence*100).toFixed(1)}%</span></div><div class="progress"><div class="progress-fill" style="width:${pred.confidence*100}%"></div></div>
-      <div><i class="fas fa-chart-line"></i> Streak Insight: ${pred.streakAnalysis}</div>
-      <div><i class="fas fa-robot"></i> Pattern Signal: ${pred.patternSignal>0?'P1 momentum':'P2 tendency'}</div>
-      <div><i class="fas fa-chart-simple"></i> Rolling Avg (last5): ${advanced.rollingAvg.toFixed(2)}</div>
-    `;
-    if(window.predTrendChart) window.predTrendChart.destroy();
-    const ctx = document.getElementById('predictionTrendChart').getContext('2d');
-    let recentProbs = [];
-    for(let i=5;i<=getFilteredMatches().length;i+=Math.max(1,Math.floor(getFilteredMatches().length/20))){
-      //dummy trend
-    }
-    window.predTrendChart = new Chart(ctx,{ type:'line', data:{ labels:['Stability Index'], datasets:[{label:'Prediction Confidence Trend', data:[pred.confidence]}] } });
+  for (let o of lastN(5)) {
+    if (o === 'P1') p1Prior += 3;
+    else p2Prior += 3;
   }
+  const total = p1Prior + p2Prior;
+  const prob = { P1: p1Prior / total, P2: p2Prior / total };
+  const vote = prob.P1 >= prob.P2 ? 'P1' : 'P2';
+  const conf = clamp(Math.abs(prob.P1 - prob.P2) / 0.1 * 55, 0, 90);
+  return { vote, prob, conf };
+}
 
-  function renderAnalytics() {
-    const adv = computeAdvancedMetrics();
-    const matches = getFilteredMatches();
-    document.getElementById('advancedStats').innerHTML = `
-      <div class="stat-card"><h4>📊 Rolling Avg (P1 win rate last 5)</h4><div class="stat-number">${(adv.rollingAvg*100).toFixed(1)}%</div></div>
-      <div class="stat-card"><h4>⚡ Momentum Score</h4><div class="stat-number">${adv.momentumScore.toFixed(3)}</div></div>
-      <div class="stat-card"><h4>📉 Volatility Index</h4><div class="stat-number">${adv.volatilityIdx.toFixed(3)}</div></div>
-      <div class="stat-card"><h4>✅ Prediction Accuracy (historical)</h4><div class="stat-number">${adv.predAccuracy ? (adv.predAccuracy*100).toFixed(1)+'%' : 'N/A'}</div></div>
-    `;
-    if(window.monthChart) window.monthChart.destroy();
-    const monthly = { P1: matches.filter(m=>m.winner==='P1').length, P2: matches.filter(m=>m.winner==='P2').length };
-    const ctxM = document.getElementById('monthlyWinCanvas').getContext('2d');
-    window.monthChart = new Chart(ctxM,{ type:'doughnut', data:{ labels:['P1 Wins','P2 Wins'], datasets:[{data:[monthly.P1, monthly.P2], backgroundColor:['#3b82f6','#ef4444']}] } });
-    if(window.momentumChartIns) window.momentumChartIns.destroy();
-    const momCtx = document.getElementById('momentumChart').getContext('2d');
-    window.momentumChartIns = new Chart(momCtx,{ type:'line', data:{ labels:matches.slice(-15).map((_,i)=>i), datasets:[{label:'Momentum shift', data:matches.slice(-15).map((m,idx)=> idx%2===0?0.5:0.3)}] } });
+// MODEL 5: MOMENTUM (W3 vs W5)
+function modelMomentum() {
+  if (state.outcomes.length < 5) return { vote: '?', prob: { P1: 0.5, P2: 0.5 }, conf: 0, momentum: 0 };
+  const w3 = windowAnalysis(state.outcomes, 3);
+  const w5 = windowAnalysis(state.outcomes, 5);
+  const mom = w3.p1Pct - w5.p1Pct;
+  const p1Base = clamp(0.5 + mom * 0.6, 0.35, 0.7);
+  const prob = { P1: p1Base, P2: 1 - p1Base };
+  const vote = prob.P1 >= prob.P2 ? 'P1' : 'P2';
+  const conf = clamp(Math.abs(mom) * 250, 0, 85);
+  return { vote, prob, conf, momentum: mom };
+}
+
+// MODEL 6: DEVIATION / MEAN REVERSION
+function modelDeviation() {
+  if (state.outcomes.length < 6) return { vote: '?', prob: { P1: 0.5, P2: 0.5 }, conf: 0 };
+  const w = lastN(10);
+  const p1Count = w.filter(x => x === 'P1').length;
+  const expected = PRIOR.P1 * w.length;
+  const deviation = (p1Count - expected) / (expected + 0.01);
+  let prob = { P1: 0.5, P2: 0.5 }, conf = 0;
+  if (deviation > 0.25) { prob = { P1: 0.42, P2: 0.58 }; conf = clamp(deviation * 120, 0, 80); }
+  else if (deviation < -0.25) { prob = { P1: 0.58, P2: 0.42 }; conf = clamp(-deviation * 120, 0, 80); }
+  const vote = prob.P1 >= prob.P2 ? 'P1' : 'P2';
+  return { vote, prob, conf, deviation };
+}
+
+// MODEL 7: REVERSAL MODEL (votes opposite when risk high)
+function modelReversal() {
+  if (state.outcomes.length < 5) return { vote: '?', prob: { P1: 0.5, P2: 0.5 }, conf: 0 };
+  const rev = reversalDetector();
+  if (!rev.signal || rev.risk < 35) return { vote: '?', prob: { P1: 0.5, P2: 0.5 }, conf: 0 };
+  const opposite = rev.side === 'P1' ? 'P2' : 'P1';
+  const prob = opposite === 'P1' ? { P1: 0.58, P2: 0.42 } : { P1: 0.42, P2: 0.58 };
+  const conf = clamp(rev.risk * 0.85, 0, 85);
+  return { vote: opposite, prob, conf, rev };
+}
+
+// ENSEMBLE DECISION ENGINE
+function computeDecision() {
+  if (state.outcomes.length < 4) {
+    return { decision: 'SKIP', confidence: 0, prob: 0.5, modelsAgree: 0, reasoning: [], winner: '?', voteP1: 0, voteP2: 0 };
   }
-
-  function renderSimulation() {
-    document.getElementById('runSimBtn').onclick = ()=>{
-      let simNum = parseInt(document.getElementById('simCount').value);
-      const res = monteCarloSimulation(simNum);
-      document.getElementById('simResults').innerHTML = `<h3>🎲 Monte Carlo Results (${simNum} sims)</h3>
-      <div>P1 Win Probability: ${(res.p1WinProb*100).toFixed(2)}%</div><div class="progress"><div class="progress-fill" style="width:${res.p1WinProb*100}%"></div></div>
-      <div>P2 Win Probability: ${(res.p2WinProb*100).toFixed(2)}%</div><div><strong>Predicted streak pattern:</strong> ${res.expectedStreakSim}</div>`;
-    };
-  }
-
-  function addMatch(winner, score, notes) {
-    const date = new Date().toISOString().slice(0,10);
-    allMatches.push({ id: nextId++, winner, score: score||'3-0', date, notes: notes||'' });
-    saveToLocal();
-    renderAll();
-  }
-
-  function resetData() { allMatches = []; nextId=1; saveToLocal(); renderAll(); }
-  function exportJSON() { const dataStr = JSON.stringify({ matches: allMatches, recencyWeight }); const blob = new Blob([dataStr], {type:'application/json'}); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href=url; a.download='predictor_data.json'; a.click(); URL.revokeObjectURL(url);}
-  function importJSON(file) { const reader = new FileReader(); reader.onload=e=>{ const data=JSON.parse(e.target.result); if(data.matches) allMatches=data.matches; if(data.recencyWeight) recencyWeight=data.recencyWeight; saveToLocal(); renderAll();}; reader.readAsText(file);}
   
-  function renderAll() { renderDashboard(); renderHistoryTable(); renderPredictions(); renderAnalytics(); renderSimulation(); }
-  function applyFilters() { filterFrom=document.getElementById('dateFrom').value; filterTo=document.getElementById('dateTo').value; renderAll(); }
+  const w3 = windowAnalysis(state.outcomes, 3);
+  const w5 = windowAnalysis(state.outcomes, 5);
+  const w10 = windowAnalysis(state.outcomes, 10);
+  const tv = trendVelocity();
+  const rev = reversalDetector();
   
-  // event binding
-  document.querySelectorAll('.tab-btn').forEach(btn=>{
-    btn.addEventListener('click',()=>{
-      document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-      btn.classList.add('active');
-      document.querySelectorAll('.tab-content').forEach(tab=>tab.style.display='none');
-      document.getElementById(btn.dataset.tab+'Tab').style.display='block';
-      renderAll();
-    });
+  // Run all 7 models
+  const mk = modelMarkov();
+  const pt = modelPattern();
+  const sc = modelStreakChop();
+  const by = modelBayesian();
+  const mo = modelMomentum();
+  const dv = modelDeviation();
+  const rv = modelReversal();
+  const models = { mk, pt, sc, by, mo, dv, rv };
+  
+  // Weighted voting with accuracy + react speed
+  const speed = state.config.reactSpeed;
+  const fastBoost = speed / 3;
+  const getWeight = (key, model) => {
+    const acc = state.modelAccuracy[key];
+    const accW = acc.length < 4 ? 1 : clamp(0.3 + mean(acc.slice(-12)) * 1.5, 0.2, 1.7);
+    const speedW = (['mk', 'mo', 'rv'].includes(key)) ? fastBoost : 1;
+    return accW * speedW * (model.conf / 100);
+  };
+  
+  let voteP1 = 0, voteP2 = 0;
+  MODEL_KEYS.forEach(key => {
+    const m = models[key];
+    if (m.vote === 'P1') voteP1 += getWeight(key, m);
+    else if (m.vote === 'P2') voteP2 += getWeight(key, m);
   });
-  document.getElementById('addMatchBtn').addEventListener('click',()=> addMatch(document.getElementById('winnerSelect').value, document.getElementById('scoreInput').value, document.getElementById('notesInput').value));
-  document.getElementById('resetDataBtn').addEventListener('click',resetData);
-  document.getElementById('exportDataBtn').addEventListener('click',exportJSON);
-  document.getElementById('importDataBtn').addEventListener('click',()=>{ const inp=document.createElement('input'); inp.type='file'; inp.accept='application/json'; inp.onchange=e=>importJSON(inp.files[0]); inp.click(); });
-  document.getElementById('applyFilterBtn').addEventListener('click',applyFilters);
-  document.getElementById('resetFilterBtn').addEventListener('click',()=>{filterFrom=null;filterTo=null;document.getElementById('dateFrom').value='';document.getElementById('dateTo').value='';applyFilters();});
-  document.getElementById('retrainModelBtn').addEventListener('click',()=>{ renderAll(); alert('Model recalibrated with current weights.'); });
-  document.getElementById('recencyWeight').addEventListener('input',(e)=>{ recencyWeight=parseFloat(e.target.value); document.getElementById('weightVal').innerText=recencyWeight.toFixed(2); saveToLocal(); renderPredictions(); });
-  document.getElementById('clearHistoryRetainModel').addEventListener('click',()=>{allMatches=[];nextId=1;saveToLocal();renderAll();});
-  loadFromLocal(); renderAll();
+  
+  // Window alignment bonus
+  const windowAgreement = [w3.lead, w5.lead, w10.lead].filter(x => x !== '?');
+  const allWindowsSame = windowAgreement.length >= 2 && windowAgreement.every(x => x === windowAgreement[0]);
+  if (allWindowsSame && windowAgreement[0] === 'P1') voteP1 += 0.3;
+  else if (allWindowsSame && windowAgreement[0] === 'P2') voteP2 += 0.3;
+  
+  // Trend velocity bonus
+  if (tv.direction === 'P1') voteP1 += Math.abs(tv.velocity) * 0.4;
+  else if (tv.direction === 'P2') voteP2 += Math.abs(tv.velocity) * 0.4;
+  
+  const totalVotes = voteP1 + voteP2 || 1;
+  const winner = voteP1 >= voteP2 ? 'P1' : 'P2';
+  const modelsAgree = Object.values(models).filter(m => m.vote === winner).length;
+  let confidence = clamp((Math.abs(voteP1 - voteP2) / totalVotes) * 100 + modelsAgree * 4, 0, 96);
+  
+  if (allWindowsSame && windowAgreement[0] === winner) confidence = clamp(confidence + 10, 0, 96);
+  if (tv.direction === winner) confidence = clamp(confidence + Math.abs(tv.velocity) * 25, 0, 96);
+  if (rev.risk > 55 && rev.side === winner) confidence = clamp(confidence - 18, 0, 96);
+  
+  const minAgree = state.config.secureMode ? 3 : 2;
+  let threshold = state.config.confThreshold;
+  if (allWindowsSame && windowAgreement[0] === winner) threshold = clamp(threshold - 8, 38, 85);
+  
+  const decision = (confidence >= threshold && modelsAgree >= minAgree) ? winner : 'SKIP';
+  
+  // Win probability (ensemble weighted)
+  const winProb = winner === 'P1' ?
+    (mk.prob.P1*0.18 + pt.prob.P1*0.15 + sc.prob.P1*0.12 + by.prob.P1*0.18 + mo.prob.P1*0.18 + dv.prob.P1*0.10 + rv.prob.P1*0.09) :
+    (mk.prob.P2*0.18 + pt.prob.P2*0.15 + sc.prob.P2*0.12 + by.prob.P2*0.18 + mo.prob.P2*0.18 + dv.prob.P2*0.10 + rv.prob.P2*0.09);
+  
+  // Reasoning
+  const reasoning = [];
+  reasoning.push({ type: winner, text: `${winner === 'P1' ? 'PLAYER 1' : 'PLAYER 2'} · Win Prob ${(winProb*100).toFixed(1)}%` });
+  reasoning.push({ type: winner, text: `W3:${w3.lead} W5:${w5.lead} W10:${w10.lead} · Velocity: ${tv.direction}` });
+  reasoning.push({ type: winner, text: `${modelsAgree}/7 models agree · Conf ${confidence.toFixed(0)}% vs ${threshold.toFixed(0)}%` });
+  if (rev.risk > 45) reasoning.push({ type: 'T', text: `↩️ Reversal risk ${rev.risk.toFixed(0)}% · ${rev.side} streak ×${rev.streakLen}` });
+  if (decision === 'SKIP') reasoning.push({ type: 'S', text: `SKIP: conf below threshold or low agreement` });
+  else reasoning.push({ type: 'G', text: `✅ ENTRY: ${modelsAgree}/7 models · ${allWindowsSame ? 'all windows aligned' : 'multi-window'}` });
+  
+  return { decision, confidence, winProb, modelsAgree, reasoning, winner, voteP1, voteP2,
+           w3, w5, w10, tv, rev, allWindowsSame, windowAgreement, threshold };
+}
+
+// RECORD MATCH
+function record(outcome) {
+  flashButton(outcome);
+  
+  // If we had a pending decision, track prediction accuracy
+  if (state.lastDecision && state.lastDecision.decision !== 'SKIP') {
+    const wasCorrect = state.lastDecision.decision === outcome;
+    state.stats.bets++;
+    state.stats.totalStaked += 10; // fixed stake for demo
+    if (wasCorrect) {
+      state.stats.won++;
+      state.stats.currentStreak++;
+      state.stats.bestStreak = Math.max(state.stats.bestStreak, state.stats.currentStreak);
+      state.stats.totalPnl += 8.5;
+    } else {
+      state.stats.lost++;
+      state.stats.currentStreak = 0;
+      state.stats.totalPnl -= 10;
+    }
+    
+    // Update model accuracy
+    MODEL_KEYS.forEach(key => {
+      const model = state.lastDecision.models?.[key];
+      if (model && model.vote !== '?') {
+        const hit = model.vote === outcome ? 1 : 0;
+        state.modelAccuracy[key].push(hit);
+        if (state.modelAccuracy[key].length > 40) state.modelAccuracy[key].shift();
+      }
+    });
+  } else {
+    state.stats.skipped++;
+  }
+  
+  state.outcomes.push(outcome);
+  if (outcome === 'P1') state.stats.p1Wins++;
+  else state.stats.p2Wins++;
+  state.stats.matches = state.outcomes.length;
+  
+  // Update window histories
+  const w3a = windowAnalysis(state.outcomes, 3);
+  const w5a = windowAnalysis(state.outcomes, 5);
+  const w10a = windowAnalysis(state.outcomes, 10);
+  state.w3history.push(w3a.p1Pct);
+  state.w5history.push(w5a.p1Pct);
+  state.w10history.push(w10a.p1Pct);
+  if (state.w3history.length > 80) state.w3history.shift();
+  if (state.w5history.length > 80) state.w5history.shift();
+  if (state.w10history.length > 80) state.w10history.shift();
+  
+  // Compute new decision
+  const decision = computeDecision();
+  decision.models = { mk: modelMarkov(), pt: modelPattern(), sc: modelStreakChop(), by: modelBayesian(), mo: modelMomentum(), dv: modelDeviation(), rv: modelReversal() };
+  state.lastDecision = decision;
+  
+  // Render everything
+  renderUI(decision);
+  renderHistory();
+  renderStats();
+  renderModelVotes(decision);
+  renderPatterns(decision);
+  updateCharts();
+  updateTopBar();
+}
+
+// UI RENDERING
+function renderUI(dec) {
+  // Window displays
+  document.getElementById('w3-lead').textContent = dec.w3?.lead === 'P1' ? 'P1' : dec.w3?.lead === 'P2' ? 'P2' : '—';
+  document.getElementById('w3-lead').className = `wv ${dec.w3?.lead === 'P1' ? 'P1' : dec.w3?.lead === 'P2' ? 'P2' : ''}`;
+  document.getElementById('w3-pct').textContent = dec.w3 ? `${(dec.w3.p1Pct*100).toFixed(0)}%` : '—';
+  document.getElementById('w5-lead').textContent = dec.w5?.lead === 'P1' ? 'P1' : dec.w5?.lead === 'P2' ? 'P2' : '—';
+  document.getElementById('w5-lead').className = `wv ${dec.w5?.lead === 'P1' ? 'P1' : dec.w5?.lead === 'P2' ? 'P2' : ''}`;
+  document.getElementById('w5-pct').textContent = dec.w5 ? `${(dec.w5.p1Pct*100).toFixed(0)}%` : '—';
+  document.getElementById('w10-lead').textContent = dec.w10?.lead === 'P1' ? 'P1' : dec.w10?.lead === 'P2' ? 'P2' : '—';
+  document.getElementById('w10-lead').className = `wv ${dec.w10?.lead === 'P1' ? 'P1' : dec.w10?.lead === 'P2' ? 'P2' : ''}`;
+  document.getElementById('w10-pct').textContent = dec.w10 ? `${(dec.w10.p1Pct*100).toFixed(0)}%` : '—';
+  
+  // Velocity and reversal bars
+  const velPct = 50 + (dec.tv?.velocity || 0) * 100;
+  document.getElementById('vel-bar').style.width = `${clamp(velPct, 0, 100)}%`;
+  document.getElementById('vel-bar').style.backgroundColor = dec.tv?.direction === 'P1' ? 'var(--P1)' : dec.tv?.direction === 'P2' ? 'var(--P2)' : 'var(--G)';
+  document.getElementById('vel-val').textContent = `${dec.tv?.velocity >= 0 ? '+' : ''}${((dec.tv?.velocity || 0)*100).toFixed(1)}%`;
+  document.getElementById('rev-bar').style.width = `${dec.rev?.risk || 0}%`;
+  document.getElementById('rev-val').textContent = `risk ${(dec.rev?.risk || 0).toFixed(0)}% · streak ×${dec.rev?.streakLen || 0}`;
+  
+  // Decision card
+  const card = document.getElementById('bet-card');
+  const decisionText = document.getElementById('decision-text');
+  if (dec.decision !== 'SKIP') {
+    decisionText.textContent = `PREDICT: ${dec.decision === 'P1' ? 'PLAYER 1' : 'PLAYER 2'}`;
+    decisionText.className = `ba ${dec.decision === 'P1' ? 'P1' : 'P2'}`;
+    document.getElementById('stake-info').textContent = `🔮 ${dec.modelsAgree}/7 models · stake suggestion active`;
+  } else {
+    decisionText.textContent = 'WAIT / SKIP';
+    decisionText.className = 'ba';
+    document.getElementById('stake-info').textContent = `Conf ${dec.confidence.toFixed(0)}% < ${dec.threshold?.toFixed(0) || 55}%`;
+  }
+  document.getElementById('conf-fill').style.width = `${dec.confidence}%`;
+  document.getElementById('conf-fill').style.backgroundColor = dec.decision !== 'SKIP' ? 'var(--G)' : 'var(--text3)';
+  document.getElementById('conf-val').textContent = `${dec.confidence.toFixed(0)}%`;
+  document.getElementById('agree-val').textContent = `${dec.modelsAgree || 0}/7`;
+  document.getElementById('prob-val').textContent = `${((dec.winProb || 0.5)*100).toFixed(1)}%`;
+  
+  // Reasoning
+  if (dec.reasoning) {
+    document.getElementById('reason-list').innerHTML = dec.reasoning.map(r => 
+      `<div style="font-size:7px;margin-bottom:2px;color:${r.type === 'G' ? 'var(--G)' : r.type === 'T' ? 'var(--R)' : 'var(--text2)'}">${r.text}</div>`
+    ).join('');
+  }
+  
+  // Markov matrix
+  const mk = dec.models?.mk;
+  if (mk?.prob) {
+    document.getElementById('mx-P1P1').textContent = `${(mk.prob.P1 * 100).toFixed(0)}%`;
+    document.getElementById('mx-P1P2').textContent = `${(mk.prob.P2 * 100).toFixed(0)}%`;
+    document.getElementById('mx-P2P1').textContent = `${((1-mk.prob.P1) * 100).toFixed(0)}%`;
+    document.getElementById('mx-P2P2').textContent = `${((1-mk.prob.P2) * 100).toFixed(0)}%`;
+  }
+  
+  // Last 10 outcomes
+  const last10 = state.outcomes.slice(-10);
+  document.getElementById('last10').innerHTML = last10.map(o => `<div class="hb hb${o}" style="width:20px;height:20px;font-size:8px">${o}</div>`).join('');
+  
+  // Streak and chop
+  const revData = reversalDetector();
+  document.getElementById('streak-val').textContent = revData.streakLen;
+  const w3w10 = windowAnalysis(state.outcomes, 3);
+  const w10w10 = windowAnalysis(state.outcomes, 10);
+  document.getElementById('drift-val').textContent = `${Math.abs(w3w10.p1Pct - w10w10.p1Pct) > 0.1 ? '📈' : '→'} ${Math.abs((w3w10.p1Pct - w10w10.p1Pct)*100).toFixed(0)}%`;
+  
+  // Top call badge
+  const topCall = document.getElementById('top-call');
+  if (dec.decision !== 'SKIP') {
+    topCall.textContent = `${dec.decision} PREDICTION`;
+    topCall.className = `bdg bdg-${dec.decision}`;
+  } else {
+    topCall.textContent = 'ANALYZING';
+    topCall.className = 'bdg bdg-live';
+  }
+}
+
+function renderHistory() {
+  const container = document.getElementById('hl');
+  container.innerHTML = state.outcomes.slice().reverse().map((o, i) => `
+    <div class="hi">
+      <span class="hn">#${state.outcomes.length - i}</span>
+      <div class="hb hb${o}">${o}</div>
+      <span class="hp">${o === 'P1' ? 'P1 WINS' : 'P2 WINS'}</span>
+    </div>
+  `).join('');
+  document.getElementById('history-count').textContent = state.outcomes.length;
+}
+
+function renderStats() {
+  const s = state.stats;
+  const wr = s.bets ? (s.won / s.bets * 100) : 0;
+  document.getElementById('stat-bets').textContent = s.bets;
+  document.getElementById('stat-won').textContent = s.won;
+  document.getElementById('stat-lost').textContent = s.lost;
+  document.getElementById('stat-wr').textContent = `${wr.toFixed(1)}%`;
+  const total = s.won + s.lost || 1;
+  document.getElementById('win-bar').style.width = `${(s.won / total) * 100}%`;
+  document.getElementById('loss-bar').style.width = `${(s.lost / total) * 100}%`;
+}
+
+function renderModelVotes(dec) {
+  const models = dec.models;
+  if (!models) return;
+  const html = MODEL_KEYS.map((key, i) => {
+    const m = models[key];
+    const acc = state.modelAccuracy[key];
+    const accPct = acc.length ? (mean(acc) * 100).toFixed(0) : '—';
+    const barColor = m?.vote === 'P1' ? 'var(--P1)' : m?.vote === 'P2' ? 'var(--P2)' : 'var(--text3)';
+    return `
+      <div class="mvrow">
+        <span style="width:70px">${MODEL_NAMES[i]}</span>
+        <span style="width:30px">${m?.vote === '?' ? '—' : m?.vote}</span>
+        <div class="mvbar"><div class="mvfill" style="width:${m?.conf || 0}%;background:${barColor}"></div></div>
+        <span style="width:35px">${(m?.conf || 0).toFixed(0)}%</span>
+        <span style="width:30px;font-size:6px">acc ${accPct}%</span>
+      </div>
+    `;
+  }).join('');
+  document.getElementById('model-votes').innerHTML = html;
+  document.getElementById('ensemble-sum').innerHTML = `P1: ${(dec.voteP1/(dec.voteP1+dec.voteP2||1)*100).toFixed(0)}% · P2: ${(dec.voteP2/(dec.voteP1+dec.voteP2||1)*100).toFixed(0)}% · ${dec.decision !== 'SKIP' ? `→ ${dec.decision}` : 'SKIP'}`;
+}
+
+function renderPatterns(dec) {
+  const pt = dec.models?.pt;
+  if (pt?.patterns?.length) {
+    document.getElementById('patterns').innerHTML = pt.patterns.slice(0, 2).map(p => 
+      `<div style="margin-bottom:3px">📐 ${p.seq.split('').join('→')} → ${p.P1 >= p.P2 ? 'P1' : 'P2'} (${p.n} occurrences)</div>`
+    ).join('');
+  } else {
+    document.getElementById('patterns').textContent = `Building pattern library (${state.outcomes.length}/7 min)...`;
+  }
+}
+
+function updateTopBar() {
+  document.getElementById('total-matches').textContent = state.stats.matches;
+  document.getElementById('p1-wins').textContent = state.stats.p1Wins;
+  document.getElementById('p2-wins').textContent = state.stats.p2Wins;
+  const wr = state.stats.matches ? (state.stats.p1Wins / state.stats.matches * 100).toFixed(1) : 0;
+  document.getElementById('win-rate').textContent = `${wr}%`;
+}
+
+function updateCharts() {
+  // Equity chart placeholder
+  const equityCtx = document.getElementById('equity-chart').getContext('2d');
+  if (window.eqChart) window.eqChart.destroy();
+  window.eqChart = new Chart(equityCtx, {
+    type: 'line',
+    data: { labels: state.outcomes.map((_,i)=>i), datasets: [{ data: state.outcomes.map((_,i)=>i*0.5), borderColor: 'var(--G)', fill: false, tension: 0.3, pointRadius: 0 }] },
+    options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { grid: { color: 'rgba(255,255,255,0.05)' } } } }
+  });
+  
+  const trendCtx = document.getElementById('trend-chart').getContext('2d');
+  if (window.trendChart) window.trendChart.destroy();
+  window.trendChart = new Chart(trendCtx, {
+    type: 'line',
+    data: { labels: state.w3history.map((_,i)=>i), datasets: [
+      { label: 'W3', data: state.w3history, borderColor: 'var(--R)', borderWidth: 2, pointRadius: 0 },
+      { label: 'W5', data: state.w5history, borderColor: 'var(--W)', borderWidth: 1.5, pointRadius: 0 },
+      { label: 'W10', data: state.w10history, borderColor: 'var(--P1)', borderWidth: 1, pointRadius: 0 }
+    ] },
+    options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'top', labels: { color: 'var(--text3)', font: { size: 8 } } } }, scales: { y: { min: 0, max: 1, grid: { color: 'rgba(255,255,255,0.05)' } } } }
+  });
+}
+
+function flashButton(outcome) {
+  const btn = document.querySelector(`.eb.${outcome}`);
+  if (btn) { btn.classList.add('fl'); setTimeout(() => btn.classList.remove('fl'), 200); }
+}
+
+function batchImport() {
+  const raw = document.getElementById('batch').value.toUpperCase().replace(/[^P12]/g, '');
+  for (let c of raw) {
+    const outcome = c === '1' ? 'P1' : c === '2' ? 'P2' : c;
+    if (outcome === 'P1' || outcome === 'P2') record(outcome);
+  }
+  document.getElementById('batch').value = '';
+}
+
+function resetSession() {
+  state = {
+    outcomes: [], predictions: [], w3history: [], w5history: [], w10history: [],
+    modelAccuracy: { mk: [], pt: [], sc: [], by: [], mo: [], dv: [], rv: [] },
+    stats: { matches: 0, p1Wins: 0, p2Wins: 0, bets: 0, won: 0, lost: 0, skipped: 0, totalStaked: 0, totalPnl: 0, bestStreak: 0, currentStreak: 0 },
+    lastDecision: null,
+    config: { confThreshold: 55, reactSpeed: 3, secureMode: true }
+  };
+  document.getElementById('hl').innerHTML = '';
+  const dec = computeDecision();
+  dec.models = { mk: modelMarkov(), pt: modelPattern(), sc: modelStreakChop(), by: modelBayesian(), mo: modelMomentum(), dv: modelDeviation(), rv: modelReversal() };
+  state.lastDecision = dec;
+  renderUI(dec);
+  renderHistory();
+  renderStats();
+  renderModelVotes(dec);
+  renderPatterns(dec);
+  updateCharts();
+  updateTopBar();
+}
+
+function runBacktest() {
+  if (state.outcomes.length < 15) { alert('Need at least 15 matches for backtest'); return; }
+  let bets = 0, wins = 0;
+  for (let i = 6; i < state.outcomes.length; i++) {
+    const hist = state.outcomes.slice(0, i);
+    const w3 = windowAnalysis(hist, 3);
+    const w5 = windowAnalysis(hist, 5);
+    const w10 = windowAnalysis(hist, 10);
+    const tv = { velocity: (w3.p1Pct - w10.p1Pct), direction: w3.p1Pct > w10.p1Pct ? 'P1' : 'P2' };
+    let voteP1 = 0, voteP2 = 0;
+    if (w3.lead === 'P1') voteP1 += w3.conf; else if (w3.lead === 'P2') voteP2 += w3.conf;
+    if (w5.lead === 'P1') voteP1 += w5.conf; else if (w5.lead === 'P2') voteP2 += w5.conf;
+    if (tv.direction === 'P1') voteP1 += Math.abs(tv.velocity)*30;
+    else if (tv.direction === 'P2') voteP2 += Math.abs(tv.velocity)*30;
+    const pred = voteP1 >= voteP2 ? 'P1' : 'P2';
+    bets++;
+    if (pred === state.outcomes[i]) wins++;
+  }
+  alert(`BACKTEST RESULTS\nBets: ${bets}\nCorrect: ${wins}\nWin Rate: ${(wins/bets*100).toFixed(1)}%`);
+}
+
+// Event listeners
+document.getElementById('conf-thresh').addEventListener('input', (e) => {
+  state.config.confThreshold = parseInt(e.target.value);
+  document.getElementById('thresh-val').textContent = state.config.confThreshold + '%';
+  const dec = computeDecision();
+  dec.models = { mk: modelMarkov(), pt: modelPattern(), sc: modelStreakChop(), by: modelBayesian(), mo: modelMomentum(), dv: modelDeviation(), rv: modelReversal() };
+  state.lastDecision = dec;
+  renderUI(dec);
+});
+document.getElementById('react-speed').addEventListener('input', (e) => {
+  state.config.reactSpeed = parseInt(e.target.value);
+  document.getElementById('speed-val').textContent = state.config.reactSpeed;
+  const dec = computeDecision();
+  dec.models = { mk: modelMarkov(), pt: modelPattern(), sc: modelStreakChop(), by: modelBayesian(), mo: modelMomentum(), dv: modelDeviation(), rv: modelReversal() };
+  state.lastDecision = dec;
+  renderUI(dec);
+});
+
+// Initialize with demo data
+function init() {
+  const demo = ['P1', 'P1', 'P2', 'P1', 'P2', 'P2', 'P1', 'P1', 'P1', 'P2', 'P1', 'P2'];
+  for (let o of demo) {
+    state.outcomes.push(o);
+    if (o === 'P1') state.stats.p1Wins++;
+    else state.stats.p2Wins++;
+  }
+  state.stats.matches = state.outcomes.length;
+  for (let i = 0; i < state.outcomes.length; i++) {
+    state.w3history.push(windowAnalysis(state.outcomes.slice(0, i+1), 3).p1Pct);
+    state.w5history.push(windowAnalysis(state.outcomes.slice(0, i+1), 5).p1Pct);
+    state.w10history.push(windowAnalysis(state.outcomes.slice(0, i+1), 10).p1Pct);
+  }
+  const dec = computeDecision();
+  dec.models = { mk: modelMarkov(), pt: modelPattern(), sc: modelStreakChop(), by: modelBayesian(), mo: modelMomentum(), dv: modelDeviation(), rv: modelReversal() };
+  state.lastDecision = dec;
+  renderUI(dec);
+  renderHistory();
+  renderStats();
+  renderModelVotes(dec);
+  renderPatterns(dec);
+  updateCharts();
+  updateTopBar();
+}
+
+init();
 </script>
 </body>
 </html>
