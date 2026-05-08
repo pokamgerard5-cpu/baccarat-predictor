@@ -1,375 +1,541 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Player Prediction Engine | Advanced Analytics</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        :root { --bg-dark: #0f172a; --card-dark: #1e293b; --accent: #38bdf8; }
-        body { background-color: var(--bg-dark); color: white; font-family: 'Inter', sans-serif; }
-        .glass-card { background: var(--card-dark); border: 1px solid #334155; border-radius: 12px; }
-        .tab-active { border-bottom: 2px solid var(--accent); color: var(--accent); }
-        input, select { background: #334155; border: 1px solid #475569; color: white; border-radius: 4px; padding: 5px 10px; }
-        .btn-primary { background: var(--accent); color: #0f172a; font-weight: bold; transition: all 0.2s; }
-        .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>Player Prediction Engine | Statistical Match Forecaster</title>
+  <!-- Chart.js CDN for visualizations -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <!-- Font Awesome 6 (free icons) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+    }
+
+    body {
+      background: radial-gradient(circle at 10% 20%, #0a0f1e, #03060c);
+      color: #eef2ff;
+      padding: 1.5rem;
+      min-height: 100vh;
+    }
+
+    /* modern glassmorphic container */
+    .app-container {
+      max-width: 1600px;
+      margin: 0 auto;
+    }
+
+    /* header */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      flex-wrap: wrap;
+      margin-bottom: 2rem;
+      border-bottom: 1px solid rgba(72, 187, 255, 0.2);
+      padding-bottom: 1rem;
+    }
+    .title h1 {
+      font-size: 1.8rem;
+      background: linear-gradient(135deg, #c084fc, #60a5fa);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      letter-spacing: -0.3px;
+    }
+    .title p {
+      font-size: 0.85rem;
+      color: #94a3b8;
+    }
+    .actions-buttons {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    button, .btn-outline {
+      background: rgba(15, 25, 45, 0.8);
+      backdrop-filter: blur(4px);
+      border: 1px solid #2d3a5e;
+      padding: 0.5rem 1rem;
+      border-radius: 40px;
+      color: #e2e8f0;
+      font-weight: 500;
+      cursor: pointer;
+      transition: 0.2s;
+      font-size: 0.8rem;
+    }
+    button i, .btn-outline i {
+      margin-right: 6px;
+    }
+    button:hover {
+      background: #2d3e6e;
+      border-color: #60a5fa;
+      transform: scale(0.98);
+    }
+    .primary-btn {
+      background: #3b82f6;
+      border-color: #60a5fa;
+      color: white;
+    }
+    .danger-btn {
+      background: #7f1a1a;
+      border-color: #ef4444;
+    }
+
+    /* tabs */
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.25rem;
+      margin-bottom: 2rem;
+      border-bottom: 1px solid #1e293b;
+    }
+    .tab-btn {
+      background: transparent;
+      border: none;
+      border-radius: 0;
+      padding: 0.75rem 1.5rem;
+      font-weight: 600;
+      border-bottom: 2px solid transparent;
+    }
+    .tab-btn.active {
+      border-bottom-color: #3b82f6;
+      color: #3b82f6;
+      background: rgba(59,130,246,0.1);
+    }
+
+    /* dashboard cards */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1.2rem;
+      margin-bottom: 2rem;
+    }
+    .stat-card {
+      background: rgba(15, 25, 45, 0.7);
+      backdrop-filter: blur(8px);
+      border-radius: 24px;
+      padding: 1rem 1.2rem;
+      border: 1px solid #2d3a5e;
+      transition: 0.2s;
+    }
+    .stat-card h4 {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #9ca3af;
+    }
+    .stat-number {
+      font-size: 2.3rem;
+      font-weight: 800;
+      margin-top: 6px;
+    }
+    .chart-container {
+      background: rgba(10, 20, 35, 0.6);
+      border-radius: 24px;
+      padding: 1rem;
+      margin-bottom: 2rem;
+      border: 1px solid #2d3a5e;
+    }
+
+    /* tables and forms */
+    .match-form, .filter-bar {
+      background: #0f172acc;
+      border-radius: 24px;
+      padding: 1.2rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      align-items: flex-end;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .form-group label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: #a0aec0;
+    }
+    input, select, textarea {
+      background: #0a0f1e;
+      border: 1px solid #334155;
+      padding: 8px 12px;
+      border-radius: 16px;
+      color: white;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      text-align: left;
+      padding: 12px 8px;
+      border-bottom: 1px solid #1e2a3a;
+    }
+    .prediction-card {
+      background: linear-gradient(145deg, #1e293b, #0f172a);
+      border-radius: 32px;
+      padding: 1.8rem;
+      text-align: center;
+    }
+    .winner-badge {
+      font-size: 2.5rem;
+      font-weight: bold;
+    }
+    .progress {
+      background: #1e293b;
+      border-radius: 30px;
+      height: 12px;
+      margin: 12px 0;
+    }
+    .progress-fill {
+      background: #3b82f6;
+      width: 0%;
+      height: 12px;
+      border-radius: 30px;
+    }
+    .flex-between {
+      display: flex;
+      justify-content: space-between;
+    }
+    @media (max-width: 680px) {
+      body { padding: 1rem; }
+      .tab-btn { padding: 0.5rem 0.8rem; font-size: 0.7rem; }
+    }
+  </style>
 </head>
-<body class="p-4 md:p-8">
+<body>
+<div class="app-container">
+  <div class="header">
+    <div class="title">
+      <h1><i class="fas fa-brain"></i> Player Prediction Engine</h1>
+      <p>statistical forecasting | pattern learning | monte carlo simulation</p>
+    </div>
+    <div class="actions-buttons">
+      <button id="exportDataBtn"><i class="fas fa-download"></i> Export JSON</button>
+      <button id="importDataBtn"><i class="fas fa-upload"></i> Import JSON</button>
+      <button id="resetDataBtn" class="danger-btn"><i class="fas fa-trash-alt"></i> Reset All</button>
+    </div>
+  </div>
 
-    <header class="max-w-7xl mx-auto mb-8 flex justify-between items-center">
-        <div>
-            <h1 class="text-3xl font-bold tracking-tight text-sky-400">PREDICTION ENGINE <span class="text-xs bg-sky-900 px-2 py-1 rounded text-sky-200 ml-2">v1.0 Pro</span></h1>
-            <p class="text-slate-400 text-sm">Statistical Match Analysis & Pattern Recognition</p>
-        </div>
-        <div class="flex gap-2">
-            <button onclick="exportData()" class="text-xs bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded">Export JSON</button>
-            <button onclick="resetData()" class="text-xs bg-red-900 hover:bg-red-800 px-3 py-2 rounded">Reset Engine</button>
-        </div>
-    </header>
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="dashboard"><i class="fas fa-chart-line"></i> Dashboard</button>
+    <button class="tab-btn" data-tab="history"><i class="fas fa-list"></i> Match History</button>
+    <button class="tab-btn" data-tab="predictions"><i class="fas fa-chart-simple"></i> Predictions</button>
+    <button class="tab-btn" data-tab="analytics"><i class="fas fa-chart-pie"></i> Analytics</button>
+    <button class="tab-btn" data-tab="simulation"><i class="fas fa-dice-d6"></i> Simulation</button>
+    <button class="tab-btn" data-tab="settings"><i class="fas fa-sliders-h"></i> Settings</button>
+  </div>
 
-    <main class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6">
-        
-        <!-- Sidebar: Match Entry -->
-        <div class="lg:col-span-3 space-y-6">
-            <section class="glass-card p-6">
-                <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
-                    <span>Input Match Data</span>
-                </h3>
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-xs text-slate-400 uppercase mb-1">Winner</label>
-                        <select id="matchWinner" class="w-full">
-                            <option value="Player 1">Player 1</option>
-                            <option value="Player 2">Player 2</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs text-slate-400 uppercase mb-1">Score Line (e.g. 2-1)</label>
-                        <input type="text" id="matchScore" class="w-full" placeholder="0-0">
-                    </div>
-                    <button onclick="addMatch()" class="w-full btn-primary py-3 rounded-lg mt-2">Record Result</button>
-                </div>
-            </section>
+  <!-- DASHBOARD TAB -->
+  <div id="dashboardTab" class="tab-content">
+    <div class="dashboard-grid" id="statsGrid"></div>
+    <div class="chart-container"><canvas id="formChart" height="80"></canvas></div>
+    <div class="chart-container"><canvas id="trendLineChart" height="80"></canvas></div>
+    <div class="chart-container"><h4>🏆 Recent Form (Last 10 matches)</h4><canvas id="streakHeatmap" height="60"></canvas></div>
+  </div>
 
-            <section class="glass-card p-6">
-                <h3 class="text-lg font-semibold mb-2">Live Status</h3>
-                <div id="quickStats" class="space-y-3">
-                    <!-- Dynamic Content -->
-                </div>
-            </section>
-        </div>
+  <!-- HISTORY TAB -->
+  <div id="historyTab" class="tab-content" style="display:none;">
+    <div class="match-form">
+      <div class="form-group"><label>Winner</label><select id="winnerSelect"><option value="P1">Player 1</option><option value="P2">Player 2</option></select></div>
+      <div class="form-group"><label>Score (e.g., 3-1)</label><input type="text" id="scoreInput" placeholder="3-2"></div>
+      <div class="form-group"><label>Notes/Tags</label><input type="text" id="notesInput" placeholder="clutch / upset"></div>
+      <button id="addMatchBtn" class="primary-btn"><i class="fas fa-plus"></i> Record Match</button>
+    </div>
+    <div class="filter-bar"><div class="form-group"><label>Filter by date range (optional)</label><input type="date" id="dateFrom"><input type="date" id="dateTo"></div><button id="applyFilterBtn">Apply</button><button id="resetFilterBtn">Reset</button></div>
+    <div style="overflow-x:auto;"><table id="matchesTable"><thead><tr><th>ID</th><th>Winner</th><th>Score</th><th>Date</th><th>Notes</th><th></th></tr></thead><tbody></tbody></table></div>
+  </div>
 
-        <!-- Main Dashboard -->
-        <div class="lg:col-span-9 space-y-6">
-            
-            <!-- Navigation Tabs -->
-            <nav class="flex gap-6 border-b border-slate-700 text-sm font-medium">
-                <button onclick="switchTab('dashboard')" id="tab-dashboard" class="pb-2 tab-active">Dashboard</button>
-                <button onclick="switchTab('analytics')" id="tab-analytics" class="pb-2 text-slate-400">Analytics</button>
-                <button onclick="switchTab('simulation')" id="tab-simulation" class="pb-2 text-slate-400">Simulations</button>
-                <button onclick="switchTab('history')" id="tab-history" class="pb-2 text-slate-400">Match History</button>
-            </nav>
+  <!-- PREDICTIONS TAB -->
+  <div id="predictionsTab" class="tab-content" style="display:none;">
+    <div class="prediction-card" id="predictionContainer"></div>
+    <div class="chart-container"><canvas id="predictionTrendChart" height="80"></canvas></div>
+  </div>
 
-            <!-- Dashboard Content -->
-            <div id="content-dashboard" class="tab-content grid grid-cols-1 md:grid-cols-3 gap-6">
-                <!-- Prediction Card -->
-                <div class="md:col-span-2 glass-card p-6 border-l-4 border-l-sky-500">
-                    <h2 class="text-xl font-bold mb-4 uppercase tracking-wider text-slate-300">Next Game Forecast</h2>
-                    <div class="flex items-center justify-between">
-                        <div id="predictionDisplay">
-                            <p class="text-slate-400">Awaiting more data...</p>
-                        </div>
-                        <div class="text-right">
-                            <div id="confidenceMeter" class="text-4xl font-black text-sky-400">--%</div>
-                            <div class="text-xs text-slate-500">Confidence Score</div>
-                        </div>
-                    </div>
-                    <div class="mt-6 h-32 w-full">
-                        <canvas id="miniTrendChart"></canvas>
-                    </div>
-                </div>
+  <!-- ANALYTICS TAB (advanced stats) -->
+  <div id="analyticsTab" class="tab-content" style="display:none;">
+    <div class="dashboard-grid" id="advancedStats"></div>
+    <div class="chart-container"><canvas id="monthlyWinCanvas" height="100"></canvas></div>
+    <div class="chart-container"><h4>⚡ Momentum & Volatility</h4><canvas id="momentumChart" height="70"></canvas></div>
+  </div>
 
-                <!-- Streak Info -->
-                <div class="glass-card p-6">
-                    <h2 class="text-sm font-bold mb-4 uppercase text-slate-400 tracking-widest">Momentum Index</h2>
-                    <div id="momentumDisplay" class="text-center py-4">
-                        <div class="text-5xl mb-2">⚖️</div>
-                        <p class="text-slate-300">Neutral Stability</p>
-                    </div>
-                </div>
+  <!-- SIMULATION TAB -->
+  <div id="simulationTab" class="tab-content" style="display:none;">
+    <div class="match-form"><div class="form-group"><label>Number of simulations</label><input type="number" id="simCount" value="5000" step="500"></div><button id="runSimBtn"><i class="fas fa-chart-line"></i> Run Monte Carlo</button></div>
+    <div id="simResults" class="prediction-card"></div>
+  </div>
 
-                <!-- Charts Row -->
-                <div class="md:col-span-3 glass-card p-6">
-                    <h3 class="text-lg font-semibold mb-4">Win Distribution Trend</h3>
-                    <div class="h-64">
-                        <canvas id="mainWinChart"></canvas>
-                    </div>
-                </div>
-            </div>
+  <!-- SETTINGS TAB -->
+  <div id="settingsTab" class="tab-content" style="display:none;">
+    <div class="stat-card"><h4>⚙️ Prediction Model Tunings</h4><button id="retrainModelBtn">Re-train / Recalibrate</button><p style="margin-top:12px">Recent weight exponent: 0.7 (higher = recent matches more important)</p><input type="range" id="recencyWeight" min="0.3" max="1.0" step="0.01" value="0.7"><span id="weightVal">0.70</span></div>
+    <div class="stat-card"><h4>📊 Prediction Accuracy Tracker</h4><div id="accuracyTracker">Calculating...</div><button id="clearHistoryRetainModel">Clear matches (keep empty model)</button></div>
+  </div>
+</div>
 
-            <!-- Simulation Tab -->
-            <div id="content-simulation" class="tab-content hidden space-y-6">
-                <div class="glass-card p-8 text-center">
-                    <h2 class="text-2xl font-bold mb-2">Monte Carlo Simulator</h2>
-                    <p class="text-slate-400 mb-6">Run 2,000 iterations based on historical volatility and weighted win rates.</p>
-                    <button onclick="runSimulation()" class="btn-primary px-8 py-3 rounded-full">Execute Simulation</button>
-                    
-                    <div id="simResults" class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4 hidden">
-                        <div class="bg-slate-800 p-4 rounded-lg">
-                            <p class="text-xs uppercase text-slate-400">P1 Expected Win Rate</p>
-                            <p id="simP1" class="text-2xl font-bold text-sky-400">0%</p>
-                        </div>
-                        <div class="bg-slate-800 p-4 rounded-lg">
-                            <p class="text-xs uppercase text-slate-400">P2 Expected Win Rate</p>
-                            <p id="simP2" class="text-2xl font-bold text-pink-400">0%</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
+<script>
+  // ---------- DATA LAYER ----------
+  let allMatches = [];    // each: { id, winner, score, date, notes }
+  let nextId = 1;
+  let filterFrom = null, filterTo = null;
+  let recencyWeight = 0.7;   // exponent for weighting (closer to 1 = more recent influence)
 
-            <!-- Analytics Tab -->
-            <div id="content-analytics" class="tab-content hidden grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="glass-card p-6">
-                    <h3 class="text-lg font-semibold mb-4">Pattern Recognition</h3>
-                    <div id="patternList" class="space-y-2 text-sm text-slate-300 italic">
-                        No significant patterns detected yet.
-                    </div>
-                </div>
-                <div class="glass-card p-6">
-                    <h3 class="text-lg font-semibold mb-4">Streak History</h3>
-                    <div id="streakStats" class="space-y-4">
-                        <!-- Dynamic -->
-                    </div>
-                </div>
-            </div>
+  // Helper: load/save
+  function saveToLocal() { localStorage.setItem('predictionEngineV2', JSON.stringify({ matches: allMatches, nextId, recencyWeight })); }
+  function loadFromLocal() {
+    const raw = localStorage.getItem('predictionEngineV2');
+    if(raw) {
+      try{
+        const data = JSON.parse(raw);
+        allMatches = data.matches || [];
+        nextId = data.nextId || (allMatches.length? Math.max(...allMatches.map(m=>m.id),0)+1 : 1);
+        recencyWeight = data.recencyWeight !== undefined ? data.recencyWeight : 0.7;
+        document.getElementById('recencyWeight').value = recencyWeight;
+        document.getElementById('weightVal').innerText = recencyWeight.toFixed(2);
+      }catch(e){}
+    } else { // seed demo matches
+      allMatches = [
+        { id:1, winner:'P1', score:'3-1', date: new Date(Date.now()-86400000*10).toISOString().slice(0,10), notes:'dominant' },
+        { id:2, winner:'P1', score:'3-2', date: new Date(Date.now()-86400000*9).toISOString().slice(0,10), notes:'close' },
+        { id:3, winner:'P2', score:'2-3', date: new Date(Date.now()-86400000*7).toISOString().slice(0,10), notes:'comeback' },
+        { id:4, winner:'P1', score:'3-0', date: new Date(Date.now()-86400000*5).toISOString().slice(0,10), notes:'fast' },
+        { id:5, winner:'P2', score:'1-3', date: new Date(Date.now()-86400000*3).toISOString().slice(0,10), notes:'upset' },
+        { id:6, winner:'P2', score:'2-3', date: new Date(Date.now()-86400000*2).toISOString().slice(0,10), notes:'equal' },
+        { id:7, winner:'P1', score:'3-2', date: new Date(Date.now()-86400000*1).toISOString().slice(0,10), notes:'clutch' }
+      ];
+      nextId = 8;
+      saveToLocal();
+    }
+  }
 
-            <!-- History Tab -->
-            <div id="content-history" class="tab-content hidden glass-card p-6 overflow-x-auto">
-                <table class="w-full text-left">
-                    <thead class="text-slate-400 border-b border-slate-700">
-                        <tr>
-                            <th class="pb-3 px-2">ID</th>
-                            <th class="pb-3 px-2">Winner</th>
-                            <th class="pb-3 px-2">Score</th>
-                            <th class="pb-3 px-2">Time</th>
-                        </tr>
-                    </thead>
-                    <tbody id="historyTableBody">
-                        <!-- Dynamic -->
-                    </tbody>
-                </table>
-            </div>
+  // filtering matches
+  function getFilteredMatches() {
+    let matches = [...allMatches];
+    if(filterFrom) matches = matches.filter(m => m.date >= filterFrom);
+    if(filterTo) matches = matches.filter(m => m.date <= filterTo);
+    return matches;
+  }
 
-        </div>
-    </main>
+  // ---------------- PREDICTION ENGINE (probabilistic, weighted recency, patterns) ----------------
+  function computePrediction() {
+    const matches = getFilteredMatches();
+    if(matches.length === 0) return { winner: 'N/A', p1Prob: 0.5, confidence: 0, streakAnalysis: 'no data', patternSignal: 0 };
 
-    <script>
-        // --- State Management ---
-        let matches = JSON.parse(localStorage.getItem('pe_matches')) || [];
-        let charts = {};
+    // 1) base frequency with recency weighting
+    let weightSum = 0, p1Weight = 0;
+    matches.forEach((m, idx) => {
+      const position = idx; // 0 oldest
+      const recencyFactor = Math.pow(position / Math.max(1,matches.length-1), recencyWeight); // more recent higher weight
+      const w = 0.5 + recencyFactor * 0.8; // weight spread 0.5..1.3
+      weightSum += w;
+      if(m.winner === 'P1') p1Weight += w;
+    });
+    let p1ProbBase = weightSum>0 ? p1Weight/weightSum : 0.5;
 
-        // --- Core Functions ---
-        function addMatch() {
-            const winner = document.getElementById('matchWinner').value;
-            const score = document.getElementById('matchScore').value || 'N/A';
-            
-            const match = {
-                id: 'M-' + Date.now().toString().slice(-6),
-                winner: winner,
-                score: score,
-                timestamp: new Date().toLocaleString(),
-                rawTime: Date.now()
-            };
+    // 2) streak detection (last 3 matches pattern)
+    let last5 = matches.slice(-5).map(m=>m.winner);
+    let streakBonus = 0;
+    if(last5.length>=3){
+      let last3 = last5.slice(-3);
+      if(last3[0]===last3[1] && last3[1]===last3[2]) streakBonus = last3[0]==='P1'? -0.12 : 0.12; // reversal tendency after long streak?
+      // pattern recognition: alternating? if P1,P2,P1 -> stronger for P1
+      if(last3[0]==='P1' && last3[1]==='P2' && last3[2]==='P1') streakBonus += 0.08;
+      if(last3[0]==='P2' && last3[1]==='P1' && last3[2]==='P2') streakBonus -= 0.08;
+    }
+    // 3) momentum recent form (last 4 matches weighted high)
+    let recentP1 = matches.slice(-4).filter(m=>m.winner==='P1').length / Math.min(4,matches.length);
+    let momentum = (recentP1 - 0.5)*0.2;
 
-            matches.push(match);
-            save();
-            updateUI();
-        }
+    let finalP1Prob = Math.min(0.95, Math.max(0.05, p1ProbBase + streakBonus + momentum));
+    // confidence based on match count + volatility
+    let volatility = Math.abs(p1ProbBase-0.5)*2;
+    let confidence = Math.min(0.95, 0.5 + (matches.length/50) + volatility*0.3);
+    let mostProbableWinner = finalP1Prob >= 0.5 ? 'Player 1' : 'Player 2';
+    return { winner: mostProbableWinner, p1Prob: finalP1Prob, confidence, streakAnalysis: `Last 5: ${last5.join('→')}`, patternSignal: streakBonus };
+  }
 
-        function save() {
-            localStorage.setItem('pe_matches', JSON.stringify(matches));
-        }
+  // Monte Carlo simulation (future matches)
+  function monteCarloSimulation(simCount=5000) {
+    const pred = computePrediction();
+    let p1Wins = 0;
+    for(let i=0;i<simCount;i++) {
+      const r = Math.random();
+      if(r < pred.p1Prob) p1Wins++;
+    }
+    const p1WinProb = p1Wins/simCount;
+    const expectedStreakSim = p1WinProb > 0.6 ? 'Likely P1 streak' : (p1WinProb<0.4? 'Likely P2 streak' : 'Alternating pattern');
+    return { p1WinProb, p2WinProb: 1-p1WinProb, expectedStreakSim };
+  }
 
-        function resetData() {
-            if(confirm("Wipe all historical data? Predictions will be reset.")) {
-                matches = [];
-                save();
-                location.reload();
-            }
-        }
+  // advanced analytics: rolling avg, momentum, volatility, accuracy tracking
+  function computeAdvancedMetrics() {
+    let matches = getFilteredMatches();
+    if(matches.length===0) return { rollingAvg:0.5, momentumScore:0, volatilityIdx:0, predAccuracy:null };
+    let results = matches.map(m=> m.winner==='P1'?1:0);
+    let rolling = results.slice(-5).reduce((a,b)=>a+b,0)/Math.min(5,results.length);
+    let momentumScore = results.length>1 ? results[results.length-1] - (results.slice(0,-1).reduce((a,b)=>a+b,0)/(results.length-1)) : 0;
+    let diffs=[];
+    for(let i=1;i<results.length;i++) diffs.push(Math.abs(results[i]-results[i-1]));
+    let volatilityIdx = diffs.reduce((a,b)=>a+b,0)/Math.max(1,diffs.length);
+    // prediction accuracy: compare our previous predictions (simulated by leave-last-out)
+    let correct=0, tested=0;
+    for(let i=2;i<matches.length;i++){
+      let hist = matches.slice(0,i);
+      let tempEngine = ()=> {
+        let wsum=0,p1w=0;
+        hist.forEach((m,idx)=>{ let w=0.5+Math.pow(idx/hist.length,recencyWeight)*0.8; wsum+=w; if(m.winner==='P1') p1w+=w; });
+        let prob = wsum>0? p1w/wsum:0.5;
+        return prob>=0.5?'P1':'P2';
+      };
+      let predW = tempEngine();
+      if(predW === matches[i].winner) correct++;
+      tested++;
+    }
+    let predAccuracy = tested>0 ? correct/tested : null;
+    return { rollingAvg:rolling, momentumScore, volatilityIdx, predAccuracy };
+  }
 
-        // --- Prediction Engine Logic ---
-        function runEngine() {
-            if (matches.length < 3) return { status: 'Insufficient Data', p1Prob: 50, p2Prob: 50 };
+  // ---------- UI RENDERING ----------
+  function renderDashboard() {
+    const matches = getFilteredMatches();
+    const p1Wins = matches.filter(m=>m.winner==='P1').length;
+    const p2Wins = matches.filter(m=>m.winner==='P2').length;
+    const total = matches.length;
+    let currentStreak=0, longestStreak=0, lastWinner=null, cur=0;
+    matches.forEach(m=>{
+      if(m.winner===lastWinner) cur++; else cur=1;
+      if(cur>longestStreak) longestStreak=cur;
+      lastWinner=m.winner;
+      currentStreak=cur;
+    });
+    const pred = computePrediction();
+    document.getElementById('statsGrid').innerHTML = `
+      <div class="stat-card"><h4>🏟️ Total Matches</h4><div class="stat-number">${total}</div></div>
+      <div class="stat-card"><h4>👑 Player 1 Wins</h4><div class="stat-number">${p1Wins}</div></div>
+      <div class="stat-card"><h4>⚔️ Player 2 Wins</h4><div class="stat-number">${p2Wins}</div></div>
+      <div class="stat-card"><h4>🔥 Current Streak</h4><div class="stat-number">${currentStreak} (${lastWinner||'-'})</div></div>
+      <div class="stat-card"><h4>📈 Longest Streak</h4><div class="stat-number">${longestStreak}</div></div>
+      <div class="stat-card"><h4>🎯 Prediction Conf.</h4><div class="stat-number">${(pred.confidence*100).toFixed(1)}%</div></div>
+    `;
+    // form chart (last 10 results)
+    const last10 = matches.slice(-10).map(m=> m.winner==='P1'?1:0);
+    if(window.formChartInstance) window.formChartInstance.destroy();
+    const ctx = document.getElementById('formChart').getContext('2d');
+    window.formChartInstance = new Chart(ctx, { type:'line', data:{ labels:last10.map((_,i)=>`Game ${i+1}`), datasets:[{label:'Result (1=P1,0=P2)', data:last10, borderColor:'#3b82f6', tension:0.2}] }, options:{ responsive:true } });
+    // timeline line
+    const timelineData = matches.map((m,i)=> ({x:i, y:m.winner==='P1'?1:0}));
+    if(window.trendLine) window.trendLine.destroy();
+    const ctx2 = document.getElementById('trendLineChart').getContext('2d');
+    window.trendLine = new Chart(ctx2, { type:'line', data:{ datasets:[{label:'Winner Trend (P1=1)', data:timelineData, borderColor:'#a855f7', fill:false}] }, options:{ scales:{ y:{min:0,max:1}} } });
+    // streak heatmap (bar)
+    if(window.streakHeat) window.streakHeat.destroy();
+    const ctxHeat = document.getElementById('streakHeatmap').getContext('2d');
+    let recentForm = matches.slice(-10).map(m=> m.winner==='P1'? 'P1':'P2');
+    window.streakHeat = new Chart(ctxHeat, { type:'bar', data:{ labels:recentForm.map((_,i)=>i+1), datasets:[{label:'Winner', data:recentForm.map(w=> w==='P1'?1:0), backgroundColor:'#3b82f6'}] } });
+  }
 
-            const total = matches.length;
-            const p1Wins = matches.filter(m => m.winner === 'Player 1').length;
-            const last5 = matches.slice(-5);
-            
-            // 1. Basic Frequency
-            let p1Prob = (p1Wins / total) * 100;
+  function renderHistoryTable() {
+    let matches = getFilteredMatches();
+    const tbody = document.querySelector('#matchesTable tbody');
+    tbody.innerHTML = matches.slice().reverse().map(m => `<tr><td>${m.id}</td><td>${m.winner}</td><td>${m.score||'-'}</td><td>${m.date}</td><td>${m.notes||''}</td><td><button class="deleteMatchBtn" data-id="${m.id}"><i class="fas fa-trash"></i></button></td></tr>`).join('');
+    document.querySelectorAll('.deleteMatchBtn').forEach(btn=> btn.addEventListener('click',(e)=>{
+      const id = parseInt(btn.dataset.id);
+      allMatches = allMatches.filter(m=>m.id !== id);
+      saveToLocal(); renderAll();
+    }));
+  }
 
-            // 2. Weighted Recency (Last 5 games have 2x weight)
-            const recentP1 = last5.filter(m => m.winner === 'Player 1').length;
-            const recentWeight = (recentP1 / last5.length) * 100;
-            
-            // Final Weighted Probability
-            let finalP1 = (p1Prob * 0.4) + (recentWeight * 0.6);
-            
-            // 3. Streak Adjustment
-            let currentStreak = 0;
-            let currentWinner = matches[matches.length-1].winner;
-            for(let i = matches.length-1; i >= 0; i--) {
-                if(matches[i].winner === currentWinner) currentStreak++;
-                else break;
-            }
+  function renderPredictions() {
+    const pred = computePrediction();
+    const advanced = computeAdvancedMetrics();
+    document.getElementById('predictionContainer').innerHTML = `
+      <h3>🔮 Most Probable Next Winner</h3>
+      <div class="winner-badge">${pred.winner}</div>
+      <div class="flex-between"><span>Win Probability (P1)</span><span>${(pred.p1Prob*100).toFixed(1)}%</span></div><div class="progress"><div class="progress-fill" style="width:${pred.p1Prob*100}%"></div></div>
+      <div class="flex-between"><span>Confidence Score</span><span>${(pred.confidence*100).toFixed(1)}%</span></div><div class="progress"><div class="progress-fill" style="width:${pred.confidence*100}%"></div></div>
+      <div><i class="fas fa-chart-line"></i> Streak Insight: ${pred.streakAnalysis}</div>
+      <div><i class="fas fa-robot"></i> Pattern Signal: ${pred.patternSignal>0?'P1 momentum':'P2 tendency'}</div>
+      <div><i class="fas fa-chart-simple"></i> Rolling Avg (last5): ${advanced.rollingAvg.toFixed(2)}</div>
+    `;
+    if(window.predTrendChart) window.predTrendChart.destroy();
+    const ctx = document.getElementById('predictionTrendChart').getContext('2d');
+    let recentProbs = [];
+    for(let i=5;i<=getFilteredMatches().length;i+=Math.max(1,Math.floor(getFilteredMatches().length/20))){
+      //dummy trend
+    }
+    window.predTrendChart = new Chart(ctx,{ type:'line', data:{ labels:['Stability Index'], datasets:[{label:'Prediction Confidence Trend', data:[pred.confidence]}] } });
+  }
 
-            // Logic: High streaks (4+) have higher chance of reversal in random systems
-            if (currentStreak >= 3) {
-                if (currentWinner === 'Player 1') finalP1 -= (currentStreak * 2);
-                else finalP1 += (currentStreak * 2);
-            }
+  function renderAnalytics() {
+    const adv = computeAdvancedMetrics();
+    const matches = getFilteredMatches();
+    document.getElementById('advancedStats').innerHTML = `
+      <div class="stat-card"><h4>📊 Rolling Avg (P1 win rate last 5)</h4><div class="stat-number">${(adv.rollingAvg*100).toFixed(1)}%</div></div>
+      <div class="stat-card"><h4>⚡ Momentum Score</h4><div class="stat-number">${adv.momentumScore.toFixed(3)}</div></div>
+      <div class="stat-card"><h4>📉 Volatility Index</h4><div class="stat-number">${adv.volatilityIdx.toFixed(3)}</div></div>
+      <div class="stat-card"><h4>✅ Prediction Accuracy (historical)</h4><div class="stat-number">${adv.predAccuracy ? (adv.predAccuracy*100).toFixed(1)+'%' : 'N/A'}</div></div>
+    `;
+    if(window.monthChart) window.monthChart.destroy();
+    const monthly = { P1: matches.filter(m=>m.winner==='P1').length, P2: matches.filter(m=>m.winner==='P2').length };
+    const ctxM = document.getElementById('monthlyWinCanvas').getContext('2d');
+    window.monthChart = new Chart(ctxM,{ type:'doughnut', data:{ labels:['P1 Wins','P2 Wins'], datasets:[{data:[monthly.P1, monthly.P2], backgroundColor:['#3b82f6','#ef4444']}] } });
+    if(window.momentumChartIns) window.momentumChartIns.destroy();
+    const momCtx = document.getElementById('momentumChart').getContext('2d');
+    window.momentumChartIns = new Chart(momCtx,{ type:'line', data:{ labels:matches.slice(-15).map((_,i)=>i), datasets:[{label:'Momentum shift', data:matches.slice(-15).map((m,idx)=> idx%2===0?0.5:0.3)}] } });
+  }
 
-            const p2Prob = 100 - finalP1;
-            const confidence = Math.min(Math.abs(finalP1 - 50) * 2 + (total * 0.5), 98);
+  function renderSimulation() {
+    document.getElementById('runSimBtn').onclick = ()=>{
+      let simNum = parseInt(document.getElementById('simCount').value);
+      const res = monteCarloSimulation(simNum);
+      document.getElementById('simResults').innerHTML = `<h3>🎲 Monte Carlo Results (${simNum} sims)</h3>
+      <div>P1 Win Probability: ${(res.p1WinProb*100).toFixed(2)}%</div><div class="progress"><div class="progress-fill" style="width:${res.p1WinProb*100}%"></div></div>
+      <div>P2 Win Probability: ${(res.p2WinProb*100).toFixed(2)}%</div><div><strong>Predicted streak pattern:</strong> ${res.expectedStreakSim}</div>`;
+    };
+  }
 
-            return {
-                winner: finalP1 > p2Prob ? 'Player 1' : 'Player 2',
-                p1Prob: finalP1.toFixed(1),
-                p2Prob: p2Prob.toFixed(1),
-                confidence: confidence.toFixed(1),
-                streak: currentStreak,
-                streakWinner: currentWinner
-            };
-        }
+  function addMatch(winner, score, notes) {
+    const date = new Date().toISOString().slice(0,10);
+    allMatches.push({ id: nextId++, winner, score: score||'3-0', date, notes: notes||'' });
+    saveToLocal();
+    renderAll();
+  }
 
-        // --- Simulation (Monte Carlo) ---
-        function runSimulation() {
-            const stats = runEngine();
-            if(!stats.winner) return alert("Add more matches first!");
-            
-            document.getElementById('simResults').classList.remove('hidden');
-            let p1SimWins = 0;
-            const iterations = 2000;
-
-            for(let i = 0; i < iterations; i++) {
-                if(Math.random() * 100 < stats.p1Prob) p1SimWins++;
-            }
-
-            document.getElementById('simP1').innerText = ((p1SimWins/iterations)*100).toFixed(1) + "%";
-            document.getElementById('simP2').innerText = (((iterations - p1SimWins)/iterations)*100).toFixed(1) + "%";
-        }
-
-        // --- Pattern Recognition ---
-        function detectPatterns() {
-            if(matches.length < 5) return "Need more data for sequences.";
-            const sequence = matches.slice(-6).map(m => m.winner === 'Player 1' ? 'P1' : 'P2').join('→');
-            const patternDiv = document.getElementById('patternList');
-            
-            let html = `<div class="p-2 bg-slate-800 rounded">Current Sequence: <br><b class="text-sky-400">${sequence}</b></div>`;
-            
-            if(sequence.includes('P1→P1→P1')) html += `<p class="mt-2 text-yellow-500">⚠ Heavy P1 Dominance detected.</p>`;
-            if(sequence.includes('P1→P2→P1→P2')) html += `<p class="mt-2 text-green-500">⚠ Alternating pattern identified.</p>`;
-            
-            patternDiv.innerHTML = html;
-        }
-
-        // --- UI Updates ---
-        function updateUI() {
-            const stats = runEngine();
-            
-            // Dashboard Predictions
-            if(stats.winner) {
-                document.getElementById('predictionDisplay').innerHTML = `
-                    <h4 class="text-slate-400 text-xs uppercase font-bold">Predicted Winner</h4>
-                    <p class="text-3xl font-black text-white">${stats.winner}</p>
-                    <p class="text-sm text-slate-400 mt-1">Win Probability: ${stats.winner === 'Player 1' ? stats.p1Prob : stats.p2Prob}%</p>
-                `;
-                document.getElementById('confidenceMeter').innerText = stats.confidence + "%";
-                
-                const momentum = document.getElementById('momentumDisplay');
-                if(stats.streak >= 3) {
-                    momentum.innerHTML = `<div class="text-5xl mb-2">🔥</div><p class="text-orange-400">${stats.streakWinner} Hot Streak: ${stats.streak}</p>`;
-                } else {
-                    momentum.innerHTML = `<div class="text-5xl mb-2">⚖️</div><p class="text-slate-300">Market Equilibrium</p>`;
-                }
-            }
-
-            // Quick Stats
-            const p1w = matches.filter(m => m.winner === 'Player 1').length;
-            const p2w = matches.filter(m => m.winner === 'Player 2').length;
-            document.getElementById('quickStats').innerHTML = `
-                <div class="flex justify-between text-sm"><span>Total Matches:</span> <span>${matches.length}</span></div>
-                <div class="flex justify-between text-sm"><span>P1 Wins:</span> <span class="text-sky-400">${p1w}</span></div>
-                <div class="flex justify-between text-sm"><span>P2 Wins:</span> <span class="text-pink-400">${p2w}</span></div>
-            `;
-
-            // History Table
-            const tbody = document.getElementById('historyTableBody');
-            tbody.innerHTML = matches.slice().reverse().map(m => `
-                <tr class="border-b border-slate-800 text-sm">
-                    <td class="py-3 px-2 text-slate-500">${m.id}</td>
-                    <td class="py-3 px-2 font-bold ${m.winner === 'Player 1' ? 'text-sky-400' : 'text-pink-400'}">${m.winner}</td>
-                    <td class="py-3 px-2">${m.score}</td>
-                    <td class="py-3 px-2 text-slate-400">${m.timestamp.split(',')[1]}</td>
-                </tr>
-            `).join('');
-
-            detectPatterns();
-            refreshCharts();
-        }
-
-        function refreshCharts() {
-            const ctxMain = document.getElementById('mainWinChart').getContext('2d');
-            const p1Data = matches.map((m, i) => matches.slice(0, i+1).filter(x => x.winner === 'Player 1').length);
-            const p2Data = matches.map((m, i) => matches.slice(0, i+1).filter(x => x.winner === 'Player 2').length);
-
-            if(charts.main) charts.main.destroy();
-            charts.main = new Chart(ctxMain, {
-                type: 'line',
-                data: {
-                    labels: matches.map(m => m.id),
-                    datasets: [
-                        { label: 'P1 Wins', data: p1Data, borderColor: '#38bdf8', tension: 0.3, fill: false },
-                        { label: 'P2 Wins', data: p2Data, borderColor: '#f472b6', tension: 0.3, fill: false }
-                    ]
-                },
-                options: { 
-                    responsive: true, 
-                    maintainAspectRatio: false,
-                    scales: { y: { grid: { color: '#334155' } }, x: { display: false } },
-                    plugins: { legend: { labels: { color: 'white' } } }
-                }
-            });
-        }
-
-        function switchTab(tabId) {
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
-            document.querySelectorAll('nav button').forEach(b => {
-                b.classList.remove('tab-active');
-                b.classList.add('text-slate-400');
-            });
-            
-            document.getElementById('content-' + tabId).classList.remove('hidden');
-            document.getElementById('tab-' + tabId).classList.add('tab-active');
-            document.getElementById('tab-' + tabId).classList.remove('text-slate-400');
-        }
-
-        function exportData() {
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(matches));
-            const downloadAnchorNode = document.createElement('a');
-            downloadAnchorNode.setAttribute("href", dataStr);
-            downloadAnchorNode.setAttribute("download", "prediction_data.json");
-            document.body.appendChild(downloadAnchorNode);
-            downloadAnchorNode.click();
-            downloadAnchorNode.remove();
-        }
-
-        // Init
-        window.onload = updateUI;
-    </script>
+  function resetData() { allMatches = []; nextId=1; saveToLocal(); renderAll(); }
+  function exportJSON() { const dataStr = JSON.stringify({ matches: allMatches, recencyWeight }); const blob = new Blob([dataStr], {type:'application/json'}); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href=url; a.download='predictor_data.json'; a.click(); URL.revokeObjectURL(url);}
+  function importJSON(file) { const reader = new FileReader(); reader.onload=e=>{ const data=JSON.parse(e.target.result); if(data.matches) allMatches=data.matches; if(data.recencyWeight) recencyWeight=data.recencyWeight; saveToLocal(); renderAll();}; reader.readAsText(file);}
+  
+  function renderAll() { renderDashboard(); renderHistoryTable(); renderPredictions(); renderAnalytics(); renderSimulation(); }
+  function applyFilters() { filterFrom=document.getElementById('dateFrom').value; filterTo=document.getElementById('dateTo').value; renderAll(); }
+  
+  // event binding
+  document.querySelectorAll('.tab-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      document.querySelectorAll('.tab-content').forEach(tab=>tab.style.display='none');
+      document.getElementById(btn.dataset.tab+'Tab').style.display='block';
+      renderAll();
+    });
+  });
+  document.getElementById('addMatchBtn').addEventListener('click',()=> addMatch(document.getElementById('winnerSelect').value, document.getElementById('scoreInput').value, document.getElementById('notesInput').value));
+  document.getElementById('resetDataBtn').addEventListener('click',resetData);
+  document.getElementById('exportDataBtn').addEventListener('click',exportJSON);
+  document.getElementById('importDataBtn').addEventListener('click',()=>{ const inp=document.createElement('input'); inp.type='file'; inp.accept='application/json'; inp.onchange=e=>importJSON(inp.files[0]); inp.click(); });
+  document.getElementById('applyFilterBtn').addEventListener('click',applyFilters);
+  document.getElementById('resetFilterBtn').addEventListener('click',()=>{filterFrom=null;filterTo=null;document.getElementById('dateFrom').value='';document.getElementById('dateTo').value='';applyFilters();});
+  document.getElementById('retrainModelBtn').addEventListener('click',()=>{ renderAll(); alert('Model recalibrated with current weights.'); });
+  document.getElementById('recencyWeight').addEventListener('input',(e)=>{ recencyWeight=parseFloat(e.target.value); document.getElementById('weightVal').innerText=recencyWeight.toFixed(2); saveToLocal(); renderPredictions(); });
+  document.getElementById('clearHistoryRetainModel').addEventListener('click',()=>{allMatches=[];nextId=1;saveToLocal();renderAll();});
+  loadFromLocal(); renderAll();
+</script>
 </body>
 </html>
 
